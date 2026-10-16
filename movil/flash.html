@@ -135,9 +135,9 @@ a.kv:active { background: var(--bd); }
 .apto-c p { margin: 0 0 6px; }
 .apto-c a { color: var(--sun-ink); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-right: 16px; }
 .apto-c .sin { color: var(--muted); font-size: 14px; }
-.apto-c .tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.apto-c .tr a { min-height: 32px; margin-right: 0; font-size: 14px; }
-.sf { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--hi); }
+.apto-c .tr b { display: inline; }
+.apto-c .tr a { display: inline; min-height: 0; margin: 0 0 0 4px; font-size: 14px; white-space: nowrap; }
+.sf { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; background: var(--hi); }
 .sf.alta { background: var(--ok); }
 .sf.media { background: var(--mid); }
 
@@ -569,14 +569,14 @@ a.kv:active { background: var(--bd); }
     var mapa = /^https:/.test(a.mapa || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.mapa) + '">Mapa ›</a>' : "";
     var fila = function (modo, texto, enlace, fiab) {   // modo · datos · enlace al operador · semáforo pequeño
       var tit = fiab === "alta" ? "Leído en la web oficial" : fiab === "media" ? "Varias fuentes, no la oficial" : "Sin comprobar";
-      return '<p class="tr"><i class="sf ' + (fiab === "alta" || fiab === "media" ? fiab : "baja") + '" title="' + tit + '" role="img" aria-label="' + tit + '"></i><b>' + esc(modo) + '</b> ' + esc(texto) +
+      return '<p class="tr"><i class="sf ' + (fiab === "alta" || fiab === "media" ? fiab : "baja") + '" title="' + tit + '" role="img" aria-label="' + tit + '"></i>' + (modo ? '<b>' + esc(modo) + '</b> ' : '') + esc(texto) +
         (/^https:/.test(enlace || "") ? ' <a target="_blank" rel="noopener" href="' + esc(enlace) + '">Operador ›</a>' : "") + '</p>';
     };
     var t = a.taxi || {};
     return '<details class="apto"><summary><span>✈ ' + rotulo + ' · ' + esc(a.nombre) + ' (' + esc(cod) + ')</span></summary><div class="apto-c">' +
       ((web || mapa) ? '<div>' + web + mapa + '</div>' : "") +
       '<div><h3>Al centro</h3>' + ((a.centro || []).map(function (c) { return fila(c.modo, c.texto, c.enlace, c.fiab); }).join("") || '<p class="sin">Sin transporte público directo.</p>') + '</div>' +
-      (t.texto ? '<div><h3>Taxi</h3>' + fila("Taxi", t.texto, t.enlace, t.fiab) + '</div>' : "") +
+      (t.texto ? '<div><h3>Taxi</h3>' + fila("", t.texto, t.enlace, t.fiab) + '</div>' : "") +
       (a.apps ? '<div><h3>Apps</h3><p>' + esc(a.apps) + '</p></div>' : "") +
       '</div></details>';
   }
