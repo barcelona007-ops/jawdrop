@@ -24,6 +24,7 @@ jobs:
           KV: ${{ vars.CF_KV_ID }}
           D1: ${{ vars.CF_D1_ID }}
         run: |
+          KV=$(printf %s "$KV" | tr -d "[:space:]"); D1=$(printf %s "$D1" | tr -d "[:space:]")
           [ -z "$KV" ] || sed -i "s/TU_ID_KV/$KV/" wrangler.toml
           [ -z "$D1" ] || sed -i "s/TU_ID_D1/$D1/" wrangler.toml cron/wrangler.toml
           if grep -q 'TU_ID_' wrangler.toml cron/wrangler.toml; then echo "Faltan las variables CF_KV_ID / CF_D1_ID (Settings → Secrets and variables → Actions → Variables)."; exit 1; fi
@@ -71,6 +72,7 @@ jobs:
           KV: ${{ vars.CF_KV_ID }}
           D1: ${{ vars.CF_D1_ID }}
         run: |
+          KV=$(printf %s "$KV" | tr -d "[:space:]"); D1=$(printf %s "$D1" | tr -d "[:space:]")
           [ -z "$KV" ] || sed -i "s/TU_ID_KV/$KV/" wrangler.toml
           [ -z "$D1" ] || sed -i "s/TU_ID_D1/$D1/" wrangler.toml cron/wrangler.toml
           if grep -q 'TU_ID_' wrangler.toml cron/wrangler.toml; then echo "Faltan las variables CF_KV_ID / CF_D1_ID (Settings → Secrets and variables → Actions → Variables)."; exit 1; fi
