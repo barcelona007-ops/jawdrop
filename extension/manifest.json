@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Jawdrop: elegir hotel",
+  "version": "0.2.1",
+  "description": "Añade un botón «＋» a cada alojamiento de Booking cuando abres la búsqueda desde Jawdrop. Al pulsarlo, manda el hotel a la demo y cierra la pestaña.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.booking.com/*", "https://booking.com/*"],
+      "js": ["contenido.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["file:///*/escapadas.html", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["puente.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": { "service_worker": "fondo.js" }
+}

@@ -1,0 +1,28 @@
+# Escucha en directo al temporizador de Cloudflare (wrangler tail) durante unos minutos y enseña lo que registra.
+# Sirve para ver por qué el cron `*/2 * * * *` falla o no se dispara. Solo lectura.
+name: Escuchar el temporizador
+on:
+  workflow_dispatch:
+    inputs:
+      segundos:
+        description: "Segundos de escucha"
+        default: "300"
+jobs:
+  escuchar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: wrangler tail
+        working-directory: cron
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SEGUNDOS: ${{ github.event.inputs.segundos || '300' }}
+        run: |
+          echo "Escuchando $SEGUNDOS s desde $(date -u +%H:%M:%S) UTC"
+          timeout "$SEGUNDOS" npx wrangler@4 tail escapadas-cron --format pretty 2>&1 | head -c 20000 || true
+          echo "Fin de la escucha $(date -u +%H:%M:%S) UTC"

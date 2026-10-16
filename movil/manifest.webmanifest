@@ -1,0 +1,16 @@
+{
+  "name": "Jawdrop",
+  "short_name": "Escapadas",
+  "description": "Escapadas low cost desde Barcelona",
+  "start_url": "./flash.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es",
+  "background_color": "#e4e9dc",
+  "theme_color": "#e4e9dc",
+  "icons": [
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

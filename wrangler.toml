@@ -1,0 +1,15 @@
+# Cloudflare Pages: pantalla del iPhone + función del pasaporte (functions/api/pasaporte.js).
+# Lo usa `publicar_movil.py --subir`. El id de KV se obtiene con: npx wrangler kv namespace create PASAPORTE
+name = "jawdrop"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "publicar"
+
+[[kv_namespaces]]
+binding = "PASAPORTE"
+id = "TU_ID_KV"
+
+# Base de datos D1: caché de precios (misma tabla `respuestas` que cache.sqlite) y tareas de «Actualizar».
+[[d1_databases]]
+binding = "DB"
+database_name = "escapadas"
+database_id = "TU_ID_D1"

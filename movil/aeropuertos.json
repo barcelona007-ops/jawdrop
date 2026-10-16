@@ -1,0 +1,324 @@
+{
+ "PMO": {
+  "nombre": "Palermo Falcone-Borsellino",
+  "web": "https://aeroportodipalermo.it/en/",
+  "mapa": null,
+  "centro": [
+   [
+    "Tren",
+    "Estación bajo la terminal → Palermo Centrale. ~6 €, 35-60 min, cada ~30 min."
+   ],
+   [
+    "Bus",
+    "Prestia e Comandè a Centrale y Politeama. ~6 €, 40-60 min, cada ~30 min (~5:00-0:30)."
+   ]
+  ],
+  "taxi": "Tarifa tope ~45 € al centro (según fuentes 39-50 €). Taxi compartido 8-10 € por persona si sois 4.",
+  "apps": "Sin confirmar: en Italia Uber y Bolt apenas funcionan (VTC muy limitado); lo normal es el taxi oficial.",
+  "nota": "Su web bloquea las consultas automáticas: precios de webs de terceros, contrasta antes de ir.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Palermo"
+  ]
+ },
+ "BGY": {
+  "nombre": "Milán-Bérgamo (Orio al Serio)",
+  "web": "https://www.milanbergamoairport.it/en/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus a Milán",
+    "Terravision, Orio Shuttle o Autostradale a Milano Centrale. ~5-10 €, ~50-60 min, cada ~20 min."
+   ],
+   [
+    "Bus a Bérgamo",
+    "ATB a la estación y la ciudad. ~2 €, 10-15 min (línea y precio varían según la fuente)."
+   ],
+   [
+    "Tren",
+    "No hay estación en el aeropuerto."
+   ]
+  ],
+  "taxi": "A Bérgamo ~15-20 €. A Milán ~80 €: no compensa.",
+  "apps": "Sin datos de Uber/Bolt/apps de taxi.",
+  "nota": "Está a ~50 km de Milán. Su web bloquea las consultas automáticas.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Bérgamo",
+   "Milán-Bérgamo",
+   "Milán Bérgamo",
+   "Milan Bergamo",
+   "Bergamo"
+  ]
+ },
+ "TRN": {
+  "nombre": "Turín Caselle",
+  "web": "https://www.turin-airport.com/en",
+  "mapa": null,
+  "centro": [
+   [
+    "Tren",
+    "Estación del aeropuerto → Torino Dora. ~3 €, ~20 min; hay que enlazar con bus o metro."
+   ],
+   [
+    "Bus",
+    "SADEM a Porta Susa y Porta Nuova. ~6,5-7,5 € (a bordo +0,5-1 €), 40-45 min."
+   ]
+  ],
+  "taxi": "~30-50 € al centro. Radiotaxi: +39 011 5737.",
+  "apps": "Sin confirmar: en Italia Uber y Bolt apenas funcionan (VTC muy limitado); lo normal es el taxi oficial.",
+  "nota": "Su web no respondía al consultarla: datos de webs de terceros.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Turín"
+  ]
+ },
+ "CTA": {
+  "nombre": "Catania Fontanarossa",
+  "web": "https://www.aeroporto.catania.it/en/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus",
+    "Alibus (AMTS) a Catania Centrale. 4 €, ~15-25 min, cada ~20-25 min. Sin servicio de 0:30 a 4:40."
+   ],
+   [
+    "Tren",
+    "No hay directo; las fuentes se contradicen."
+   ]
+  ],
+  "taxi": "Tarifa fija ~22-27 € al centro (cambió en 2026: confírmala). Radio Taxi Catania: +39 095 330966.",
+  "apps": "Sin confirmar: en Italia Uber y Bolt apenas funcionan (VTC muy limitado); lo normal es el taxi oficial.",
+  "nota": "Precios de webs de terceros y de una universidad.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Catania"
+  ]
+ },
+ "BLQ": {
+  "nombre": "Bolonia Marconi",
+  "web": "https://www.bologna-airport.it/en/",
+  "mapa": "https://www.bologna-airport.it/en/at-the-airport/services/terminal-maps/?idC=62211",
+  "centro": [
+   [
+    "Tren",
+    "Marconi Express (tren lanzadera) a la estación. 12,80 € ida, 7 min."
+   ],
+   [
+    "Bus",
+    "TPER línea Q: de día al Ospedale Maggiore, de noche a la estación. ~30 min. Más autocares a Florencia, Módena, Ferrara y Rímini."
+   ]
+  ],
+  "taxi": "Radiotaxi Cotabo (051 372727) y CAT (051 4590). La web no publica tarifas ni dónde está la parada.",
+  "apps": "La web del aeropuerto no menciona Uber, Bolt ni apps de taxi.",
+  "nota": "Datos sacados de la web oficial del aeropuerto.",
+  "revisado": "2026-10-15",
+  "fiab": "alta",
+  "ciudades": [
+   "Bolonia"
+  ]
+ },
+ "VCE": {
+  "nombre": "Venecia Marco Polo",
+  "web": "https://www.veniceairport.it/en",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus",
+    "ATVO exprés y ACTV a Piazzale Roma. ~10 € ida, ~20-25 min, cada ~30 min."
+   ],
+   [
+    "Barco",
+    "Alilaguna al centro histórico: más lento que el bus; sin precio fiable."
+   ]
+  ],
+  "taxi": "Taxi acuático: ~15 € compartido, hasta ~180 € privado.",
+  "apps": "Sin confirmar: en Italia Uber y Bolt apenas funcionan (VTC muy limitado); lo normal es el taxi oficial.",
+  "nota": "Su web bloquea las consultas automáticas: datos de webs de terceros.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Venecia"
+  ]
+ },
+ "RAK": {
+  "nombre": "Marrakech Menara",
+  "web": "https://www.onda.ma/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus 19",
+    "Cada ~30 min (~6:15-21:30) a Jemaa el-Fna y Gueliz. ~20-30 MAD (≈2-3 €), se paga a bordo."
+   ]
+  ],
+  "taxi": "Ventanilla oficial de ONDA «kech.cab» (desde 2023): precio cerrado por destino, pago por adelantado, ticket con el nº de taxi. Fuera de ella, petit taxi: oficial ~70 MAD, en la práctica ~150 MAD; regatea.",
+  "apps": "Sin datos fiables de apps. Lo normal es taxi oficial; si no hay taxímetro, acuerda el precio antes de subir.",
+  "nota": "La ventanilla viene de una nota de ONDA (mayo de 2023); el resto, de webs de terceros.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Marrakech"
+  ]
+ },
+ "TNG": {
+  "nombre": "Tánger Ibn Battouta",
+  "web": "https://www.onda.ma/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus",
+    "Línea del aeropuerto (desde 2024), ~1 por hora. ~40 MAD según un viajero; horarios de su web poco fiables."
+   ]
+  ],
+  "taxi": "Tope ~100 MAD al centro de día y ~150 MAD de 22:30 a 5:30, 10-15 min. Acuerda el precio antes.",
+  "apps": "Sin datos fiables de apps. Lo normal es taxi oficial; si no hay taxímetro, acuerda el precio antes de subir.",
+  "nota": "Datos de webs de terceros y un blog de 2025.",
+  "revisado": "2026-10-15",
+  "fiab": "baja",
+  "ciudades": [
+   "Tánger"
+  ]
+ },
+ "FEZ": {
+  "nombre": "Fez Saïss",
+  "web": "https://www.onda.ma/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus 16",
+    "Cada 30-60 min, ~4 MAD, a la estación de autobuses / Ville Nouvelle. No llega a la medina: luego petit taxi (10-20 MAD)."
+   ]
+  ],
+  "taxi": "Directo a la medina ~150-250 MAD (las fuentes discrepan). Recargo nocturno del 50 %. Algunas fuentes dicen que el petit taxi no puede salir del aeropuerto hacia la ciudad (entonces, Gran Taxi): confírmalo allí.",
+  "apps": "Sin datos fiables de apps. Lo normal es taxi oficial; si no hay taxímetro, acuerda el precio antes de subir.",
+  "nota": "Datos de webs de terceros.",
+  "revisado": "2026-10-15",
+  "fiab": "baja",
+  "ciudades": [
+   "Fez"
+  ]
+ },
+ "AGA": {
+  "nombre": "Agadir Al Massira",
+  "web": "https://www.onda.ma/",
+  "mapa": null,
+  "centro": [
+   [
+    "Bus",
+    "No hay directo: líneas 20/24/28 (3 MAD) hasta Inezgane y allí la 22 (4 MAD)."
+   ]
+  ],
+  "taxi": "~200 MAD desde el centro, ~30 min. Acuerda el precio antes.",
+  "apps": "Sin datos fiables de apps. Lo normal es taxi oficial; si no hay taxímetro, acuerda el precio antes de subir.",
+  "nota": "Todo sale de una misma web de terceros: tómalo como orientativo.",
+  "revisado": "2026-10-15",
+  "fiab": "baja",
+  "ciudades": [
+   "Agadir"
+  ]
+ },
+ "BKK": {
+  "nombre": "Bangkok Suvarnabhumi",
+  "web": "https://suvarnabhumi.airportthai.co.th/",
+  "mapa": "https://suvarnabhumi.airportthai.co.th/airport-map/",
+  "centro": [
+   [
+    "Tren",
+    "Airport Rail Link (nivel B1) a Phaya Thai: ~45 THB (≈1,2 €), ~30 min, ~5:30-0:00."
+   ],
+   [
+    "Bus",
+    "Buses BMTA y autocares desde el centro de transporte público (según la web oficial)."
+   ]
+  ],
+  "taxi": "Taxi oficial con taxímetro, nivel 1, puertas 4-7: ~300-500 THB (≈8-14 €) + 50 THB de recargo + peajes. Coche reservado: 800-1.500 THB.",
+  "apps": "Grab: recogida en nivel 1, puerta 4 (suele haber cola). Bolt: a veces más barato, sin punto de recogida confirmado. La web oficial no habla de apps.",
+  "nota": "Los precios en bat varían mucho según la fuente (blogs de viajes). A la hora punta el tren gana al coche.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Bangkok"
+  ]
+ },
+ "DMK": {
+  "nombre": "Bangkok Don Mueang",
+  "web": "https://donmueang.airportthai.co.th/",
+  "mapa": "https://donmueang.airportthai.co.th/airport-map/",
+  "centro": [
+   [
+    "Bus A1",
+    "A Mo Chit (BTS Chatuchak). 30 THB, 6:50-23:59."
+   ],
+   [
+    "Bus A2",
+    "A Victory Monument. 30 THB, 5:00-22:00."
+   ],
+   [
+    "Bus A3 / A4",
+    "A Lumpini (50 THB) y a Khaosan / Sanam Luang (50 THB), ~7:00-23:00."
+   ],
+   [
+    "Tren",
+    "Sin enlace directo cómodo (línea roja SRT lenta)."
+   ]
+  ],
+  "taxi": "Taxi con taxímetro ~200-400 THB + peajes y 50 THB de recargo. Con Grab ~350 THB, 25-75 min según tráfico.",
+  "apps": "Grab funciona, pero el punto de recogida está poco señalizado y necesitas datos o wifi. La web oficial no menciona apps. Sin datos de Bolt.",
+  "nota": "Datos de buses de la web oficial; taxis y apps, de blogs de viajes.",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Bangkok"
+  ]
+ },
+ "HKT": {
+  "nombre": "Phuket",
+  "web": "https://phuket.airportthai.co.th/en/",
+  "mapa": "https://phuket.airportthai.co.th/airport-map/",
+  "centro": [
+   [
+    "Smart Bus",
+    "A Patong, Kata, Karon y Rawai. 100 THB (≈2,7 €), al menos 1 por hora de ~9:00 a 22:30; se paga al conductor."
+   ],
+   [
+    "Bus 8411",
+    "Desde la terminal nacional a Phuket Town."
+   ]
+  ],
+  "taxi": "Mostrador oficial de taxis fuera de las terminales (tarifa por zona): Phuket Town ~350-450 THB, Patong ~500-900 THB, + 100 THB de recargo. Evita a los que ofrecen dentro.",
+  "apps": "Grab: según una guía tiene zona de recogida oficial (salida 8 internacional); otras dicen que no se puede recoger. Bolt: deja pero no recoge en la terminal. Sin resolver.",
+  "nota": "Los precios en bat varían mucho según la fuente (blogs de viajes).",
+  "revisado": "2026-10-15",
+  "fiab": "baja",
+  "ciudades": [
+   "Phuket"
+  ]
+ },
+ "CNX": {
+  "nombre": "Chiang Mai",
+  "web": "https://chiangmai.airportthai.co.th/",
+  "mapa": "https://chiangmai.airportthai.co.th/airport-map/",
+  "centro": [
+   [
+    "Bus urbano",
+    "Líneas de colores al centro, ~6:00-23:30 (web oficial). Otra fuente cita un bus R3 que para a las 18:00."
+   ],
+   [
+    "Songthaew rojo",
+    "Camioneta compartida: ~30-50 THB por persona, con paradas por el camino."
+   ]
+  ],
+  "taxi": "Centro (Old City) a 3-6 km, 10-20 min. Mostrador de precio fijo ~150 THB; taxímetro + 50 THB de recargo.",
+  "apps": "Grab y Bolt: ~120-200 THB a la Old City, lo más usado. Puede haber recargo de aeropuerto que se paga al conductor. La web oficial no menciona apps.",
+  "nota": "Los precios en bat varían mucho según la fuente (blogs de viajes).",
+  "revisado": "2026-10-15",
+  "fiab": "media",
+  "ciudades": [
+   "Chiang Mai"
+  ]
+ }
+}

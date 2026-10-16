@@ -1,0 +1,4 @@
+# Vuelos vigilados (los lee seguimiento.py). Una línea por vuelo:
+#   ORIGEN DESTINO AAAA-MM-DD HH:MM NºVUELO [nombre-del-viaje]
+# Solo Ryanair de momento. Ejemplo:
+# BCN DUB 2027-01-10 06:20 FR3976 ejemplo

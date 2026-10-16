@@ -1,0 +1,24 @@
+Jawdrop — extensión de Chrome (versión 0.2)
+
+QUÉ HACE
+Cuando abres Booking desde el botón «Elegir hotel» de la demo, cada alojamiento lleva un botón verde ＋.
+Al pulsarlo, el hotel (nombre, precio, nota, distancia, habitación y enlace) se manda a la demo y la
+pestaña de Booking se cierra. La demo suma el hotel al precio de los vuelos.
+No hace peticiones ni lee nada que no estés viendo tú. Fuera de ese botón, no toca Booking.
+
+CÓMO INSTALARLA (una vez)
+1. En Chrome, escribe en la barra:  chrome://extensions
+2. Arriba a la derecha, activa «Modo de desarrollador».
+3. Pulsa «Cargar descomprimida» y elige la carpeta  C:\escapadas_flash\extension
+4. Listo. Si cambio algo en la extensión, en esa misma pantalla pulsa el icono de recargar de la extensión.
+
+UNA COSA MÁS (una sola vez, para que la demo reciba el hotel)
+En chrome://extensions, en la tarjeta de «Jawdrop: elegir hotel», pulsa «Detalles» y activa
+«Permitir acceso a las URL de archivos». Después recarga la demo (F5).
+(Sin eso, el hotel queda guardado y se copia al portapapeles: se puede pegar en la caja de la demo.)
+
+CÓMO SE USA
+1. Abre la demo (resultados\escapadas.html).
+2. En la opción que quieras, pulsa «Elegir hotel» (abre Booking con tu búsqueda de ciudad y filtros).
+3. En Booking, pulsa el ＋ verde del alojamiento que elijas.
+4. La pestaña se cierra y la demo enseña el hotel elegido y el precio total.

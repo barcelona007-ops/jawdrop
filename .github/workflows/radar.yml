@@ -1,0 +1,59 @@
+# Lectura diaria del Radar (precios de una semana, 5-8 noches, país × mes) desde GitHub, sin depender del PC ni de Cloudflare.
+# Cada día lee, como mucho, 3 meses (los que ya no están frescos según su antelación: ver frescura.py), añade la lectura al historial
+# (datos/radar_historial.json, para detectar gangas) y sube a `main` los datos y la cuadrícula (movil/cuadricula.json). Después lanza
+# «Publicar en Cloudflare» (un push hecho con el token de Actions no lanza otros flujos, por eso se lanza a mano desde aquí).
+# Va despacio a propósito (3 s entre consultas) y no usa SerpApi ni ninguna clave. Hora: 05:17 UTC (07:17 en verano), fuera de «Buscar escapadas».
+# Si todas las lecturas fallan (p. ej. una aerolínea bloquea las IP de GitHub), el trabajo falla y GitHub avisa por correo.
+# Se puede lanzar a mano (Actions → Radar diario → Run workflow); «todo = sí» lee los 12 meses sin mirar la frescura (~1 h).
+name: Radar diario
+on:
+#PAUSADO#   schedule:
+#PAUSADO#     - cron: "17 5 * * 0,1,3,5"
+  workflow_dispatch:
+    inputs:
+      todo:
+        description: "Leer los 12 meses sin mirar la frescura (sí) o solo los que tocan (no)"
+        default: "no"
+        type: choice
+        options: ["no", "sí"]
+concurrency: radar
+permissions:
+  contents: write
+  actions: write
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Leer los meses que tocan
+        env:
+          PYTHONIOENCODING: utf-8
+          TODO: ${{ github.event.inputs.todo || 'no' }}
+        run: |
+          if [ "$TODO" = "sí" ]; then python radar_datos.py --meses 12 --todo; else python radar_datos.py --meses 12; fi
+      - name: Leer los viajes largos con escalas (Radar «Larga»)
+        env:
+          PYTHONIOENCODING: utf-8
+          TODO: ${{ github.event.inputs.todo || 'no' }}
+        run: python radar_larga.py --meses 12
+        continue-on-error: true   # si Kiwi falla, el Radar de la semana ya se ha leído y se sube igual
+      - name: Reconstruir la cuadrícula (mete Tailandia con escalas)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python radar_datos.py --construir
+      - name: Subir los datos a main
+        run: |
+          git config user.name "Radar diario"
+          git config user.email "actions@users.noreply.github.com"
+          git add datos/radar_historial.json datos/radar_semana.json datos/radar_larga.json datos/kiwi_directos.json movil/cuadricula.json movil/larga.json
+          if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
+          git commit -m "Radar diario: lecturas del $(date -u +%F)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break || sleep 5; done
+        env:
+          GH_TOKEN: ${{ github.token }}

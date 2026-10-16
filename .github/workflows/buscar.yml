@@ -1,0 +1,49 @@
+# Búsqueda de Jawdrop en Cloudflare, dirigida desde GitHub: no depende del iPhone ni de los cron de Cloudflare.
+# Dos veces al día, con los resultados LISTOS hacia las 03:00 y las 15:00 hora de España: la búsqueda arranca a las 00:05 UTC (02:05 en
+# verano, 01:05 en invierno: justo después de que se reinicie el tope diario de escrituras de D1, que cuenta por día UTC) y a las 11:00 UTC
+# (13:00 en verano, 12:00 en invierno). Una búsqueda en frío tarda ~1 h.
+# Va despacio a propósito: tandas de pocas consultas con pausa entre una y otra (con los precios de hace menos de 11 h no pregunta nada).
+# También se puede lanzar a mano (Actions → Buscar escapadas → Run workflow): «empezar = no» solo continúa la que esté a medias.
+# Si la búsqueda no termina bien, el trabajo falla y GitHub envía un correo (Settings → Notifications → Actions).
+name: Buscar escapadas
+on:
+  schedule:
+    - cron: "5 0 * * *"
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+    inputs:
+      empezar:
+        description: "Empezar una búsqueda nueva (sí) o solo continuar la que esté a medias (no)"
+        default: "sí"
+        type: choice
+        options: ["sí", "no"]
+concurrency: buscar
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Empezar (si toca) y dar pasos hasta terminar
+        env:
+          EMPEZAR: ${{ github.event.inputs.empezar || 'sí' }}
+          TANDA: "5"
+          PAUSA: "45"
+        run: |
+          U="${{ secrets.ESCAPADAS_URL }}/api/actualizar"
+          HDR='X-Escapadas: github'
+          if [ "$EMPEZAR" = "sí" ]; then
+            curl -s -m 120 -X POST "$U" -H "$HDR" -d '{"accion":"empezar","domingos":12}' | head -c 300; echo
+          fi
+          ESTADO=""
+          for i in $(seq 1 400); do
+            r=$(curl -s -m 170 -X POST "$U" -H "$HDR" -d "{\"accion\":\"seguir\",\"reales\":$TANDA}" || true)
+            echo "$(date -u +%H:%M:%S) $(echo "$r" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("estado"),d.get("hechas"),"/",d.get("total"),"reales",d.get("reales"),"ocupada" if d.get("ocupada") else "",(d.get("errores") or [])[:2])' 2>/dev/null || echo "respuesta rara: ${r:0:120}")"
+            ESTADO=$(echo "$r" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("estado",""))' 2>/dev/null || echo "")
+            [ "$ESTADO" != "en curso" ] && [ -n "$ESTADO" ] && break
+            case "$r" in *'"ocupada":true'*) sleep 20 ;; *) sleep "$PAUSA" ;; esac
+          done
+          curl -s "$U" | head -c 500; echo
+          if [ "$ESTADO" != "terminada" ]; then
+            echo "::error::La búsqueda no ha terminado bien (estado: '$ESTADO')."
+            exit 1
+          fi

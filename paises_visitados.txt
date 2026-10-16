@@ -1,0 +1,2 @@
+# Países que ya conoces (un país por línea, en inglés; opcional: | año, año). Ejemplo:
+# Italy | 2019, 2023

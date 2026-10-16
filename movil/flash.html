@@ -1,0 +1,1397 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Jawdrop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e4e9dc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12140f" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<!-- Para «Añadir a pantalla de inicio» en Safari: icono, nombre y pantalla completa -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icono-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Escapadas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Cormorant+Garamond:wght@300&family=Figtree:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Sistema visual (boceto móvil v2, 13-10-2026): acento naranja amanecer + neutros cálidos de design.md.
+   Reglas: bordes de 1 px en vez de sombras; radios 16 (tarjetas) / 10 (botones) / pastilla;
+   espacios en múltiplos de 4; pesos 400-500-700; texto sobre el naranja en negro (contraste 5,2). */
+:root {
+  --bg: #e4e9dc;        /* lino */
+  --paper: #efefe7;     /* pergamino: tarjetas */
+  --ink: #16160f;
+  --muted: #54584c;
+  --bd: #16160f;        /* borde de tarjetas */
+  --bd-soft: #b9bfae;   /* separadores suaves */
+  --sun: #e5602f;       /* relleno naranja (botones, pestaña activa) */
+  --sun-ink: #a63a14;   /* naranja como TEXTO sobre claro (contraste 5,6) */
+  --sea: #0f6f69; --sea-soft: #cfe9e4;
+  --ok: #176a39;  --ok-soft: #d6ecd9;
+  --mid: #7a5000; --mid-soft: #f2e6c4;
+  --hi: #a8321f;  --hi-soft: #f3d9d1;
+  --rg-ganga: #0d7a3d; --rg-bueno: #b9e3c1; --rg-bueno-t: #0f4d27; --rg-hab: #f5d98a; --rg-hab-t: #5c3d00; --rg-caro: #f0a899; --rg-caro-t: #7a1f10;   /* Radar: ganga / bueno / habitual / caro */
+  --r-card: 16px; --r-btn: 10px; --r-pill: 9999px;
+  --f-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --f-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #12140f; --paper: #1b1d18; --ink: #ece9df; --muted: #a5a99b; --bd: #4a4e43; --bd-soft: #2c2f27;
+  --sun: #ff7d4d; --sun-ink: #ff7d4d;
+  --rg-ganga: #3ecf7a; --rg-bueno: #1f4d30; --rg-bueno-t: #8fe3ae; --rg-hab: #54421a; --rg-hab-t: #f2d27a; --rg-caro: #5a2a22; --rg-caro-t: #f5a99a;
+  --sea: #4fd1c5; --sea-soft: #12302e;
+  --ok: #5fd08a; --ok-soft: #1d3524; --mid: #e8b64c; --mid-soft: #35291a; --hi: #f27a68; --hi-soft: #3a1f1b; } }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.4; }
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); display: grid; gap: 16px; align-content: start; }
+body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 20; pointer-events: none; }   /* tapa la zona del reloj/batería: lo que se desplaza no pasa por debajo */
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--sun-ink); outline-offset: 2px; }
+
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.head h1 { margin: 0; font-family: var(--f-serif); font-weight: 300; font-size: 40px; line-height: 1; letter-spacing: -0.01em; }
+.alerta { margin: 10px 0; padding: 12px 14px; border-radius: 14px; background: rgba(200,60,40,.14); color: var(--ink); font-size: 14px; line-height: 1.4; border: 1px solid rgba(200,60,40,.45); }
+.alerta b { color: #c23b22; }
+.fresh { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.sub { font-family: var(--f-data); font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+.price { font-family: var(--f-display); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Calendario de domingos */
+.cal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cal button, .cal .none, .cal button.none { min-height: 72px; border: 1px solid var(--bd); border-radius: var(--r-card); padding: 8px 8px; text-align: left; display: grid; gap: 0; align-content: center; cursor: pointer; }
+.cal b { font-family: var(--f-data); font-size: 12px; font-weight: 500; }
+.cal .price { font-size: 20px; line-height: 1.2; }
+.cal small { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal .ok { background: var(--ok-soft); color: var(--ok); }
+.cal .mid { background: var(--mid-soft); color: var(--mid); }
+.cal .hi { background: var(--hi-soft); color: var(--hi); }
+.cal button.on { border-width: 2px; padding: 7px; }
+.cal .none { border-style: dashed; border-color: var(--bd-soft); color: var(--muted); cursor: default; }
+
+/* Viajes */
+.list { display: grid; gap: 8px; }
+.trip { width: 100%; min-height: 72px; text-align: left; cursor: pointer; background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card);
+  padding: 12px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
+.trip b { font-size: 18px; font-weight: 700; }
+.trip .price { font-size: 22px; color: var(--sun-ink); text-align: right; }
+.trip .hrs { grid-column: 1 / -1; font-family: var(--f-data); font-size: 13px; font-weight: 500; display: flex; flex-wrap: wrap; gap: 0 16px; }
+.trip .hrs em { font-style: normal; color: var(--muted); }
+.chips { grid-column: 1 / -1; display: flex; gap: 8px; }
+.chip { font-size: 13px; font-weight: 500; padding: 0 12px; line-height: 24px; border-radius: var(--r-pill); border: 1px solid var(--bd); }
+.chip.new { background: var(--sea-soft); color: var(--sea); border-color: var(--sea); }
+
+/* Botones */
+.cta { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 16px; border-radius: var(--r-btn); border: 1px solid var(--bd);
+  background: var(--sun); color: #16160f; font-weight: 700; text-decoration: none; cursor: pointer; width: 100%; }
+.cta.ghost { background: transparent; color: var(--ink); font-weight: 500; }
+.back { all: unset; box-sizing: border-box; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; color: var(--sun-ink); font-weight: 700; }
+.back:focus-visible { outline: 2px solid var(--sun-ink); outline-offset: 2px; }
+
+/* Ficha */
+.city { font-family: var(--f-serif); font-weight: 300; font-size: 48px; line-height: 1; letter-spacing: -0.01em; margin: 0; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); padding: 16px; font-size: 15px; }
+.kv i { font-style: normal; color: var(--muted); }
+a.kv { color: inherit; text-decoration: none; position: relative; padding-right: 36px; min-height: 44px; }
+a.kv::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--sun-ink); }
+a.kv:active { background: var(--bd); }
+.kv b { font-family: var(--f-data); font-weight: 500; font-size: 14px; text-align: right; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.seg button { min-height: 48px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+
+/* Pestañas */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--bg); border-top: 1px solid var(--bd);
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5, 1fr); max-width: 480px; margin: 0 auto; }
+.tab { all: unset; box-sizing: border-box; cursor: pointer; min-height: 52px; display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted); }
+.tab svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 700; }
+.tab[aria-selected="true"] svg { stroke: var(--sun-ink); }
+.tab:focus-visible { outline: 2px solid var(--sun-ink); outline-offset: -2px; border-radius: var(--r-btn); }
+
+.pronto { background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); padding: 16px; display: grid; gap: 16px; }
+.pronto p { margin: 0; }
+.nota { margin: 0; font-size: 14px; color: var(--muted); }
+.kv i.peq { font-size: 13px; }
+
+/* Ficha de aeropuerto: plegada, para no cargar la pantalla */
+.apto { background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); font-size: 15px; }
+.apto summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; font-weight: 700; list-style: none; }
+.apto summary::-webkit-details-marker { display: none; }
+.apto summary::after { content: "+"; font-size: 22px; color: var(--sun-ink); }
+.apto[open] summary::after { content: "–"; }
+.apto-c { display: grid; gap: 12px; padding: 0 16px 16px; }
+.apto-c h3 { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.apto-c p { margin: 0 0 6px; }
+.apto-c a { color: var(--sun-ink); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-right: 16px; }
+.apto-c .sin { color: var(--muted); font-size: 14px; }
+
+.chip.okc { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.chip.midc { background: var(--mid-soft); color: var(--mid); border-color: var(--mid); }
+.chip.hic { background: var(--hi-soft); color: var(--hi); border-color: var(--hi); }
+.chk { display: flex; flex-wrap: wrap; gap: 8px; }
+.chk button { min-height: 44px; min-width: 48px; padding: 0 12px; border: 1px solid var(--bd); border-radius: var(--r-pill); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; }
+.chk button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.fld { display: grid; gap: 8px; }
+.est { background: var(--sea-soft); color: var(--sea); border: 1px solid var(--sea); border-radius: var(--r-card); padding: 12px 16px; font-size: 15px; font-weight: 500; }
+.bar { height: 12px; border: 1px solid var(--bd); border-radius: var(--r-pill); overflow: hidden; background: var(--paper); }
+.bar i { display: block; height: 100%; background: var(--sun); }
+.maqueta { font-family: var(--f-data); font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--sun-ink); border: 1px dashed var(--sun-ink); border-radius: var(--r-btn); padding: 8px 12px; }
+.sel { width: 100%; min-height: 48px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: var(--paper); color: var(--ink); font: inherit; font-weight: 500; padding: 0 12px; }
+.fil { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }
+.fil input { width: 22px; height: 22px; accent-color: var(--sun-ink); }
+.trip .sub2 { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
+
+/* Pasaporte: mapa táctil + sellos */
+:root { --mar: #b5d3e3; --tierra: #f5efd9; --frontera: #4a4a3c;
+  /* tintas de aduana envejecida, apagadas: óxido, azul aduana, oliva, violeta, terracota (en modo oscuro, versión más clara para que se lean) */
+  --sel: #8f948c; --s0: #9a4a35; --s1: #2f4a73; --s2: #5f6b3a; --s3: #5d4670; --s4: #b0654a; }
+@media (prefers-color-scheme: dark) { :root { --sel: #aeb3a8; --mar: #10222c; --tierra: #5d6256; --frontera: #14160f;
+  --s0: #cf8a72; --s1: #7f9bc4; --s2: #9aa66c; --s3: #a791bd; --s4: #d49a7e; } }
+.mapa { height: 52vh; height: 52dvh; min-height: 320px; max-height: 560px; position: relative; background: var(--mar); border: 1px solid var(--bd); border-radius: var(--r-card); overflow: hidden; }
+.mapa svg { display: block; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; transform-origin: 0 0; will-change: transform; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.mapa path { fill: var(--tierra); stroke: var(--frontera); stroke-width: var(--sw, .1); stroke-opacity: .75; stroke-linejoin: round; cursor: pointer; }
+.mapa path.vis { fill: var(--sun); }
+.mapa path.des { fill: var(--sea); }
+.mapa path.sel { fill: var(--sel); stroke: var(--ink); stroke-opacity: 1; stroke-width: calc(var(--sw, .1) * 2.6); }   /* país elegido: gris y contorno algo más marcado, dibujado el último para que nada lo tape */
+.zoom { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; }
+.zoom button { width: 44px; height: 44px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: var(--paper); font-size: 22px; font-weight: 500; cursor: pointer; }
+.cuenta { display: flex; align-items: baseline; gap: 8px; }
+.cuenta b { font-family: var(--f-display); font-size: 32px; }
+.cont { display: grid; gap: 12px; background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); padding: 16px; }
+.cont-r { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; font-size: 14px; }
+.cont-r b { font-family: var(--f-data); font-weight: 500; }
+.cont-r .bar { grid-column: 1 / -1; height: 10px; }
+.cont-r .bar i { background: var(--sun); }
+.deseos { display: flex; flex-wrap: wrap; gap: 8px; }
+.deseo { display: inline-flex; align-items: center; border: 1px solid var(--sea); background: var(--sea-soft); color: var(--sea); border-radius: var(--r-pill); font-weight: 700; font-size: 14px; }
+.deseo button { all: unset; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px 0 12px; }
+.deseo button + button { padding: 0 12px 0 8px; color: var(--muted); font-size: 18px; }
+.deseo button:focus-visible { outline: 2px solid var(--sun-ink); border-radius: var(--r-pill); }
+.ficha { animation: fichaIn .28s ease-out; background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); padding: 16px; display: grid; gap: 12px; }
+.ficha h2 { margin: 0; font-family: var(--f-display); font-size: 20px; display: flex; align-items: center; gap: 8px; }
+.bnd { width: 30px; height: 20px; display: block; }
+.bnd-w { display: inline-flex; align-items: center; }
+.ficha input[type=text] { width: 100%; min-height: 48px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: var(--bg); color: var(--ink); font: inherit; padding: 0 12px; }
+.anios { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 32px; }
+.anio { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--bd); border-radius: var(--r-pill); padding: 0 4px 0 12px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--bg); }
+.anio button { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; font-size: 20px; color: var(--muted); }
+.anio button:focus-visible { outline: 2px solid var(--sun-ink); border-radius: 50%; }
+.anios-v { display: grid; gap: 8px; width: 100%; }
+.visita { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: var(--bg); padding: 4px 4px 4px 12px; }
+.visita > b { font-variant-numeric: tabular-nums; min-width: 42px; }
+.visita .modos { display: flex; gap: 2px; flex: 1; justify-content: flex-end; }
+.visita .modos button { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); }
+.visita .modos button[aria-pressed=true] { background: var(--ink); color: var(--bg); }
+.visita .modos button:focus-visible { outline: 2px solid var(--sun-ink); }
+.visita .modos svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.visita > button { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; font-size: 20px; color: var(--muted); }
+.medios { display: flex; flex-wrap: wrap; gap: 8px; }
+.medio { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 10px; border: 1px solid var(--bd); border-radius: var(--r-pill); background: var(--bg); font-weight: 700; font-size: 14px; }
+.medio svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.medio[aria-pressed=true] { background: var(--ink); color: var(--bg); }
+.medio:focus-visible { outline: 2px solid var(--sun-ink); outline-offset: 2px; }
+.sellos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 4px 0; }
+.sello { all: unset; box-sizing: border-box; cursor: pointer; display: block; color: var(--c); transform: rotate(var(--rot, 0deg)); }
+.sello svg { display: block; width: 100%; height: auto; overflow: visible; }
+.sello:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 8px; }
+.st-t { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; fill: currentColor; }
+.st-s { font-weight: 600; }
+.st-m { font-family: var(--f-data); font-weight: 600; fill: currentColor; }
+.st-serif { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+.st-mono { font-family: var(--f-data); font-weight: 700; }
+#toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); background: var(--ink); color: var(--bg); padding: 12px 20px; border-radius: var(--r-pill); font-weight: 700; z-index: 9; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); text-align: center; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (min-width: 481px) { .app { padding-top: calc(32px + env(safe-area-inset-top)); } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+@keyframes fichaIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ficha { animation: none; } }
+
+/* Ajustes (prototipo): tarjetas por tema, interruptores y deslizador */
+.cfg { background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); padding: 16px; display: grid; gap: 12px; }
+.cfg h2 { margin: 0; font-family: var(--f-display); font-size: 18px; }
+.cfg .nota { font-size: 13px; }
+.cfg-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.cfg-row small { display: block; color: var(--muted); font-size: 13px; }
+.sw { all: unset; box-sizing: border-box; cursor: pointer; flex: none; width: 52px; height: 32px; border-radius: var(--r-pill); border: 1px solid var(--bd); background: var(--bg); position: relative; transition: background .15s; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); transition: transform .15s; }
+.sw[aria-pressed="true"] { background: var(--sun); }
+.sw[aria-pressed="true"]::after { transform: translateX(20px); }
+.sw:focus-visible { outline: 2px solid var(--sun-ink); outline-offset: 2px; }
+.cfg input[type=range] { width: 100%; accent-color: var(--sun-ink); min-height: 44px; }
+.cfg-big { white-space: nowrap; font-family: var(--f-display); font-weight: 700; font-size: 28px; }
+@media (prefers-reduced-motion: reduce) { .sw, .sw::after { transition: none; } }
+
+/* Países nuevos: cuadrícula país × mes */
+.cq-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.cq-chip { min-height: 44px; padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--bd); background: transparent; cursor: pointer; }
+.cq-chip[aria-pressed="true"] { background: var(--sun); color: #16160f; border-color: var(--sun); font-weight: 700; }
+.cq-ley { display: flex; gap: 12px; font-size: 13px; color: var(--muted); }
+.cq-ley i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; border: 1px solid var(--bd-soft); }
+.cq-tabla { overflow: auto; border: 1px solid var(--bd); border-radius: var(--r-card); background: var(--paper); max-height: 70vh; -webkit-overflow-scrolling: touch; }
+.cq-tabla table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.cq-tabla th, .cq-tabla td { padding: 0; text-align: center; font-family: var(--f-data); font-size: 13px; }
+.cq-tabla thead th { position: sticky; top: 0; z-index: 3; background: var(--paper); padding: 10px 0; border-bottom: 1px solid var(--bd); font-weight: 500; text-transform: uppercase; font-size: 11px; color: var(--muted); min-width: 52px; }
+.cq-tabla th.pais, .cq-tabla td.pais { position: sticky; left: 0; z-index: 2; background: var(--paper); text-align: left; padding: 6px 10px; min-width: 128px; max-width: 128px; border-right: 1px solid var(--bd-soft); font-family: var(--f-body); }
+.cq-tabla thead th.pais { z-index: 4; }
+.cq-tabla td.pais b { display: block; font-size: 14px; line-height: 1.2; }
+.cq-tabla td.pais span { font-size: 11px; color: var(--muted); }
+.cq-tabla td.c { padding: 3px; }
+.cq-tabla td.c button { width: 100%; min-height: 44px; border: 0; border-radius: 8px; cursor: pointer; font-family: var(--f-data); font-size: 13px; font-weight: 500; }
+.cq-tabla .compacta th.pais, .cq-tabla .compacta td.pais { min-width: 104px; max-width: 104px; padding: 6px 8px; }
+.cq-tabla .compacta thead th { min-width: 0; font-size: 10px; }
+.cq-tabla .compacta td.c { padding: 2px 1px; }
+.cq-tabla .compacta td.c button { font-size: 0; border-radius: 5px; }
+.cq-tabla .compacta td.pais b { font-size: 13px; }
+.cq-tabla .verde, .cq-mini .verde, .cq-precio.verde { background: var(--rg-bueno); color: var(--rg-bueno-t); }
+.cq-tabla .ambar, .cq-mini .ambar, .cq-precio.ambar { background: var(--rg-hab); color: var(--rg-hab-t); }
+.cq-tabla .rojo, .cq-mini .rojo, .cq-precio.rojo { background: var(--rg-caro); color: var(--rg-caro-t); }
+.cq-ley .verde { background: var(--rg-bueno); } .cq-ley .ambar { background: var(--rg-hab); } .cq-ley .rojo { background: var(--rg-caro); }
+.cq-tabla .sin, .cq-mini .sin { background: color-mix(in srgb, var(--bd-soft) 35%, transparent); color: var(--muted); }
+.cq-tabla .ganga, .cq-mini .ganga, .cq-precio.ganga { background: var(--rg-ganga); color: #fff; font-weight: 700; }
+.cq-ley .ganga { background: var(--rg-ganga); } .cq-ley .gris { background: color-mix(in srgb, var(--bd-soft) 35%, transparent); }
+.cq-tabla .compacta td.c button.ganga { font-size: 11px; }
+.cq-tabla .compacta td.c button.ganga::before { content: "★"; }
+.cq-mes { border: 0; background: transparent; font: inherit; color: inherit; text-transform: inherit; min-width: 100%; min-height: 32px; cursor: pointer; }
+.cq-mes.on { color: var(--ink); font-weight: 700; text-decoration: underline; }
+.cq-fil { background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); }
+.cq-fil summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-weight: 700; list-style: none; }
+.cq-fil summary::-webkit-details-marker { display: none; }
+.cq-fil summary em { flex: 1; font-style: normal; font-weight: 400; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.cq-fil summary::after { content: "+"; font-size: 22px; color: var(--sun-ink); }
+.cq-fil[open] summary::after { content: "–"; }
+.cq-fil-c { display: grid; gap: 12px; padding: 0 16px 16px; }
+.cq-g { display: grid; gap: 6px; }
+.cq-wrap { position: relative; min-width: 0; }
+.cq-wrap.mas::after { content: "›"; position: absolute; right: 0; top: 0; bottom: 0; width: 28px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 22px; color: var(--sun-ink); border-radius: 0 var(--r-card) var(--r-card) 0; background: linear-gradient(to right, transparent, var(--paper) 70%); pointer-events: none; }
+.cq-tabla th.fin, .cq-tabla td.fin { min-width: 18px; width: 18px; padding: 0; background: repeating-linear-gradient(45deg, var(--bd-soft) 0 3px, transparent 3px 7px); border-left: 1px solid var(--bd); }
+.cq-hoja .kv { grid-template-columns: 1fr; gap: 2px; margin: 8px 0; }
+.cq-hoja .kv b { text-align: left; }
+.cq-hoja .kv i.peq { margin-top: 4px; }
+.cq-hoja { max-height: 85vh; overflow-y: auto; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--paper); border-top: 1px solid var(--bd); border-radius: 20px 20px 0 0; padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
+.cq-hoja h2 { margin: 0 0 4px; font-family: var(--f-display); font-size: 22px; }
+.cq-hoja p { margin: 6px 0; color: var(--muted); font-size: 14px; }
+.cq-x { position: absolute; right: 8px; top: 8px; min-width: 44px; min-height: 44px; border: 0; background: transparent; font-size: 22px; cursor: pointer; }
+.cq-precio { display: inline-block; padding: 2px 10px; border-radius: 8px; font-family: var(--f-data); font-size: 28px; font-weight: 500; margin: 8px 0; }
+.cq-mini { display: flex; gap: 4px; margin: 10px 0 4px; }
+.cq-mini span { flex: 1; height: 28px; border-radius: 4px; }
+.cq-mini span.sel { outline: 2px solid var(--ink); }
+.cq-meses { display: flex; gap: 4px; font-size: 10px; color: var(--muted); font-family: var(--f-data); text-transform: uppercase; }
+.cq-meses span { flex: 1; text-align: center; }
+</style>
+</head>
+<body>
+<main class="app" id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="fg0" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="3" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="5" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="6" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="fg1" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="11" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="1.9" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="12" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="13" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="14" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="fg2" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="19" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="20" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="21" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="22" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="fg3" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="27" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="2.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="28" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="29" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="30" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="fg4" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="35" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="36" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="37" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="38" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="fg5" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".07" numOctaves="2" seed="43" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="1.7" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="44" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 6.9" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="3" seed="45" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -9 6.7" result="pm"/><feTurbulence type="fractalNoise" baseFrequency=".012 .55" numOctaves="1" seed="46" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -14 10" result="rm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in" result="b"/><feComposite in="b" in2="rm" operator="in"/></filter><filter id="ft0" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="5" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale=".9" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="6" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 7.7" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".03 .04" numOctaves="2" seed="7" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -4 3.5" result="pm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in"/></filter><filter id="ft1" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="17" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale=".9" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="18" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 7.7" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".03 .04" numOctaves="2" seed="19" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -4 3.5" result="pm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in"/></filter><filter id="ft2" filterUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="29" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale=".9" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="30" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -10 7.7" result="gm"/><feTurbulence type="fractalNoise" baseFrequency=".03 .04" numOctaves="2" seed="31" result="p"/><feColorMatrix in="p" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -4 3.5" result="pm"/><feComposite in="d" in2="gm" operator="in" result="a"/><feComposite in="a" in2="pm" operator="in"/></filter></defs></svg>
+<nav class="tabs" role="tablist" aria-label="Secciones">
+  <button class="tab" role="tab" data-tab="flash" aria-selected="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Flash</button>
+  <button class="tab" role="tab" data-tab="nuevos" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>Radar</button>
+  <button class="tab" role="tab" data-tab="medida" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>A medida</button>
+  <button class="tab" role="tab" data-tab="pasaporte" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 16.5h6"/></svg>Pasaporte</button>
+  <button class="tab" role="tab" data-tab="config" aria-selected="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Ajustes</button>
+</nav>
+
+<script>
+(function () {
+  // Datos: los reales del portátil (/api/movil-flash). Si la página se abre sin servidor, salen unos de EJEMPLO.
+  var T = function (a, s, l, p) { return { aerolinea: a, sale: s, llega: l, precio: p, mas1: false, aprox: false, minimo: false }; };
+  var EJEMPLO = { ejemplo: true, edad_datos: null, dias: { "1": "Lun", "2": "Mar", "3": "Mié", "4": "Jue" }, domingos: [
+    { dia: "2026-10-18", fecha: "18 oct", opciones: [
+      { destino: "Venecia", desde: "", total: 39, color: "verde", ida: T("Ryanair", "07:05", "09:00", 20), vuelta: T("Wizz Air", "21:40", "23:35", 19), noches: 1, horas: 37, libres: 0, nuevo: false, linkIda: "", linkVuelta: "" },
+      { destino: "Bolonia", desde: "Bérgamo", total: 41, color: "verde", ida: T("Ryanair", "08:27", "10:15", 20), vuelta: T("Ryanair", "07:50", "09:30", 21), noches: 2, horas: 46, libres: 0, nuevo: false, conLibres: { "1": 33 }, linkIda: "", linkVuelta: "" },
+      { destino: "Dublín", desde: "", total: 97, color: "rojo", ida: T("Ryanair", "07:15", "08:55", 50), vuelta: T("Ryanair", "06:00", "09:40", 47), noches: 2, horas: 45, libres: 0, nuevo: true, linkIda: "", linkVuelta: "" } ] },
+    { dia: "2026-10-25", fecha: "25 oct", opciones: [
+      { destino: "Sofía", desde: "", total: 44, color: "ambar", ida: T("Wizz Air", "08:15", "12:20", 22), vuelta: T("Wizz Air", "20:50", "23:10", 22), noches: 1, horas: 32, libres: 0, nuevo: false, linkIda: "", linkVuelta: "" } ] },
+    { dia: "2026-11-01", fecha: "1 nov", opciones: [] } ] };
+
+  var MAX = 5, DIA_IDA = "Dom";
+  var M = { mes: 0, dias: "4-5", ida: [3], vuelta: [0], donde: "nuevos", radio: 500, dos: false, max: "", fase: "form", prog: 0 }, mTimer = null;
+  var paisD = null, paisEstado = "", paisAb = -1;
+  var radarD = null, radarEstado = "", mesR = 0, soloNuevos = false, abierto = -1;
+  var datos = null, estadoCarga = "cargando", cur = 0, tab = "flash", open = -1, libres = 0, todos = false;
+  var app = document.getElementById("app");
+  var act = { fase: "reposo", msg: "", timer: null, aviso: "" };
+  var salud = null;   // estado de las actualizaciones (/api/estado), solo en la versión publicada   // botón «Actualizar» de Flash
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function eur(p) { return (Math.round(p * 100) / 100).toString().replace(".", ",") + " €"; }
+  function tone(c) { return c === "verde" ? "ok" : c === "ambar" ? "mid" : c === "rojo" ? "hi" : "mid"; }
+  function dv(n) { return (datos.dias && datos.dias[n]) || "Mar"; }
+  function hace(seg) {
+    if (seg == null) return "";
+    var m = Math.round(seg / 60);
+    return m < 60 ? "hace " + Math.max(m, 1) + " min" : m < 2880 ? "hace " + Math.round(m / 60) + " h" : "hace " + Math.round(m / 1440) + " días";
+  }
+  function head(t, extra) { return '<div class="head"><h1>' + t + '</h1>' + (extra || "") + '</div>'; }
+  function llega(t) { return t.llega + (t.mas1 ? " (+1)" : ""); }
+  // Versión publicada en Cloudflare (publicar_movil.py): los datos son una copia; su antigüedad avanza desde que se copiaron.
+  function ajustarEdad(d) {
+    if (window.ESCAPADAS_PUBLICADA && d && d.edad_datos != null && d.generado_en != null) d.edad_datos += Date.now() / 1000 - d.generado_en;
+    return d;
+  }
+
+
+  // ---- Botón «Actualizar»: la búsqueda corre en el portátil; aquí solo se pregunta cómo va ----
+  function actTexto() {
+    if (act.fase === "corriendo") return "Buscando… " + act.msg;
+    return "Actualizar";
+  }
+  function actLimpio(m) {
+    m = String(m || "").replace(/\s+/g, " ").trim();
+    if (!m || /^empezando/i.test(m)) return "empezando";
+    if (/prepar/i.test(m)) return "preparando la pantalla";
+    return m.length > 40 ? m.slice(0, 38) + "…" : m;
+  }
+  function actHtml() {
+    var corr = act.fase === "corriendo";
+    return '<button class="cta" id="actualizar" type="button"' + (corr ? ' disabled' : '') + '>' + esc(actTexto()) + '</button>' +
+      '<p class="nota" id="actaviso" role="status">' + esc(act.aviso) + '</p>' +
+      (window.ESCAPADAS_PUBLICADA ? '<p class="nota" style="opacity:.6">Versión 13-10 (nube)</p>' : '') + (window.ESCAPADAS_PUBLICADA && !act.nube ? '<p class="nota">Precios de la última actualización hecha desde el portátil. «Actualizar» busca ahora en la nube (Ryanair, Wizz Air y Kiwi).</p>' : '');
+  }
+  function actPintar() {
+    var b = document.getElementById("actualizar"), a = document.getElementById("actaviso");
+    if (b) { b.disabled = act.fase === "corriendo"; b.textContent = actTexto(); }
+    if (a) a.textContent = act.aviso;
+  }
+  function actParar() { if (act.timer) { clearInterval(act.timer); act.timer = null; } }
+  function actPreguntar() {
+    if (window.ESCAPADAS_PUBLICADA) return;   // en la nube no hay portátil que preguntar
+    fetch("/api/movil-trabajo", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        var t = d.trabajo;
+        if (act.fase === "reposo" && !act.timer) {   // solo mirar: si hay una nuestra en marcha, la seguimos; si no, no hacemos nada
+          if (t && t.accion === "actualizar" && t.estado === "corriendo") { act.fase = "corriendo"; act.msg = actLimpio(t.mensaje); actSeguir(); actPintar(); }
+          return;
+        }
+        if (!t || t.accion !== "actualizar") {
+          actParar();
+          if (t && t.estado === "corriendo") { act.fase = "reposo"; act.aviso = "Hay otra búsqueda en marcha en el portátil. Espera a que acabe."; }
+          else { act.fase = "reposo"; }
+          return actPintar();
+        }
+        if (t.estado === "corriendo") { act.fase = "corriendo"; act.msg = actLimpio(t.mensaje); return actPintar(); }
+        actParar();
+        act.fase = "reposo";
+        if (t.estado === "hecho") {
+          act.aviso = (t.avisos && t.avisos.length) ? "Listo, pero algo no respondió: " + t.avisos[0] : "Listo, precios al día.";
+          recargarSilencioso();
+        } else { act.aviso = "No se pudo actualizar: " + String(t.mensaje || "error").slice(0, 120); }
+        actPintar();
+      })
+      .catch(function () { actParar(); act.fase = "reposo"; act.aviso = "El portátil no responde. ¿Sigue encendido y en la misma wifi?"; actPintar(); });
+  }
+  function actSeguir() { actParar(); act.timer = setInterval(actPreguntar, 2500); actPreguntar(); }
+  // Versión publicada (Cloudflare): la búsqueda se hace en la nube, en trozos, y el iPhone va pidiendo el siguiente.
+  function actualizarNube(retomar) {
+    var cab = { "X-Escapadas": "1", "Content-Type": "application/json" };
+    // Si una petición falla (cambio de wifi, pantalla apagada…) se reintenta: la tarea sigue guardada en la nube y se retoma donde iba.
+    function post(cuerpo, intento) {
+      intento = intento || 0;
+      return fetch("/api/actualizar", { method: "POST", headers: cab, body: JSON.stringify(cuerpo) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .catch(function (e) {
+          if (intento >= 8) throw e;
+          act.msg = "reconectando…"; actPintar();
+          return new Promise(function (ok) { setTimeout(ok, 3000); }).then(function () { return post(cuerpo, intento + 1); });
+        });
+    }
+    function paso(t) {
+      if (t.estado === "en curso") {
+        act.msg = t.hechas + " de " + t.total; actPintar();
+        // si el temporizador de la nube está dando un paso a la vez, se espera un momento y se vuelve a preguntar
+        return (t.ocupada ? new Promise(function (ok) { setTimeout(ok, 4000); }) : Promise.resolve()).then(function () { return post({ accion: "seguir" }); }).then(paso);
+      }
+      return fetch("/api/movil-flash-nube", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+        act.fase = "reposo";
+        if (!d.domingos.length) { act.aviso = "No se pudo calcular nada todavía" + (t.errores && t.errores.length ? ": " + t.errores[0] : "") + "."; return actPintar(); }
+        datos = d; estadoCarga = "listo"; cur = 0; open = -1; todos = false; act.nube = true;
+        act.aviso = (t.estado === "terminada" ? "Listo." : "Parada a medias: " + ((t.errores && t.errores[0]) || "")) + " Ryanair" + (d.con_wizz ? ", Wizz Air" : "") + (d.con_kiwi ? " y Kiwi (Vueling, easyJet…)" : "") + "." + (t.errores && t.errores.length ? " Aviso: " + String(t.errores[0]).slice(0, 80) : "");
+        render();
+      });
+    }
+    // Si ya hay una búsqueda en curso, «Actualizar» la continúa (más deprisa que el reloj de la nube) en vez de empezar otra.
+    return fetch("/api/actualizar", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (t) {
+      return (t.estado === "en curso" ? Promise.resolve(t) : post({ accion: "empezar", domingos: 12 }));
+    }).then(paso);
+  }
+  // Al abrir la versión publicada: si había una actualización a medias se continúa; si ya terminó, se enseñan sus resultados.
+  function retomarNube() {
+    fetch("/api/actualizar", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (t) {
+      if (t.estado === "en curso" && act.fase !== "corriendo") {
+        // Hay una búsqueda en marcha (la dirige GitHub, despacio, a las 01:00 y a las 13:00): no se acelera desde el móvil;
+        // se enseñan los últimos resultados completos y un aviso con el avance.
+        act.aviso = "Hay una búsqueda en marcha en la nube (" + t.hechas + " de " + t.total + "). Estos son los últimos resultados completos."; actPintar();
+        return fetch("/api/movil-flash-nube", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+          if (d.domingos && d.domingos.length) { datos = d; estadoCarga = "listo"; cur = 0; open = -1; todos = false; act.nube = true; render(); }
+        });
+      } else if ((t.estado === "terminada" || t.estado === "parada") && act.fase !== "corriendo") {
+        return fetch("/api/movil-flash-nube", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+          if (d.domingos && d.domingos.length) { datos = d; estadoCarga = "listo"; cur = 0; open = -1; todos = false; act.nube = true; render(); }
+        });
+      }
+    }).catch(function () {});
+  }
+  function actualizar() {
+    if (act.fase === "corriendo") return;
+    if (window.ESCAPADAS_PUBLICADA) {
+      // La nube se actualiza sola (hacia las 03:00 y las 15:00). El botón solo busca si algo ha fallado; si no, informa.
+      act.aviso = "Mirando…"; actPintar();
+      return fetch("/api/estado", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (e) {
+        salud = e;
+        var u = e.ultima_ok ? cuando(e.ultima_ok.cuando) : null, horas = e.ultima_ok ? (e.ahora - e.ultima_ok.cuando) / 3600 : 999;
+        if (e.salud === "en_curso") { act.aviso = "Ya hay una búsqueda en marcha (" + e.tarea.hechas + " de " + e.tarea.total + "). Terminará sola."; return actPintar(); }
+        if (horas < 6) { act.aviso = "La última búsqueda fue " + (u || "hace poco") + ". No vale la pena refrescar ahora."; return actPintar(); }
+        act.fase = "corriendo"; act.msg = "empezando"; act.aviso = ""; actPintar();
+        return actualizarNube().catch(function () { act.fase = "reposo"; act.aviso = "No se pudo actualizar. Inténtalo otra vez en un momento."; actPintar(); });
+      }).catch(function () { act.aviso = "No se pudo comprobar el estado. Inténtalo otra vez en un momento."; actPintar(); });
+    }
+    act.fase = "corriendo"; act.msg = "empezando"; act.aviso = ""; actPintar();
+    fetch("/api/actualizar", { method: "POST", headers: { "X-Escapadas": "1", "Content-Type": "application/json" }, body: "{}" })
+      .then(function (r) { return r.json().then(function (j) { return [r.status, j]; }); })
+      .then(function (a) {
+        if (a[0] === 200 || a[0] === 409) return actSeguir();   // 409: ya había una en marcha; la seguimos
+        throw new Error(a[1].error || a[0]);
+      })
+      .catch(function () { act.fase = "reposo"; act.aviso = "El portátil no responde. ¿Sigue encendido y en la misma wifi?"; actPintar(); });
+  }
+  function recargarSilencioso() {   // vuelve a leer los resultados sin pantalla de «cargando» ni saltar de domingo
+    fetch("/api/movil-flash", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { var i = cur; datos = ajustarEdad(d); estadoCarga = "listo"; cur = Math.min(i, Math.max(d.domingos.length - 1, 0)); open = -1; todos = false; render(); })
+      .catch(function () {});
+  }
+
+  function tripRow(o, i) {
+    var tag = o.nuevo ? '<span class="chip new">país nuevo</span>' : '';
+    var otro = o.desde ? '<span class="chip">vuelta desde ' + esc(o.desde) + '</span>' : '';
+    var meta = o.noches + (o.noches === 1 ? " noche" : " noches") + (o.horas != null ? " · " + Math.round(o.horas) + " h allí" : "");
+    return '<button class="trip" data-t="' + i + '"><b>' + esc(o.destino) + '</b><span class="price">' + eur(o.total) + '</span>' +
+      '<span class="hrs"><span>' + DIA_IDA + ' ' + o.ida.sale + ' → ' + dv(o.noches) + ' ' + llega(o.vuelta) + '</span><em>' + meta + '</em></span>' +
+      (tag || otro ? '<span class="chips">' + tag + otro + '</span>' : '') + '</button>';
+  }
+  // «hoy a las 03:12», «ayer a las 15:05» o «el 12 oct a las 15:05»
+  function cuando(seg) {
+    var d = new Date(seg * 1000), hoy = new Date(), ayer = new Date(Date.now() - 86400000);
+    var hm = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+    var mis = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    if (d.toDateString() === hoy.toDateString()) return "hoy a las " + hm;
+    if (d.toDateString() === ayer.toDateString()) return "ayer a las " + hm;
+    return "el " + d.getDate() + " " + mis[d.getMonth()] + " a las " + hm;
+  }
+  function bannerSalud() {
+    if (!window.ESCAPADAS_PUBLICADA || !salud) return "";
+    var u = salud.ultima_ok ? cuando(salud.ultima_ok.cuando) : null;
+    var esp = salud.espacio && salud.espacio.porcentaje >= 50 ? '<div class="alerta"><b>La base de datos se está llenando:</b> ' + salud.espacio.porcentaje + ' % de su límite (' + salud.espacio.mb + ' de ' + salud.espacio.limite_mb + ' MB). Hay que revisarlo antes de que se llene.</div>' : '';
+    if (esp && salud.salud !== "atrasada") return esp + bannerSalud2(u);
+    if (salud.salud === "atrasada") return esp + '<div class="alerta"><b>No se ha actualizado solo.</b> ' + (u ? "Última actualización: " + u + "." : "Todavía no hay ninguna actualización completa.") + ' Algo ha pasado y hay que mirarlo.</div>';
+    if (salud.salud === "en_curso") return '<p class="nota">Buscando ahora en la nube' + (salud.tarea ? " (" + salud.tarea.hechas + " de " + salud.tarea.total + ")" : "") + '. Mientras tanto ves la última actualización completa' + (u ? " (" + u + ")" : "") + '.</p>';
+    return u ? '<p class="nota">Última actualización: ' + u + '.</p>' : '';
+  }
+  function bannerSalud2(u) {
+    if (salud.salud === "en_curso") return '<p class="nota">Buscando ahora en la nube' + (salud.tarea ? " (" + salud.tarea.hechas + " de " + salud.tarea.total + ")" : "") + '. Mientras tanto ves la última actualización completa' + (u ? " (" + u + ")" : "") + '.</p>';
+    return u ? '<p class="nota">Última actualización: ' + u + '.</p>' : '';
+  }
+  function cargarSalud() {
+    if (!window.ESCAPADAS_PUBLICADA) return;
+    fetch("/api/estado", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { salud = d; render(); }).catch(function () {});
+  }
+  function aviso() {
+    return datos.ejemplo ? '<p class="nota">Datos de ejemplo: la página no está conectada al portátil.</p>' : '';
+  }
+  function renderFlash() {
+    if (estadoCarga === "cargando") return head("Escapadas") + '<p class="nota">Cargando…</p>';
+    if (estadoCarga === "error") return head("Escapadas") + '<div class="pronto"><p>El portátil no responde. Comprueba que está encendido, con Escapadas abierto y en la misma wifi.</p><button class="cta" id="reintentar" type="button">Reintentar</button></div>';
+    if (!datos.domingos.length) return head("Escapadas") + '<div class="pronto"><p>Aún no hay datos. Pulsa «Actualizar» para buscar los vuelos.</p>' + actHtml() + '</div>';
+    var s = datos.domingos[cur], visibles = todos ? s.opciones : s.opciones.slice(0, MAX), ed = hace(datos.edad_datos);
+    return head("Escapadas", ed ? '<span class="fresh"><span class="dot"></span>al día · ' + ed + '</span>' : '') + aviso() + bannerSalud() +
+      '<div class="cal">' + datos.domingos.map(function (x, i) {
+        var m = x.opciones[0];
+        if (!m) return '<button class="none" data-i="' + i + '" aria-pressed="' + (i === cur) + '"><b>' + x.fecha + '</b><small>aún sin vuelos</small></button>';
+        return '<button class="' + tone(m.color) + (i === cur ? ' on' : '') + '" data-i="' + i + '" aria-pressed="' + (i === cur) + '"><b>' + x.fecha + '</b><span class="price">' + eur(m.total) + '</span><small>' + esc(m.destino) + '</small></button>';
+      }).join("") + '</div>' +
+      '<span class="sub">Domingo ' + s.fecha + '</span>' +
+      (s.opciones.length ? '<div class="list">' + visibles.map(tripRow).join("") + '</div>' : '<p class="nota">Ningún viaje cumple el horario este domingo.</p>') +
+      (!todos && s.opciones.length > MAX ? '<button class="cta ghost" id="vermas" type="button">Ver las ' + s.opciones.length + '</button>' : '') +
+      actHtml();
+  }
+  function tramoKv(rotulo, t, lugarSale, lugarLlega, enlace) {
+    var marca = (t.minimo ? " ≥" : "") + (t.aprox ? " · llegada ≈" : "");
+    var abre = enlace ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(enlace) + '" aria-label="Abrir ' + rotulo.toLowerCase() + ' en ' + esc(t.aerolinea) + '">' : '<div class="kv">';
+    return abre + '<i>' + rotulo + ' · ' + esc(t.aerolinea) + '</i><b>' + (t.precio != null ? eur(t.precio) : "—") + '</b>' +
+      '<i>' + lugarSale + ' ' + t.sale + '</i><b>llega ' + llega(t) + '</b>' + (marca ? '<i class="peq">' + marca.replace(/^ · /, "") + '</i><b></b>' : '') + (enlace ? '</a>' : '</div>');
+  }
+  var APTOS = null;   // fichas de aeropuerto (aeropuertos.json); si no carga, simplemente no se enseñan
+  function sinAcentos(s) { return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
+  function aptoHtml(cod, ciudad, rotulo) {   // por código si viene; si no, por el nombre de la ciudad (los datos publicados antiguos no traen código)
+    if (!APTOS) return "";
+    if (cod && APTOS[cod]) return aptoUno(cod, rotulo);
+    var c = sinAcentos(ciudad);
+    return !c ? "" : Object.keys(APTOS).filter(function (k) { return (APTOS[k].ciudades || []).some(function (n) { return sinAcentos(n) === c; }); })
+      .map(function (k) { return aptoUno(k, rotulo); }).join("");
+  }
+  function aptoUno(cod, rotulo) {
+    var a = APTOS[cod];
+    var web = /^https:/.test(a.web || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.web) + '">Web del aeropuerto ›</a>' : "";
+    var mapa = /^https:/.test(a.mapa || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.mapa) + '">Mapa ›</a>' : '<span class="sin">Sin mapa en su web.</span>';
+    var f = (a.revisado || "").split("-"), fecha = f.length === 3 ? f[2] + "/" + f[1] + "/" + f[0] : "";
+    return '<details class="apto"><summary><span>✈ ' + rotulo + ' · ' + esc(a.nombre) + ' (' + esc(cod) + ')</span></summary><div class="apto-c">' +
+      '<div>' + web + mapa + '</div>' +
+      '<div><h3>Al centro</h3>' + a.centro.map(function (c) { return '<p><b>' + esc(c[0]) + '</b> · ' + esc(c[1]) + '</p>'; }).join("") + '</div>' +
+      '<div><h3>Taxi</h3><p>' + esc(a.taxi) + '</p></div>' +
+      '<div><h3>Apps (Uber, Bolt, Grab…)</h3><p>' + esc(a.apps) + '</p></div>' +
+      '<p class="sin">' + esc(a.nota) + ' Revisado el ' + fecha + (a.fiab === "baja" ? " · poco contrastado: confírmalo allí" : a.fiab === "alta" ? " · web oficial" : "") + '.</p>' +
+      '</div></details>';
+  }
+  function renderDetail() {
+    var s = datos.domingos[cur], o = s.opciones[open], extra = o.conLibres || {};
+    var total = libres && extra[libres] != null ? extra[libres] : o.total;
+    var botones = [["0", "Ninguno"]].concat(["1", "2"].filter(function (n) { return extra[n] != null && extra[n] < o.total; }).map(function (n) {
+      return [n, n + " · −" + eur(o.total - extra[n])];
+    }));
+    var desde = o.desde || o.destino;
+    return '<button class="back" id="back">‹ ' + s.fecha + '</button>' +
+      '<h1 class="city">' + esc(o.destino) + '</h1>' +
+      tramoKv("Ida", o.ida, "Dom El Prat", "", o.linkIda) +
+      tramoKv("Vuelta", o.vuelta, dv(o.noches) + " " + esc(desde), "", o.linkVuelta) +
+      '<div class="kv"><i>Total vuelos</i><b>' + eur(total) + '</b>' +
+      (o.horas != null ? '<i>Tiempo allí</i><b>' + Math.round(o.horas) + ' h</b>' : '') +
+      (o.desde ? '<i>Traslado' + (o.km ? ' (' + esc(o.km) + ' km)' : '') + '</i><b>' + esc(o.traslado || "—") + '</b>' : '') + '</div>' +
+      (botones.length > 1 ? '<span class="sub">Días libres que pedirías</span><div class="seg" role="group" aria-label="Días libres">' +
+        botones.map(function (b) { return '<button type="button" data-l="' + b[0] + '" aria-pressed="' + (+b[0] === libres) + '">' + b[1] + '</button>'; }).join("") + '</div>' : '') +
+      ((o.linkIda || o.linkVuelta) ? '<p class="nota">Toca la ida o la vuelta para abrirla en la aerolínea.</p>' : '') +
+      aptoHtml(o.iata, o.destino, "Llegas a") + (o.desde && (o.iataDesde || o.desde) !== (o.iata || o.destino) ? aptoHtml(o.iataDesde, o.desde, "Vuelves desde") : "");
+  }
+  function renderPronto(titulo) {
+    return head(titulo) + '<div class="pronto"><p>Esta pestaña se monta después. De momento sigue en la web completa.</p><a class="cta ghost" href="/">Abrir la web completa</a></div>';
+  }
+  function rRow(x, i) {
+    var p = x.pareja;
+    if (!p) return '<button class="trip" data-r="' + i + '"><b>' + esc(x.destino) + '</b><span class="price" style="color:var(--muted)">sin vuelta</span>' +
+      '<span class="sub2">' + esc(x.pais) + ' · solo ida ' + (x.aprox ? "≈" : "") + eur(x.precio) + ' el ' + esc(x.fecha) + ' · ' + esc(x.aerolinea) + '</span>' +
+      (x.nuevo ? '<span class="chips"><span class="chip new">país nuevo</span></span>' : '') + '</button>';
+    return '<button class="trip" data-r="' + i + '"><b>' + esc(x.destino) + '</b><span class="price">' + (p.aprox ? "≈" : "") + eur(p.total) + '</span>' +
+      '<span class="hrs"><span>' + esc(p.ida) + ' → ' + esc(p.vuelta) + '</span><em>' + (p.noches ? p.noches + (p.noches === 1 ? " noche" : " noches") : "") + '</em></span>' +
+      '<span class="sub2">' + esc(x.pais) + ' · ' + esc(p.aerolinea) + '</span>' +
+      (x.nuevo ? '<span class="chips"><span class="chip new">país nuevo</span></span>' : '') + '</button>';
+  }
+  function renderRadar() {
+    if (radarEstado === "cargando") return head("Radar") + '<p class="nota">Cargando…</p>';
+    if (radarEstado === "error") return head("Radar") + '<div class="pronto"><p>El portátil no responde. Comprueba que está encendido, con Escapadas abierto y en la misma wifi.</p><button class="cta" id="reintentarR" type="button">Reintentar</button></div>';
+    if (!radarD.meses.length) return head("Radar") + '<div class="pronto"><p>Aún no hay radar guardado. En el portátil, abre Escapadas, ve al panel «Radar» y pulsa «Calcular este mes».</p><button class="cta ghost" id="reintentarR" type="button">Reintentar</button></div>';
+    var m = radarD.meses[Math.min(mesR, radarD.meses.length - 1)];
+    if (abierto >= 0) return renderRadarFicha(m.lista[abierto], m);
+    var filas = m.lista.map(function (x, i) { return [x, i]; }).filter(function (a) { return !soloNuevos || a[0].nuevo; })
+      .sort(function (a, b) { var pa = a[0].pareja, pb = b[0].pareja; return pa && pb ? pa.total - pb.total : pa ? -1 : pb ? 1 : a[0].precio - b[0].precio; });
+    var ed = m.generado ? "calculado " + m.generado.slice(0, 10).split("-").reverse().join("/") : "";
+    return head("Radar", ed ? '<span class="fresh">' + ed + '</span>' : '') +
+      '<select class="sel" id="selmes" aria-label="Mes">' + radarD.meses.map(function (x, i) { return '<option value="' + i + '"' + (i === mesR ? " selected" : "") + '>' + esc(x.nombre) + '</option>'; }).join("") + '</select>' +
+      '<label class="fil"><input type="checkbox" id="solonuevos"' + (soloNuevos ? " checked" : "") + '> Solo países nuevos</label>' +
+      '<span class="sub">Ida y vuelta, del más barato al más caro</span>' +
+      (filas.length ? '<div class="list">' + filas.map(function (a) { return rRow(a[0], a[1]); }).join("") + '</div>' : '<p class="nota">Ningún destino con este filtro.</p>') +
+      (m.avisos && m.avisos.length ? '<p class="nota">' + esc(m.avisos.join(" ")) + '</p>' : '');
+  }
+  function renderRadarFicha(x, m) {
+    var p = x.pareja;
+    return '<button class="back" id="backR">‹ ' + esc(m.nombre) + '</button><h1 class="city">' + esc(x.destino) + '</h1>' +
+      (p ? '<div class="kv"><i>Total ida y vuelta · ' + esc(p.aerolinea) + '</i><b style="font-size:20px">' + (p.aprox ? "≈" : "") + eur(p.total) + '</b><i>Ida</i><b>' + esc(p.ida) + '</b><i>Vuelta</i><b>' + esc(p.vuelta) + '</b>' + (p.noches ? '<i>Noches</i><b>' + p.noches + '</b>' : '') + '<i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div>'
+        : '<div class="kv"><i>Total ida y vuelta</i><b>sin calcular</b><i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div><p class="nota">Aún no hay vuelta para este destino, así que no hay precio de viaje completo.</p>') +
+      '<span class="sub">Cada vuelo por separado</span><div class="kv"><i>Ida más barata · ' + esc(x.aerolinea) + ' · ' + esc(x.fecha) + '</i><b>' + (x.aprox ? "≈" : "") + eur(x.precio) + '</b>' +
+      x.otras.map(function (o) { return '<i>' + esc(o.aerolinea) + ' · ' + esc(o.fecha) + '</i><b>' + (o.aprox ? "≈" : "") + eur(o.precio) + '</b>'; }).join("") + '</div>' +
+      '<p class="nota">Precios sin comprobar en la web de la aerolínea. ≈ = orientativo.</p>' + aptoHtml(x.codigo, x.destino, "Aeropuerto");
+  }
+  function cargarRadar() {
+    radarEstado = "cargando"; render();
+    fetch("/api/movil-radar", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { radarD = d; radarEstado = "listo"; mesR = 0; abierto = -1; render(); })
+      .catch(function () { radarD = { meses: [] }; radarEstado = location.protocol === "file:" ? "listo" : "error"; render(); });
+  }
+  // ---- Países nuevos: cuadrícula país × mes (14-10-2026). Todos los países que faltan, por orden alfabético; el color es el semáforo por horas de vuelo y precio ----
+  var CQ = { fo: false, vista: "semana", filtro: "todos", pais: "todos", orden: -1, verde: false, precios: false, p: -1, m: -1, visit: {} };
+  var CQ_MES = { ene: "enero", feb: "febrero", mar: "marzo", abr: "abril", may: "mayo", jun: "junio", jul: "julio", ago: "agosto", sep: "septiembre", oct: "octubre", nov: "noviembre", dic: "diciembre" };
+  var CQ_PAISES = [["todos", "Todos"], ["nuevos", "Nuevos"], ["visitados", "Ya visitados"]];
+  var CQ_TIPOS = [["todos", "Todos"], ["corto", "Menos de 4 h"], ["medio", "4 a 6 h"], ["largo", "Más de 6 h"]];
+  function cqMejor(f) { var b = -1; f.celdas.forEach(function (c, i) { if (c.p != null && (b < 0 || c.p < f.celdas[b].p)) b = i; }); return b; }
+  function cqLista() {
+    return paisD.paises.filter(function (f) { return CQ.pais === "todos" || (CQ.pais === "nuevos" ? !CQ.visit[f.cod] : !!CQ.visit[f.cod]); }).map(function (f) { return [f, nombrePais(f.cod)]; })
+      .filter(function (x) {
+        if (CQ.filtro !== "todos" && x[0].tipo !== CQ.filtro) return false;
+        return !(CQ.verde && !x[0].celdas.some(function (c) { return c.c === "verde"; }));
+      }).sort(function (a, b) {
+        if (CQ.orden >= 0) {   // ordenado por un mes: primero las gangas, luego de más barato a más caro; sin dato al final
+          var ca = a[0].celdas[CQ.orden], cb = b[0].celdas[CQ.orden];
+          var ka = ca.p == null ? 3 : ca.g ? 0 : 1, kb = cb.p == null ? 3 : cb.g ? 0 : 1;
+          if (ka !== kb) return ka - kb;
+          if (ca.p !== cb.p && ca.p != null && cb.p != null) return ca.p - cb.p;
+        }
+        return a[1].localeCompare(b[1], "es");
+      });
+  }
+  // ---- Radar «Larga»: viajes largos con escala y open-jaw por zonas (15-10-2026). Ida y vuelta como en Flash: dos tarjetas con su enlace; precio cerrado de los dos vuelos ----
+  var LG = { d: null, estado: "", mes: 0, abierto: -1 };
+  var LG_MES = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  function lgFecha(f) { var p = String(f).split("-"); return p.length === 3 ? +p[2] + " " + LG_MES[+p[1]] : f; }
+  function lgLlega(s) { var m = /^(\d\d)-(\d\d) (\d\d:\d\d)$/.exec(s || ""); return m ? +m[2] + " " + LG_MES[+m[1]] + " " + m[3] : s; }
+  function lgVia(t) {
+    if (!t.escalas.length) return "directo";
+    return t.escalas.map(function (e) { return "vía " + esc(e.ciudad) + " " + String(e.horas).replace(".", ",") + " h" + (e.tipo === "stopover" ? " (stopover" + (e.nuevo ? " · país nuevo" : "") + ")" : e.tipo === "noche en aeropuerto" ? " (noche en el aeropuerto)" : e.tipo === "escala larga" ? " (escala larga)" : ""); }).join(" · ");
+  }
+  function segVista() {
+    return '<div class="cq-chips"><button class="cq-chip" type="button" data-cqv="semana" aria-pressed="' + (CQ.vista === "semana") + '">Semana</button>' +
+      '<button class="cq-chip" type="button" data-cqv="larga" aria-pressed="' + (CQ.vista === "larga") + '">Larga · con escalas</button></div>';
+  }
+  function lgTramo(rot, t, sale, llega) {
+    return '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' +
+      '<i>' + rot + ' · ' + esc(t.aerolineas.join(" + ")) + '</i><b>≈ ' + eur(t.precio) + '</b>' +
+      '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
+      '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>';
+  }
+  function lgTitulo(c) { return c.mismo ? esc(c.ida.ciudad) : esc(c.ida.ciudad) + ' → ' + esc(c.vuelta.desde_ciudad); }
+  function renderLarga() {
+    if (LG.estado === "cargando") return '<p class="nota">Cargando…</p>';
+    if (LG.estado === "error") return '<div class="pronto"><p>No he podido cargar los viajes largos. Revisa la conexión.</p><button class="cta" id="lgreintentar" type="button">Reintentar</button></div>';
+    var z = LG.d && LG.d.zonas[0];
+    if (!z || !z.meses.length) return '<p class="nota">Aún no hay viajes largos calculados.</p>';
+    var m = z.meses[Math.min(LG.mes, z.meses.length - 1)];
+    if (LG.abierto >= 0) {
+      var c = m.combos[LG.abierto];
+      return '<button class="back" id="lgback">‹ ' + esc(z.nombre) + ' · ' + esc(m.nombre) + '</button><h1 class="city">' + lgTitulo(c) + '</h1>' +
+        lgTramo("Ida", c.ida, "Sales de El Prat", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, "Sales de " + esc(c.vuelta.desde_ciudad), "El Prat") +
+        '<div class="kv"><i>Total vuelos (ida + vuelta)</i><b>≈ ' + eur(c.total) + '</b><i>Noches fuera</i><b>' + c.noches + '</b></div>' +
+        (c.mismo ? '' : '<p class="nota">Llegas a ' + esc(c.ida.ciudad) + ' y vuelves desde ' + esc(c.vuelta.desde_ciudad) + ': el trayecto entre medias es parte del viaje y no está en el precio.' +
+          (c.interno ? ' <b>Referencia:</b> si solo quisieras ver ' + esc(c.vuelta.desde_ciudad) + ', un vuelo ' + c.interno.desde + ' → ' + c.interno.hasta + ' sale desde ' + eur(c.interno.precio) + ' (' + esc(c.interno.aerolinea) + '), según el día.' : '') + '</p>') +
+        '<p class="nota">Precios de Kiwi, solo ida y orientativos (≈). Toca la ida o la vuelta para ver el precio real. Leído el ' + m.f.split("-").reverse().join("/") + '.</p>';
+    }
+    return '<span class="sub">' + esc(z.nombre) + ' · ' + z.noches[0] + '-' + z.noches[1] + ' noches · del más barato al más caro</span>' +
+      '<select class="sel" id="lgmes" aria-label="Mes de la ida">' + z.meses.map(function (x, i) { return '<option value="' + i + '"' + (i === LG.mes ? " selected" : "") + '>Ida en ' + x.nombre + ' ' + x.anio + '</option>'; }).join("") + '</select>' +
+      '<div class="list">' + m.combos.map(function (c, i) {
+        var chips = (c.mismo ? '' : '<span class="chip">open-jaw</span>') + (c.ida.sueltos || c.vuelta.sueltos ? '<span class="chip">billetes sueltos</span>' : '') +
+          c.ida.escalas.concat(c.vuelta.escalas).filter(function (e) { return e.nuevo; }).map(function (e) { return '<span class="chip new">stopover ' + esc(e.ciudad) + '</span>'; }).join("");
+        return '<button class="trip" data-lg="' + i + '"><b>' + lgTitulo(c) + '</b><span class="price">≈ ' + eur(c.total) + '</span>' +
+          '<span class="hrs"><span>' + lgFecha(c.ida.fecha) + ' → ' + lgFecha(c.vuelta.fecha) + '</span><em>' + c.noches + ' noches</em></span>' +
+          '<span class="sub2">Ida ' + esc(c.ida.aerolineas.join(" + ")) + ' · vuelta ' + esc(c.vuelta.aerolineas.join(" + ")) + '</span>' +
+          (chips ? '<span class="chips">' + chips + '</span>' : '') + '</button>';
+      }).join("") + '</div>';
+  }
+  function cargarLarga() {
+    LG.estado = "cargando"; render();
+    fetch("larga.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { LG.d = d; LG.estado = "listo"; LG.mes = 0; LG.abierto = -1; render(); })
+      .catch(function () { LG.estado = "error"; render(); });
+  }
+  function bindVista() {
+    app.querySelectorAll("[data-cqv]").forEach(function (el) { el.onclick = function () { CQ.vista = el.dataset.cqv; CQ.p = -1; LG.abierto = -1; if (CQ.vista === "larga" && !LG.d) cargarLarga(); else render(); }; });
+    app.querySelectorAll("[data-lg]").forEach(function (el) { el.onclick = function () { LG.abierto = +el.dataset.lg; render(); }; });
+    var b = document.getElementById("lgback"); if (b) b.onclick = function () { LG.abierto = -1; render(); };
+    var sm = document.getElementById("lgmes"); if (sm) sm.onchange = function () { LG.mes = +sm.value; render(); };
+    var rt = document.getElementById("lgreintentar"); if (rt) rt.onclick = cargarLarga;
+  }
+  function filtrosHtml() {
+    var act = [];
+    if (CQ.pais !== "todos") act.push(CQ_PAISES.filter(function (t) { return t[0] === CQ.pais; })[0][1]);
+    if (CQ.filtro !== "todos") act.push(CQ_TIPOS.filter(function (t) { return t[0] === CQ.filtro; })[0][1]);
+    if (CQ.verde) act.push("Con mes verde");
+    if (CQ.precios) act.push("Precios");
+    var grupo = function (rot, lista, attr, val) {
+      return '<div class="cq-g"><span class="sub">' + rot + '</span><div class="cq-chips">' + lista.map(function (t) {
+        return '<button class="cq-chip" type="button" data-' + attr + '="' + t[0] + '" aria-pressed="' + (val === t[0]) + '">' + t[1] + '</button>'; }).join("") + '</div></div>';
+    };
+    return '<details class="cq-fil" id="cqfil"' + (CQ.fo ? " open" : "") + '><summary><span>Filtros</span><em>' + (act.length ? act.join(" · ") : "ninguno") + '</em></summary><div class="cq-fil-c">' +
+      grupo("Países", CQ_PAISES, "cqx", CQ.pais) + grupo("Horas de vuelo", CQ_TIPOS, "cqt", CQ.filtro) +
+      '<div class="cq-g"><span class="sub">Otros</span><div class="cq-chips"><button class="cq-chip" type="button" id="cqv" aria-pressed="' + CQ.verde + '">Con algún mes verde</button>' +
+      '<button class="cq-chip" type="button" id="cqp" aria-pressed="' + CQ.precios + '">Ver precios</button></div></div></div></details>';
+  }
+  function renderPaises() {
+    if (CQ.vista === "larga") return head("Radar") + segVista() + renderLarga();
+    if (paisEstado === "cargando") return head("Radar") + '<p class="nota">Cargando…</p>';
+    if (paisEstado === "error") return head("Radar") + '<div class="pronto"><p>No he podido cargar la cuadrícula. Revisa la conexión.</p><button class="cta" id="reintentarP" type="button">Reintentar</button></div>';
+    var D = paisD, lista = cqLista(), dec = function (n) { return String(n).replace(".", ","); };
+    var h = head("Radar") + segVista() + '<span class="sub">Dónde y cuándo sale barato · una semana (5-8 noches) · ' + lista.length + ' países</span>' +
+      (D.ejemplo ? '<div class="alerta">Precios de EJEMPLO (inventados): sirven para ver el diseño. Los reales llegarán pronto.</div>' : '') +
+      filtrosHtml() +
+      '<div class="cq-ley"><span><i class="ganga"></i>Ganga ★</span><span><i class="verde"></i>Bueno</span><span><i class="ambar"></i>Habitual</span><span><i class="rojo"></i>Caro</span><span><i class="gris"></i>Sin datos</span></div>' +
+      (D.paises.some(function (f) { return f.celdas.some(function (c) { return c.g; }); }) ? '' : '<p class="nota">Referencia provisional: umbrales fijos por tipo de viaje. «Ganga» saldrá cuando haya histórico suficiente de cada casilla.</p>') +
+      '<div class="cq-wrap"><div class="cq-tabla"><table class="' + (CQ.precios ? "" : "compacta") + '"><thead><tr><th class="pais">País</th>' + D.meses.map(function (m) {
+        return '<th scope="col"><button type="button" class="cq-mes' + (CQ.orden === D.meses.indexOf(m) ? ' on' : '') + '" data-cqo="' + D.meses.indexOf(m) + '" aria-label="Ordenar por ' + CQ_MES[m.nombre] + '">' + (CQ.precios ? m.nombre : m.nombre[0].toUpperCase()) + '</button></th>'; }).join("") + '<th class="fin" scope="col" aria-label="Fin de los 12 meses"></th></tr></thead><tbody>';
+    lista.forEach(function (x) {
+      var f = x[0], i = D.paises.indexOf(f);
+      h += '<tr><td class="pais"><b>' + esc(x[1]) + '</b><span>' + dec(f.h) + ' h de vuelo' + (f.esc ? ' · con escalas' : '') + '</span></td>' + f.celdas.map(function (c, j) {
+        if (c.p == null) return '<td class="c"><button class="sin" type="button" disabled aria-label="Sin datos">—</button></td>';
+        return '<td class="c"><button type="button" class="' + (c.g ? "ganga" : c.c) + '" data-cp="' + i + '" data-cm="' + j + '" aria-label="' + esc(x[1]) + ', ' + CQ_MES[D.meses[j].nombre] + ', ' + c.p + ' euros">' + (c.g ? "★" : "") + (c.e ? "≈" : "") + c.p + '</button></td>';
+      }).join("") + '<td class="fin"></td></tr>';
+    });
+    if (!lista.length) h += '<tr><td colspan="' + (D.meses.length + 2) + '" style="padding:24px;text-align:left">Ningún país con este filtro.</td></tr>';
+    h += '</tbody></table></div></div><p class="nota">' + CQ_MES[D.meses[0].nombre] + ' ' + D.meses[0].anio + ' a ' + CQ_MES[D.meses[D.meses.length - 1].nombre] + ' ' + D.meses[D.meses.length - 1].anio + ' · la banda rayada marca el final.</p>';
+    if (CQ.p >= 0) {
+      var f2 = D.paises[CQ.p], c2 = f2.celdas[CQ.m], m2 = D.meses[CQ.m], mj2 = cqMejor(f2);
+      h += '<div class="cq-hoja" role="dialog" aria-labelledby="cqT"><button class="cq-x" type="button" id="cqx" aria-label="Cerrar">×</button><h2 id="cqT">' + esc(nombrePais(f2.cod)) + ' · ' + CQ_MES[m2.nombre] + ' ' + m2.anio + '</h2>' +
+        '<div class="cq-precio ' + c2.c + '">' + (c2.g ? "★ " : "") + (c2.e ? "≈ " : "") + eur(c2.p) + '</div>' +
+        '<p>' + (c2.g ? '<b>Ganga:</b> un ' + c2.pct + ' % por debajo de lo habitual (' + eur(c2.mediana) + ') para este país y este mes.' : (c2.c === "verde" ? "Bueno: buen precio" : c2.c === "ambar" ? "Habitual: precio normal" : "Caro: por encima de lo normal") + ' para este viaje.') + ' Ida y vuelta, 1 adulto, solo vuelos.</p>' +
+        '<p>' + dec(f2.h) + ' h de vuelo desde Barcelona (≈ ' + f2.km.toLocaleString("es-ES") + ' km). ' + (CQ.m !== mj2 ? 'Mes más barato: <b>' + CQ_MES[D.meses[mj2].nombre] + ' (' + eur(f2.celdas[mj2].p) + ')</b>.' : '<b>Es el mes más barato del año</b> (no siempre es ganga).') + '</p>' +
+        '<div class="cq-mini">' + f2.celdas.map(function (x2, j) { return '<span class="' + (x2.p == null ? "sin" : x2.c) + (j === CQ.m ? " sel" : "") + '"></span>'; }).join("") + '</div>' +
+        '<div class="cq-meses">' + D.meses.map(function (x2) { return '<span>' + x2.nombre[0] + '</span>'; }).join("") + '</div>' +
+        (c2.esc ? lgTramo("Ida", c2.esc.ida, "Sales de El Prat", c2.esc.ida.ciudad) + lgTramo("Vuelta", c2.esc.vuelta, "Sales de " + esc(c2.esc.vuelta.desde_ciudad), "El Prat") +
+          (c2.esc.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(c2.esc.hub.ap) + ' → Bangkok el ' + lgFecha(c2.esc.hub.ida.fecha) + ' (' + esc(c2.esc.hub.ida.aerolinea) + ', ' + eur(c2.esc.hub.ida.precio) + ') y Bangkok → ' + esc(c2.esc.hub.ap) + ' el ' + lgFecha(c2.esc.hub.vuelta.fecha) + ' (' + esc(c2.esc.hub.vuelta.aerolinea) + ', ' + eur(c2.esc.hub.vuelta.precio) + '). Son billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
+          '<p>' + c2.esc.noches + ' noches · hasta 2 escalas · billetes de Kiwi, orientativos (≈): toca la ida o la vuelta para ver el precio real.</p>' : '') +
+        (D.ejemplo ? '<p><i>Dato de ejemplo.</i></p>' : (c2.v && !c2.esc ? '<p>' + esc(c2.v) + '.</p>' : '') + '<p>Leído el ' + c2.f.split("-").reverse().join("/") + '.</p>') + '</div>';
+    }
+    return h;
+  }
+  function bindCuadricula() {
+    var fl = document.getElementById("cqfil"); if (fl) fl.ontoggle = function () { CQ.fo = fl.open; };
+    var tb = app.querySelector(".cq-tabla"), wr = app.querySelector(".cq-wrap");
+    if (tb && wr) { var ajusta = function () { wr.classList.toggle("mas", tb.scrollLeft + tb.clientWidth < tb.scrollWidth - 4); }; tb.onscroll = ajusta; ajusta(); }
+    app.querySelectorAll("[data-cqx]").forEach(function (el) { el.onclick = function () { CQ.pais = el.dataset.cqx; CQ.p = -1; render(); }; });
+    app.querySelectorAll("[data-cqo]").forEach(function (el) { el.onclick = function () { var k = +el.dataset.cqo; CQ.orden = CQ.orden === k ? -1 : k; CQ.p = -1; render(); }; });
+    app.querySelectorAll("[data-cqt]").forEach(function (el) { el.onclick = function () { CQ.filtro = el.dataset.cqt; CQ.p = -1; render(); }; });
+    var v = document.getElementById("cqv"); if (v) v.onclick = function () { CQ.verde = !CQ.verde; CQ.p = -1; render(); };
+    var pr = document.getElementById("cqp"); if (pr) pr.onclick = function () { CQ.precios = !CQ.precios; CQ.p = -1; render(); };
+    app.querySelectorAll("[data-cp]").forEach(function (el) { el.onclick = function () { CQ.p = +el.dataset.cp; CQ.m = +el.dataset.cm; render(); }; });
+    var x = document.getElementById("cqx"); if (x) x.onclick = function () { CQ.p = -1; render(); };
+  }
+  function cargarPaises() {
+    paisEstado = "cargando"; render();
+    Promise.all([fetch("cuadricula.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }),
+                 fetch("/api/pasaporte", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })])
+      .then(function (r) {
+        paisD = r[0]; CQ.visit = {};
+        (r[1] && r[1].visitados ? Object.keys(r[1].visitados) : (paisD.visitados || [])).forEach(function (c) { CQ.visit[c] = true; });
+        paisEstado = "listo"; CQ.p = -1; render();
+      })
+      .catch(function () { paisD = null; paisEstado = "error"; render(); });
+  }
+  var DSEM = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  var MESES_M = ["noviembre 2026", "diciembre 2026", "enero 2027", "febrero 2027", "cualquier mes de los próximos 3"];
+  var DONDE = [["cualquiera", "Cualquiera"], ["nuevos", "Países nuevos"], ["pais", "Un país"], ["region", "Región"]];
+  var EJ = [
+    ["Tiflis", "Georgia", 118, "Mié 18 nov → Dom 22 nov", "4 noches · 96 h allí", "ok", true, ""],
+    ["Belgrado", "Serbia", 74, "Jue 12 nov → Dom 15 nov", "3 noches · 70 h allí", "ok", false, ""],
+    ["Skopie", "Macedonia del Norte", 96, "Mié 18 nov → Dom 22 nov", "4 noches · 94 h allí", "mid", true, "vuelta desde Sofía"],
+    ["Marrakech", "Marruecos", 131, "Jue 26 nov → Lun 30 nov", "4 noches · 92 h allí", "mid", false, ""]];
+  function estima() {
+    var f = { cualquiera: 70, nuevos: 40, pais: 8, region: 20 }[M.donde];
+    var meses = M.mes === 4 ? 3 : 1, dias = Math.max(M.ida.length, 1) * (M.dias.indexOf("-") > 0 ? 2 : 1);
+    var q = Math.round(f * meses * dias * (1 + M.radio / 1000) * (M.dos ? 1.4 : 1));
+    return { q: q, min: Math.max(1, Math.round(q * 5 / 60)) };
+  }
+  function dayBtns(arr, key) { return '<div class="chk" role="group">' + DSEM.map(function (d, i) { return '<button type="button" data-d="' + key + i + '" aria-pressed="' + (arr.indexOf(i) >= 0) + '">' + d + '</button>'; }).join("") + '</div>'; }
+  function renderMedida() {
+    var cab = head("A medida") + '<div class="maqueta">Vista previa · no busca nada, resultados de ejemplo</div>';
+    if (M.fase === "buscando") {
+      return cab + '<div class="pronto"><p><b>Buscando…</b> país ' + Math.max(1, Math.round(M.prog / 100 * 12)) + ' de 12</p><div class="bar" role="progressbar" aria-valuenow="' + M.prog + '"><i style="width:' + M.prog + '%"></i></div>' +
+        '<p class="nota">Los resultados irán apareciendo ya ordenados por precio. Si cierras la página, la búsqueda sigue.</p><button class="cta ghost" id="mCancelar" type="button">Cancelar</button></div>';
+    }
+    if (M.fase === "listo") {
+      var lista = EJ.filter(function (x) { return !M.max || x[2] <= +M.max; });
+      return cab + '<button class="back" id="mVolver">‹ Cambiar la búsqueda</button><span class="sub">Los mejores, del más barato al más caro</span>' +
+        '<div class="list">' + lista.sort(function (a, b) { return a[2] - b[2]; }).map(function (x) {
+          return '<div class="trip" style="cursor:default"><b>' + x[0] + '</b><span class="price">' + eur(x[2]) + '</span><span class="hrs"><span>' + x[3] + '</span><em>' + x[4] + '</em></span>' +
+            (x[6] || x[7] ? '<span class="chips">' + (x[6] ? '<span class="chip new">país nuevo</span>' : '') + (x[7] ? '<span class="chip">' + x[7] + '</span>' : '') + '</span>' : '') + '</div>'; }).join("") + '</div>' +
+        (lista.length ? '' : '<p class="nota">Nada por debajo de ' + eur(+M.max) + '.</p>');
+    }
+    var e = estima();
+    return cab +
+      '<div class="fld"><span class="sub">Cuándo</span><select class="sel" id="mMes" aria-label="Mes">' + MESES_M.map(function (m, i) { return '<option value="' + i + '"' + (i === M.mes ? " selected" : "") + '>' + m + '</option>'; }).join("") + '</select>' +
+      '<div class="chk" role="group" aria-label="Días de viaje">' + ["3", "4-5", "5-6", "7+"].map(function (d) { return '<button type="button" data-n="' + d + '" aria-pressed="' + (M.dias === d) + '">' + d + ' días</button>'; }).join("") + '</div></div>' +
+      '<div class="fld"><span class="sub">Día de ida (varios si quieres)</span>' + dayBtns(M.ida, "i") + '</div>' +
+      '<div class="fld"><span class="sub">Día de vuelta</span>' + dayBtns(M.vuelta, "v") + '<p class="nota">Sin horarios de trabajo: aquí mandas tú.</p></div>' +
+      '<div class="fld"><span class="sub">Dónde</span><div class="chk" role="group">' + DONDE.map(function (d) { return '<button type="button" data-w="' + d[0] + '" aria-pressed="' + (M.donde === d[0]) + '">' + d[1] + '</button>'; }).join("") + '</div></div>' +
+      '<div class="fld"><span class="sub">Volver desde otro aeropuerto: hasta ' + (M.radio ? M.radio + ' km' : 'mismo aeropuerto') + '</span><input id="mRadio" type="range" min="0" max="1000" step="250" value="' + M.radio + '" aria-label="Kilómetros">' +
+      '<label class="fil"><input type="checkbox" id="mDos"' + (M.dos ? " checked" : "") + '> Preferir ir a un país y volver desde otro</label></div>' +
+      '<div class="fld"><span class="sub">Precio máximo (opcional)</span><input class="sel" id="mMax" type="number" inputmode="numeric" placeholder="Sin límite" value="' + esc(M.max) + '"></div>' +
+      '<div class="est">≈ ' + e.q + ' consultas · unos ' + e.min + ' min' + (e.min > 5 ? ' — conviene recortar' : '') + '</div>' +
+      '<button class="cta" id="mBuscar" type="button">Buscar</button>';
+  }
+  function bindMedida() {
+    app.querySelectorAll("[data-d]").forEach(function (el) { el.onclick = function () {
+      var a = el.dataset.d[0] === "i" ? M.ida : M.vuelta, n = +el.dataset.d.slice(1), k = a.indexOf(n);
+      if (k >= 0) a.splice(k, 1); else a.push(n); render(); }; });
+    app.querySelectorAll("[data-n]").forEach(function (el) { el.onclick = function () { M.dias = el.dataset.n; render(); }; });
+    app.querySelectorAll("[data-w]").forEach(function (el) { el.onclick = function () { M.donde = el.dataset.w; render(); }; });
+    var a = document.getElementById("mMes"); if (a) a.onchange = function () { M.mes = +a.value; render(); };
+    var r = document.getElementById("mRadio"); if (r) r.onchange = function () { M.radio = +r.value; render(); };
+    var d = document.getElementById("mDos"); if (d) d.onchange = function () { M.dos = d.checked; render(); };
+    var m = document.getElementById("mMax"); if (m) m.onchange = function () { M.max = m.value; render(); };
+    var b = document.getElementById("mBuscar"); if (b) b.onclick = function () {
+      M.fase = "buscando"; M.prog = 0; render();
+      mTimer = setInterval(function () { M.prog += 8; if (M.prog >= 100) { clearInterval(mTimer); M.fase = "listo"; } if (tab === "medida") render(); }, 350); };
+    var c = document.getElementById("mCancelar"); if (c) c.onclick = function () { clearInterval(mTimer); M.fase = "form"; render(); };
+    var v = document.getElementById("mVolver"); if (v) v.onclick = function () { M.fase = "form"; render(); };
+  }
+
+  // ---- Pasaporte: mapa táctil + sellos. Guarda en paises_visitados.txt (portátil) o en Cloudflare KV (versión publicada) vía /api/pasaporte ----
+  var PS = { vis: null, mapa: null, estado: "", sel: "", vb: null, edit: { anios: [], nota: "", medios: [] } };
+  var NOM_ES = null;
+  // Continentes (195 países = 193 de la ONU + Vaticano + Kosovo). Transcontinentales: Turquía, Georgia, Armenia, Azerbaiyán y Kazajistán en Asia;
+  // Rusia y Chipre en Europa; Egipto en África. Palestina y los territorios no suman al total (se cambia aquí).
+  var CONT = [
+    ["Europa", "AL AD AT BY BE BA BG HR CY CZ DK EE FI FR DE GR HU IS IE IT LV LI LT LU MT MD MC ME NL MK NO PL PT RO RU SM RS SK SI ES SE CH UA GB VA XK"],
+    ["Asia", "AF AM AZ BH BD BT BN KH CN GE IN ID IR IQ IL JP JO KZ KW KG LA LB MY MV MN MM NP KP OM PK PH QA SA SG KR LK SY TJ TH TL TR TM AE UZ VN YE"],
+    ["África", "DZ AO BJ BW BF BI CV CM CF TD KM CG CD CI DJ EG GQ ER SZ ET GA GM GH GN GW KE LS LR LY MG MW ML MR MU MA MZ NA NE NG RW ST SN SC SL SO ZA SS SD TZ TG TN UG ZM ZW"],
+    ["Norteamérica y Caribe", "AG BS BB BZ CA CR CU DM DO SV GD GT HT HN JM MX NI PA KN LC VC TT US"],
+    ["Sudamérica", "AR BO BR CL CO EC GY PY PE SR UY VE"],
+    ["Oceanía", "AU FJ KI MH FM NR NZ PW PG WS SB TO TV VU"]
+  ].map(function (c) { return { n: c[0], c: c[1].split(" ") }; });
+  var TOTAL = CONT.reduce(function (a, c) { return a + c.c.length; }, 0);
+  // Lista de deseos: se guarda en este móvil (localStorage), no en el portátil ni en la nube.
+  function leerDeseos() { try { return JSON.parse(localStorage.getItem("escapadas_deseos") || "[]"); } catch (e) { return []; } }
+  var DES = leerDeseos();
+  function guardarDeseos() { try { localStorage.setItem("escapadas_deseos", JSON.stringify(DES)); } catch (e) {} }
+  function nombrePais(c) { try { NOM_ES = NOM_ES || new Intl.DisplayNames(["es"], { type: "region" }); return NOM_ES.of(c) || c; } catch (e) { return c; } }
+  function estrella(cx, cy, r) {
+    var p = [];
+    for (var k = 0; k < 10; k++) { var a = Math.PI * k / 5 - Math.PI / 2, rr = k % 2 ? r * .42 : r; p.push((cx + rr * Math.cos(a)).toFixed(2) + "," + (cy + rr * Math.sin(a)).toFixed(2)); }
+    return '<polygon points="' + p.join(" ") + '" fill="#fff"/>';
+  }
+  function bandera(c) {   // Kosovo: dibujada (los emojis de bandera no siempre la traen)
+    if (c === "XK") {
+      var st = ""; for (var a = -50; a <= 50; a += 20) st += estrella(15 + 9 * Math.sin(a * Math.PI / 180), 11.5 - 9 * Math.cos(a * Math.PI / 180), 1.3);
+      return '<svg class="bnd" viewBox="0 0 30 20" role="img" aria-label="Bandera de Kosovo"><rect width="30" height="20" rx="2" fill="#244aa5"/>' +
+        '<path fill="#d0a650" d="M9.4 14.1l1.2-2.2 1.5-.4.6-1.5 1.7-.7 1.1.6 1.4-.2.9 1.1-.4 1.2 1 1-1.3 1.3-1.8-.3-1.4.8-1.6-.5-1.6.2z"/>' + st + '</svg>';
+    }
+    return /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(127397 + c.charCodeAt(0), 127397 + c.charCodeAt(1)) : "🏳️";
+  }
+  // ---- Sellos de pasaporte: un SVG por país, con la palabra de entrada en el idioma local, forma, tinta, iconos de transporte y desgaste ----
+  var MEDIOS = ["avion", "coche", "tren", "barco", "a_pie"];
+  var MEDIOS_ES = { avion: "Avión", coche: "Coche", tren: "Tren", barco: "Barco", a_pie: "A pie" };
+  var ICONOS = {   // dibujados en una caja de 24 × 24, solo trazo (se pintan con la tinta del sello)
+    avion: '<path d="M10.5 21l1.5-5-7 2.5V16l7-4.5V5a1.5 1.5 0 0 1 3 0v6.5l7 4.5v2.5L14 16l1.5 5-3 .8z" style="fill:currentColor;stroke:none"/>',
+    coche: '<path d="M4 16v-3.5L6 8a2 2 0 0 1 1.8-1.2h8.4A2 2 0 0 1 18 8l2 4.5V16M3 16h18v3H3zM7 19v1.5M17 19v1.5M5.5 12.5h13"/><circle cx="7.5" cy="14.6" r=".6"/><circle cx="16.5" cy="14.6" r=".6"/>',
+    tren: '<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9.5 14.5h.01M14.5 14.5h.01M8 21l2-4M16 21l-2-4M4 21h16"/>',
+    barco: '<path d="M3 15l2 4h14l2-4zM12 3v7M12 4l5 5h-5M7 15v-3h10v3M2 22c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" transform="translate(0 -2)"/>',
+    a_pie: '<path d="M13.5 5.6a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2zM9.6 8.8 7 22.6h2.2l1.8-7.6 2.2 2.1v5.5h2v-6.7l-2.2-2.1.6-3.1c1.2 1.5 3 2.5 5.1 2.5v-2c-1.7 0-3.1-.9-3.9-2.2l-1-1.6a2.1 2.1 0 0 0-1.8-1c-.3 0-.6.1-.9.2L6 8.2v5.2h2V9.5z" style="fill:currentColor;stroke:none"/>'
+  };
+  // Palabra de «entrada» en el idioma y la escritura del país, y su nombre nativo. [entrada, nombre nativo]
+  // Los países que no están aquí (y los hispanohablantes) llevan «ENTRADA» en castellano y su nombre en castellano.
+  var SELLO_TXT = {
+    AL: ["HYRJE", "Shqipëria"], AD: ["ENTRADA", "Andorra"], AM: ["ՄՈՒՏՔ", "Հայաստան"], AT: ["EINREISE", "Österreich"],
+    AZ: ["GİRİŞ", "Azərbaycan"], BE: ["ENTRÉE", "Belgique · België"], BA: ["ULAZAK", "Bosna i Hercegovina"], BG: ["ВЛИЗАНЕ", "България"], CH: ["EINREISE", "Schweiz · Suisse"], AE: ["دخول", "الإمارات"],
+    KH: ["ចូល", "កម្ពុជា"], BR: ["ENTRADA", "Brasil"], CN: ["入境", "中国"], CY: ["ΕΙΣΟΔΟΣ", "Κύπρος"], CZ: ["VSTUP", "Česko"],
+    DE: ["EINREISE", "Deutschland"], DK: ["INDREJSE", "Danmark"], DZ: ["دخول", "الجزائر"], EE: ["SISENEMINE", "Eesti"],
+    EG: ["دخول", "مصر"], FI: ["MAAHANTULO", "Suomi"], FR: ["ENTRÉE", "France"], GB: ["ARRIVAL", "United Kingdom"],
+    GE: ["შესვლა", "საქართველო"], GR: ["ΕΙΣΟΔΟΣ", "Ελλάδα"], HK: ["入境", "香港"], HR: ["ULAZAK", "Hrvatska"], HU: ["BELÉPÉS", "Magyarország"],
+    ID: ["MASUK", "Indonesia"], IE: ["ISTEACH", "Éire"], IL: ["כניסה", "ישראל"], IN: ["ARRIVAL", "भारत"],
+    IS: ["KOMA", "Ísland"], IT: ["INGRESSO", "Italia"], JO: ["دخول", "الأردن"], JP: ["入国許可", "日本"], KR: ["입국", "대한민국"],
+    KZ: ["КІРУ", "Қазақстан"], LA: ["ເຂົ້າ", "ລາວ"], LI: ["EINREISE", "Liechtenstein"], LT: ["ĮVAŽIAVIMAS", "Lietuva"],
+    LU: ["ENTRÉE", "Lëtzebuerg"], LV: ["IEBRAUKŠANA", "Latvija"], MA: ["دخول", "المغرب"], MC: ["ENTRÉE", "Monaco"],
+    MD: ["INTRARE", "Moldova"], ME: ["ULAZAK", "Crna Gora"], MK: ["ВЛЕЗ", "Македонија"], MT: ["DAĦLA", "Malta"],
+    MY: ["MASUK", "Malaysia"], NL: ["INREIS", "Nederland"], NO: ["INNREISE", "Norge"], NP: ["प्रवेश", "नेपाल"],
+    PH: ["ARRIVAL", "Pilipinas"], PL: ["WJAZD", "Polska"], PT: ["ENTRADA", "Portugal"], RO: ["INTRARE", "România"],
+    RS: ["УЛАЗАК", "Србија"], RU: ["ВЪЕЗД", "Россия"], SE: ["INRESA", "Sverige"], SG: ["ARRIVAL", "Singapore"],
+    SI: ["VSTOP", "Slovenija"], SK: ["VSTUP", "Slovensko"], SM: ["INGRESSO", "San Marino"], TH: ["เข้าเมือง", "ประเทศไทย"],
+    TN: ["دخول", "تونس"], TR: ["GİRİŞ", "Türkiye"], TW: ["入國", "臺灣"], UA: ["В'ЇЗД", "Україна"], US: ["ARRIVAL", "United States"],
+    UZ: ["KIRISH", "Oʻzbekiston"], VA: ["INGRESSO", "Città del Vaticano"], VN: ["NHẬP CẢNH", "Việt Nam"], XK: ["HYRJE", "Kosova"],
+    ES: ["ENTRADA", ""]
+  };
+  function partirVisita(a) {   // "2025:avion+tren" -> { y: "2025", m: ["avion", "tren"] }
+    var p = String(a).split(":");
+    return { y: p[0], m: (p[1] || "").split("+").filter(function (x) { return MEDIOS.indexOf(x) >= 0; }) };
+  }
+  function unirVisita(y, m) { var o = MEDIOS.filter(function (x) { return m.indexOf(x) >= 0; }); return o.length ? y + ":" + o.join("+") : y; }
+  function mediosDe(v) {   // todos los medios usados en el país: los de cada viaje y, si los hubiera, los antiguos guardados por país
+    var u = (v.medios || []).slice();
+    (v.anios || []).forEach(function (a) { partirVisita(a).m.forEach(function (m) { if (u.indexOf(m) < 0) u.push(m); }); });
+    return MEDIOS.filter(function (m) { return u.indexOf(m) >= 0; });
+  }
+  function sinTildes(t) { return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  function semilla(c) {   // generador de números repetible: el mismo país siempre sale con el mismo sello
+    var a = (c.charCodeAt(0) * 257 + c.charCodeAt(1) * 7919) >>> 0;
+    return function () { a = (a + 0x6D2B79F5) >>> 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  function ajuste(txt, size, ancho, ls) {   // reduce la letra si el texto no cabe; si aun así no cabe, lo comprime
+    var w = String(txt).length * (size * .62 + ls), s = w > ancho ? size * ancho / w : size;
+    return s < size * .6 ? { size: size * .6, len: ancho } : { size: s, len: 0 };
+  }
+  function tx(x, y, txt, size, cls, ancho, ls, grupo) {   // data-*: la pasada ajustarSellos() mide el texto real y lo encoge si no cabe
+    var a = ajuste(txt, size, ancho, ls);
+    return '<text class="' + cls + '" x="' + x + '" y="' + y + '" text-anchor="middle" font-size="' + a.size.toFixed(1) + '" letter-spacing="' + ls + '" data-max="' + Math.round(ancho) + '" data-size="' + size.toFixed(1) + '"' + (grupo ? ' data-g="' + grupo + '"' : '') +
+      (a.len ? ' textLength="' + a.len + '" lengthAdjust="spacingAndGlyphs"' : '') + '>' + esc(txt) + '</text>';
+  }
+  function icono(m, x, y, tam) {
+    var s = tam / 24;
+    return '<g transform="translate(' + (x - tam / 2).toFixed(1) + ' ' + (y - tam / 2).toFixed(1) + ') scale(' + s.toFixed(3) + ')" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' + ICONOS[m] + '</g>';
+  }
+  var NTINTAS = 5;
+  function perforado(x0, y0, x1, y1) {   // contorno de sello de correos: muescas semicirculares a lo largo del borde
+    var d = "M" + x0 + " " + y0;
+    [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]].forEach(function (b) {
+      var dx = b[2] - b[0], dy = b[3] - b[1], len = Math.hypot(dx, dy), k = Math.round(len / 12), seg = len / k, ux = dx / len, uy = dy / len;
+      for (var i = 0; i < k; i++) {
+        var p = function (t) { return (b[0] + ux * (i * seg + t)).toFixed(1) + " " + (b[1] + uy * (i * seg + t)).toFixed(1); };
+        d += "L" + p(seg / 2 - 3) + "A3 3 0 0 0 " + p(seg / 2 + 3) + "L" + p(seg);
+      }
+    });
+    return d + "Z";
+  }
+  var FORMAS = [   // o = contorno exterior, i = interior, w = ancho de texto, v = zona vertical útil, c = esquinas para los iconos (arriba-izq., arriba-der., abajo-izq., abajo-der.)
+    { o: '<rect x="4" y="4" width="192" height="132" rx="11"/>', i: '<rect x="10.5" y="10.5" width="179" height="119" rx="6"/>', w: 168, v: [26, 114], c: [[28, 27], [172, 27], [28, 113], [172, 113]] },
+    { o: '<polygon points="22,4 178,4 196,22 196,118 178,136 22,136 4,118 4,22"/>', i: '<polygon points="23,10.5 177,10.5 189.5,23 189.5,117 177,129.5 23,129.5 10.5,117 10.5,23"/>', w: 156, v: [26, 114], c: [[33, 31], [167, 31], [33, 109], [167, 109]] },
+    { estrecha: true, o: '<ellipse cx="100" cy="70" rx="96" ry="66"/>', i: '<ellipse cx="100" cy="70" rx="89" ry="59"/>', w: 138, v: [32, 108], c: [[50, 38], [150, 38], [50, 102], [150, 102]] },
+    { estrecha: true, o: '<polygon points="4,70 42,6 158,6 196,70 158,134 42,134"/>', i: '<polygon points="13,70 45,12 155,12 187,70 155,128 45,128"/>', w: 136, v: [30, 110], c: [[52, 30], [148, 30], [52, 110], [148, 110]] },
+    { o: '<polygon points="36,4 164,4 196,36 196,104 164,136 36,136 4,104 4,36"/>', i: '<polygon points="37,11 163,11 189,37 189,103 163,129 37,129 11,103 11,37"/>', w: 144, v: [28, 112], c: [[40, 32], [160, 32], [40, 108], [160, 108]] },
+    { estrecha: true, o: '<rect x="4" y="14" width="192" height="112" rx="56"/>', i: '<rect x="11" y="21" width="178" height="98" rx="49"/>', w: 122, v: [32, 108], c: [[52, 38], [148, 38], [52, 102], [148, 102]] },
+    { o: '<path d="M12 4H188Q196 4 196 12V58A12 12 0 0 0 196 82V128Q196 136 188 136H12Q4 136 4 128V82A12 12 0 0 0 4 58V12Q4 4 12 4Z"/>', i: '<path d="M16 11H184Q189.5 11 189.5 16.5V52.1A19 19 0 0 0 189.5 87.9V123.5Q189.5 129 184 129H16Q10.5 129 10.5 123.5V87.9A19 19 0 0 0 10.5 52.1V16.5Q10.5 11 16 11Z"/>', w: 136, v: [26, 114], c: [[28, 27], [172, 27], [28, 113], [172, 113]] },
+    { o: '<path d="' + perforado(5, 5, 195, 135) + '"/>', i: '<rect x="13" y="13" width="174" height="114" rx="3"/>', w: 160, v: [26, 114], c: [[30, 29], [170, 29], [30, 111], [170, 111]] },
+    { o: '<polygon points="26,4 196,4 196,114 174,136 4,136 4,26"/>', i: '<polygon points="27,11 189,11 189,113 173,129 11,129 11,27"/>', w: 154, v: [26, 114], c: [[36, 33], [172, 27], [28, 113], [164, 107]] }
+  ];
+  function marco(f, e) {   // 5 estilos de borde: grueso+fino, grueso solo, fino+grueso, grueso+discontinuo, doble fino
+    var g = function (w, x, extra) { return '<g stroke-width="' + w + '"' + (extra || "") + '>' + x + '</g>'; };
+    return [g(3.4, f.o) + g(1.2, f.i), g(3.9, f.o), g(1.5, f.o) + g(3.2, f.i), g(3.2, f.o) + g(1.7, f.i, ' stroke-dasharray="6 3.5"'), g(1.7, f.o) + g(1.7, f.i)][e];
+  }
+  function deco(t, y) {   // adorno entre bloques de texto (mide unos 7 de alto); 0 = ninguno
+    var c = 'stroke="currentColor"';
+    if (t === 1) return '<path d="M52 ' + y + 'H148" ' + c + ' stroke-width="1.2"/>';
+    if (t === 2) return '<path d="M56 ' + (y - 2) + 'H144M56 ' + (y + 2) + 'H144" ' + c + ' stroke-width="1"/>';
+    if (t === 3) return '<path d="M54 ' + y + 'H146" ' + c + ' stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round"/>';
+    if (t === 4) return [78, 100, 122].map(function (x) { return estrella(x, y, 4.2).replace('fill="#fff"', 'fill="currentColor"'); }).join("");
+    if (t === 5) return [84, 93, 107, 116].map(function (x, i) { var d = i < 2 ? 1 : -1; return '<polygon points="' + (x - 2.5 * d) + ',' + (y - 3.5) + ' ' + (x + 2.5 * d) + ',' + y + ' ' + (x - 2.5 * d) + ',' + (y + 3.5) + '" fill="currentColor"/>'; }).join("");
+    return "";
+  }
+  var ORDENES = [["ent", "nom", "nat", "dec", "anio"], ["anio", "dec", "nom", "nat", "ent"], ["nom", "nat", "dec", "ent", "anio"],
+    ["ent", "nom", "anio", "dec", "nat"], ["ent", "dec", "nom", "nat", "anio"], ["nom", "ent", "dec", "anio", "nat"]];
+  function elegir(x, lista, recientes, ventana) {   // elige al azar entre las opciones permitidas, evitando lo usado en los últimos sellos (así no se juntan tres del mismo color)
+    var k = Math.floor(x * lista.length);
+    for (var i = 0; i < lista.length; i++) { var z = lista[(k + i) % lista.length]; if (recientes.slice(-ventana).indexOf(z) < 0) { recientes.push(z); return z; } }
+    recientes.push(lista[k]); return lista[k];
+  }
+  function indices(n, valido) { var l = []; for (var i = 0; i < n; i++) if (!valido || valido(i)) l.push(i); return l; }
+  function selloSVG(c, v, ctx) {
+    var r = semilla(c), q = []; for (var z = 0; z < 20; z++) q.push(r());   // todos los azares de entrada: marcar medios no cambia el aspecto del resto
+    var anios = [], medios = mediosDe(v);
+    (v.anios || []).forEach(function (x) { x = x.slice(0, 4); if (anios.indexOf(x) < 0) anios.push(x); });
+    var es0 = nombrePais(c), largo = es0.length > 15 && es0.indexOf(" ") > 0;   // nombres largos: dos líneas, más grandes y legibles
+    var cargado = largo || medios.length >= 2 || anios.length > 2 || es0.length > 12;   // con mucho contenido, las formas estrechas (óvalo, hexágono, cápsula) quedarían con letra diminuta   // con mucho contenido, las formas estrechas (óvalo, hexágono, cápsula) no caben
+    var fi = elegir(q[0], indices(FORMAS.length, function (i) { return !(cargado && FORMAS[i].estrecha); }), ctx.formas, 2), forma = FORMAS[window.__formaPrueba != null ? window.__formaPrueba : fi], tinta = elegir(q[1], indices(NTINTAS), ctx.tintas, 4);
+    var rot = q[2] * 4 - 2, ang = q[3] * Math.PI * 2, gx = Math.cos(ang) * .5, gy = Math.sin(ang) * .5, flojo = (.55 + q[4] * .3).toFixed(2);
+    var estilo = Math.floor(q[5] * 5), orden = ORDENES[Math.floor(q[6] * ORDENES.length)], dec = q[7] < .22 || largo ? 0 : 1 + Math.floor(q[8] * 5);
+    var fuenteNom = q[9] < .55 ? "" : q[9] < .8 ? " st-serif" : " st-mono", tamNom = 23 + q[10] * 4.5, espNom = .2 + q[11] * 1.4, giro = q[12] * 5 - 2.5, salto = q[13] * 6 - 3;
+    var t = SELLO_TXT[c] || ["ENTRADA", ""], es = nombrePais(c), nat = t[1] || "";
+    var sub = !nat || sinTildes(nat) === sinTildes(es) ? "" : nat;   // si el nombre nativo es el mismo que en castellano, solo una vez
+    // iconos en las esquinas (hasta 4; un quinto, rarísimo, arriba en el centro)
+    var combos = [null, [[0], [1], [2], [3]], [[0, 3], [1, 2], [0, 1], [2, 3]], [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]], [[0, 1, 2, 3]], [[0, 1, 2, 3]]];
+    var uso = medios.length ? combos[medios.length][Math.floor(q[14] * combos[medios.length].length)] : [];
+    var arriba = uso.indexOf(0) >= 0 || uso.indexOf(1) >= 0, abajo = uso.indexOf(2) >= 0 || uso.indexOf(3) >= 0, quinto = medios.length === 5;
+    // bloques de texto, apilados según el orden elegido y centrados en la zona útil del sello
+    var hueco = function (k) { return 2 * (Math.abs(forma.c[k][0] - 100) - 16); };   // ancho libre entre un icono de esquina y el centro
+    var libre = medios.length > 1 ? Math.min.apply(null, [forma.w].concat(uso.map(hueco))) : forma.w;
+    var porFila = Math.max(1, Math.min(4, Math.floor((libre + 22) / (anios.length > 6 ? 46 : 58)))), nf = Math.ceil(anios.length / porFila), filas = [];
+    for (var k = 0, tam = Math.ceil(anios.length / Math.max(1, nf)); k < anios.length; k += tam) filas.push(anios.slice(k, k + tam));   // filas parejas
+    var paso = filas.length > 2 ? 12.5 : 14, letraAnio = filas.length > 2 ? 11 : filas.length > 1 ? 12.5 : 14;   // muchos viajes: letra y filas algo más pequeñas
+    var tam2 = Math.min(tamNom, 19), lin = [es];
+    if (largo) {   // parte por el espacio que deja las dos mitades más parejas
+      var pal = es.split(" "), mej = 1e9;
+      for (var cut = 1; cut < pal.length; cut++) { var A = pal.slice(0, cut).join(" "), B = pal.slice(cut).join(" "), m = Math.max(A.length, B.length); if (m < mej) { mej = m; lin = [A, B]; } }
+    }
+    var alto = { ent: 11, nom: lin.length > 1 ? Math.round(tam2 * 1.95) : 22, nat: 11, dec: 7, anio: paso * filas.length - 1 };
+    var bloques = orden.filter(function (b) { return (b !== "nat" || sub) && (b !== "anio" || filas.length) && (b !== "dec" || dec); });
+    var zona = [forma.v[0] + (quinto ? 8 : 0), forma.v[1]], suma = 0;
+    var cabe = function () { var t = 0; bloques.forEach(function (b) { t += alto[b]; }); return t + 3 * (bloques.length - 1) <= zona[1] - zona[0]; };
+    if (!cabe()) bloques = bloques.filter(function (b) { return b !== "dec"; });   // si no cabe todo, primero se quita el adorno
+    bloques.forEach(function (b) { suma += alto[b]; });
+    var sep = Math.max(3, Math.min(10, (zona[1] - zona[0] - suma) / Math.max(1, bloques.length - 1)));
+    var y = (zona[0] + zona[1]) / 2 - (suma + sep * (bloques.length - 1)) / 2 + salto, tx_ = '';
+    var lim = function (y0, h) {   // ancho de texto permitido en esa franja: más estrecho si hay un icono de esquina a esa altura
+      var l = forma.w;
+      uso.forEach(function (k) { var cy = forma.c[k][1]; if (y0 < cy + 12 && y0 + h > cy - 12) l = Math.min(l, hueco(k)); });
+      return l;
+    };
+    bloques.forEach(function (b) {
+      var base = b === "ent" || b === "nat" ? y + 10 : b === "nom" ? y + 20 : y + 11;
+      if (b === "ent") tx_ += tx(100, base, t[0], 12.5, "st-t st-s", Math.min(lim(y, 11), 120), 2.2);
+      else if (b === "nom" && lin.length > 1) lin.forEach(function (ln, i) { var yy = y + i * tam2 * .98; tx_ += tx(100, yy + tam2 * .82, ln, tam2, "st-t" + fuenteNom, lim(yy, tam2), espNom, "nom"); });
+      else if (b === "nom") tx_ += tx(100, base, es, tamNom, "st-t" + fuenteNom, lim(y, 22), espNom, "nom");
+      else if (b === "nat") tx_ += tx(100, base, sub, 12.5, "st-t st-s", Math.min(lim(y, 11), 124), 1.1, "nat");
+      else if (b === "dec") tx_ += deco(dec, y + 3.5);
+      else filas.forEach(function (f, i) { tx_ += tx(100, base + i * paso, f.join(" · "), letraAnio, "st-m", lim(y + i * paso, 13) - 4, .6); });
+      y += alto[b] + sep;
+    });
+    var ic = '';
+    medios.forEach(function (m, i) { ic += i < 4 ? icono(m, forma.c[uso[i]][0], forma.c[uso[i]][1], 20) : icono(m, 100, 19, 14); });
+    var def = '<defs><linearGradient id="g' + c + '" x1="' + (.5 - gx).toFixed(2) + '" y1="' + (.5 - gy).toFixed(2) + '" x2="' + (.5 + gx).toFixed(2) + '" y2="' + (.5 + gy).toFixed(2) + '"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="' + flojo + '"/></linearGradient>' +
+      '<mask id="m' + c + '" maskUnits="userSpaceOnUse" x="-6" y="-6" width="212" height="152"><rect x="-6" y="-6" width="212" height="152" fill="url(#g' + c + ')"/></mask></defs>';
+    var cuerpo = '<g mask="url(#m' + c + ')" style="color:var(--s' + tinta + ')">' +
+      '<g filter="url(#fg' + Math.floor(q[15] * 6) + ')" fill="none" stroke="currentColor">' + marco(forma, estilo) + '</g>' +
+      '<g filter="url(#ft' + Math.floor(q[16] * 3) + ')"><g transform="rotate(' + giro.toFixed(1) + ' 100 70)">' + tx_ + '</g>' + ic + '</g></g>';
+    return { svg: '<svg viewBox="-6 -6 212 152" role="img" aria-label="Sello de ' + esc(es) + (anios.length ? ': ' + esc(anios.join(", ")) : '') + '">' + def + cuerpo + '</svg>', rot: rot };
+  }
+  function selloHTML(c, v, ctx) {
+    var s = selloSVG(c, v, ctx);
+    return '<button class="sello" data-s="' + c + '" style="--rot:' + s.rot.toFixed(2) + 'deg">' + s.svg + '</button>';
+  }
+  var toastT = null;
+  function avisoToast(txt) {
+    var t = document.getElementById("toast"); if (!t) return;
+    t.textContent = txt; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("on"); }, 2200);
+  }
+  function cargarPasaporte() {
+    PS.estado = "cargando"; render();
+    Promise.all([fetch("/api/pasaporte", { cache: "no-store" }), PS.mapa ? null : fetch("mapa.json")]).then(function (r) {
+      if (!r[0].ok || (r[1] && !r[1].ok)) throw new Error("http");
+      return Promise.all([r[0].json(), r[1] ? r[1].json() : PS.mapa]);
+    }).then(function (a) { PS.vis = a[0].visitados; PS.mapa = a[1]; PS.estado = "listo"; render(); })
+      .catch(function () { PS.estado = "error"; render(); });
+  }
+  function nVis() { return Object.keys(PS.vis).length; }
+  function nVisT() { return CONT.reduce(function (a, c) { return a + c.c.filter(function (x) { return PS.vis[x]; }).length; }, 0); }   // solo los de la lista de 195
+  function contHtml() {
+    var fuera = Object.keys(PS.vis).length - nVisT();
+    return '<span class="sub">Por continente</span><div class="cont">' + CONT.map(function (k) {
+      var n = k.c.filter(function (x) { return PS.vis[x]; }).length, pc = Math.round(100 * n / k.c.length);
+      return '<div class="cont-r"><span>' + k.n + '</span><b>' + n + ' / ' + k.c.length + ' · ' + pc + ' %</b>' +
+        '<div class="bar" role="progressbar" aria-label="' + k.n + '" aria-valuenow="' + pc + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pc + '%"></i></div></div>';
+    }).join("") + (fuera > 0 ? '<p class="nota">Y ' + fuera + (fuera === 1 ? ' lugar más' : ' lugares más') + ' que no cuentan en el total (territorios u otros).</p>' : '') + '</div>';
+  }
+  function deseosHtml() {
+    var l = DES.filter(function (c) { return !PS.vis[c]; });
+    l.sort(function (a, b) { return nombrePais(a).localeCompare(nombrePais(b), "es"); });
+    return '<span class="sub">Lista de deseos (' + l.length + ')</span>' + (l.length ? '<div class="deseos">' + l.map(function (c) {
+      return '<span class="deseo"><button type="button" data-w="' + c + '">' + bandera(c) + '&nbsp;' + esc(nombrePais(c)) + '</button><button type="button" data-wq="' + c + '" aria-label="Quitar ' + esc(nombrePais(c)) + ' de la lista de deseos">×</button></span>';
+    }).join("") + '</div>' : '<p class="nota">Toca un país del mapa y pulsa «Quiero ir» para guardarlo aquí. Sale en azul verdoso en el mapa.</p>');
+  }
+  function renderPasaporte() {
+    if (PS.estado === "cargando" || PS.estado === "") return head("Pasaporte") + '<p class="nota">Cargando…</p>';
+    if (PS.estado === "error") return head("Pasaporte") + '<div class="pronto"><p>' + (window.ESCAPADAS_PUBLICADA ? 'No puedo cargar el pasaporte. Revisa la conexión.' : 'No puedo hablar con el portátil. ¿Sigue encendido y en la misma wifi?') + '</p><button class="cta" id="reintentarPas">Reintentar</button></div>';
+    var d = PS.mapa.paises, v = (PS.vb || [-180, -85, 360, 145]).join(" ");
+    var paths = Object.keys(d).sort(function (a, b) { return (a === PS.sel) - (b === PS.sel); }).map(function (c) {   // el elegido va el último: se pinta encima
+      return '<path data-c="' + c + '" class="' + (PS.vis[c] ? "vis" : DES.indexOf(c) >= 0 ? "des" : "") + (PS.sel === c ? " sel" : "") + '" d="' + d[c] + '"><title>' + esc(nombrePais(c)) + '</title></path>';
+    }).join("");
+    var h = head("Pasaporte") +
+      '<div class="cuenta"><b>' + nVisT() + '</b><span class="nota">países visitados de ' + TOTAL + ' · ' + Math.round(100 * nVisT() / TOTAL) + ' %</span></div>' +
+      '<div class="mapa"><svg id="svgMapa" viewBox="' + v + '" role="img" aria-label="Mapamundi: toca un país para marcarlo">' + paths + '</svg>' +
+      '<div class="zoom"><button id="zMas" aria-label="Acercar">+</button><button id="zMenos" aria-label="Alejar">−</button><button id="zTodo" aria-label="Volver a la vista inicial">⌂</button></div></div>';
+    h += PS.sel ? fichaPais(PS.sel) : '<p class="nota">Toca un país del mapa para marcarlo. Con dos dedos haces zoom; los países pequeños, mejor desde la lista de abajo.</p>';
+    h += contHtml() + deseosHtml();
+    var cods = Object.keys(PS.vis);
+    cods.sort(function (a, b) { return nombrePais(a).localeCompare(nombrePais(b), "es"); });   // siempre por orden alfabético
+    var ctx = { formas: [], tintas: [] };
+    h += '<span class="sub">Sellos (' + cods.length + ')</span><div class="sellos">' + cods.map(function (c) { return selloHTML(c, PS.vis[c], ctx); }).join("") + '</div>';
+    var todos = Object.keys(d).concat(d.VA ? [] : ["VA"]).filter(function (c) { return !PS.vis[c]; });
+    todos.sort(function (a, b) { return nombrePais(a).localeCompare(nombrePais(b), "es"); });
+    h += '<span class="sub">Añadir desde la lista</span><select class="sel" id="selAnadir"><option value="">Elige un país…</option>' +
+      todos.map(function (c) { return '<option value="' + c + '">' + esc(nombrePais(c)) + '</option>'; }).join("") + '</select>';
+    return h;
+  }
+  function fichaPais(c) {
+    var e = PS.edit, ya = !!PS.vis[c], hoy = new Date().getFullYear(), opc = '<option value="">Añadir un año…</option>';
+    for (var y = hoy; y >= 1970; y--) opc += '<option value="' + y + '">' + y + '</option>';
+    return '<div class="ficha"><h2><span class="bnd-w">' + bandera(c) + '</span> ' + esc(nombrePais(c)) + '</h2>' +
+      '<div class="fld"><span class="sub">Años en los que has estado y cómo entraste en cada viaje (opcional)</span><div class="anios-v">' +
+      (e.anios.length ? e.anios.map(function (a, i) {
+        var vv = partirVisita(a), y4 = esc(vv.y.slice(0, 4));
+        return '<div class="visita"><b>' + y4 + '</b><span class="modos" role="group" aria-label="Cómo entraste en ' + y4 + '">' + MEDIOS.map(function (m) {
+          return '<button type="button" data-v="' + i + ':' + m + '" aria-pressed="' + (vv.m.indexOf(m) >= 0) + '" aria-label="' + MEDIOS_ES[m] + '" title="' + MEDIOS_ES[m] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONOS[m] + '</svg></button>'; }).join("") +
+          '</span><button type="button" data-q="' + i + '" aria-label="Quitar ' + y4 + '">×</button></div>';
+      }).join("") : '<span class="nota">Ninguno todavía.</span>') +
+      '</div><select class="sel" id="pAnio" aria-label="Añadir un año">' + opc + '</select></div>' +
+      (e.anios.length ? '' : '<div class="fld"><span class="sub">Cómo has entrado (puedes marcar varios; si añades años, se elige en cada uno)</span><div class="medios">' + MEDIOS.map(function (m) {
+        return '<button type="button" class="medio" data-m="' + m + '" aria-pressed="' + (e.medios.indexOf(m) >= 0) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONOS[m] + '</svg>' + MEDIOS_ES[m] + '</button>'; }).join("") + '</div></div>') +
+      '<label class="fld"><span class="sub">Nota (con quién fuiste…)</span><input type="text" id="pNota" maxlength="120" placeholder="Con quién, qué viste…" value="' + esc(e.nota) + '"></label>' +
+      '<button class="cta" id="pGuardar">' + (ya ? "Guardar" : "Marcar como visitado") + '</button>' +
+      (ya ? '' : '<button class="cta ghost" id="pDeseo" aria-pressed="' + (DES.indexOf(c) >= 0) + '">' + (DES.indexOf(c) >= 0 ? "★ En mi lista de deseos · quitar" : "☆ Quiero ir") + '</button>') +
+      (ya ? '<button class="cta ghost" id="pQuitar">Quitar de visitados</button>' : '') +
+      '<button class="cta ghost" id="pCerrar">Cerrar</button></div>';
+  }
+  function guardarPais(c, visitado, anios, nota, medios) {
+    var antes = PS.vis[c];
+    if (visitado && DES.indexOf(c) >= 0) { DES.splice(DES.indexOf(c), 1); guardarDeseos(); }   // un país no puede estar en las dos listas
+    if (visitado) PS.vis[c] = { anios: anios, nota: nota || "", medios: medios || [] }; else delete PS.vis[c];
+    PS.sel = ""; avisoToast("Guardando…"); render();   // la ficha se cierra al pulsar
+    fetch("/api/pasaporte", { method: "POST", headers: { "X-Escapadas": "1", "Content-Type": "application/json" },
+      body: JSON.stringify({ codigo: c, visitado: visitado, anios: anios, nota: nota || "", medios: medios || [] }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function () { avisoToast(visitado ? "✓ Guardado: " + nombrePais(c) : "Quitado: " + nombrePais(c)); })
+      .catch(function (e) { if (antes) PS.vis[c] = antes; else delete PS.vis[c]; render(); avisoToast("No se ha guardado"); alert("No se ha guardado: " + e.message); });
+  }
+  function elegirPais(c) {
+    if (PS.sel === c) { PS.sel = ""; render(); return; }
+    var v = PS.vis[c]; PS.sel = c; PS.edit = { anios: v ? v.anios.slice() : [], nota: v ? v.nota : "", medios: v && v.medios ? v.medios.slice() : [] };
+    var e = PS.edit;   // datos antiguos (medios por país): pasan a cada viaje que aún no tenga los suyos
+    if (e.anios.length && e.medios.length && !e.anios.some(function (a) { return partirVisita(a).m.length; })) {
+      e.anios = e.anios.map(function (a) { return unirVisita(partirVisita(a).y, e.medios); }); e.medios = [];
+    }
+    render(); var f = document.querySelector(".ficha"); if (f) f.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  function ajustarSellos() {   // mide el texto real de cada sello y lo encoge hasta que cabe: dentro del marco y sin tocar ningún icono
+    Array.prototype.forEach.call(document.querySelectorAll(".sello svg"), function (svg) {
+      var marcoI = svg.querySelector('g[filter^="url(#fg"]'); marcoI = marcoI && marcoI.lastElementChild && marcoI.lastElementChild.lastElementChild;
+      var ics = Array.prototype.map.call(svg.querySelectorAll('g[transform^="translate"]'), function (g) {
+        var m = g.getAttribute("transform").match(/translate\(([-\d.]+) ([-\d.]+)\) scale\(([\d.]+)\)/), k = m ? +m[3] * 24 : 0;
+        return m ? { x0: +m[1] + 2, y0: +m[2] + 2, x1: +m[1] + k - 2, y1: +m[2] + k - 2 } : null;
+      }).filter(Boolean);
+      var P = svg.createSVGPoint();
+      function dentro(x, y) { P.x = x; P.y = y; try { return marcoI.isPointInFill(P); } catch (e) { return true; } }
+      function mitadMarco(y0, y1) {   // medio ancho (desde el centro, x = 100) que deja libre el marco entre esas alturas, con margen
+        var lo = 0, hi = 100, ym = (y0 + y1) / 2;
+        for (var n = 0; n < 12; n++) {
+          var h = (lo + hi) / 2 + 5, ok = [y0, ym, y1].every(function (y) { return dentro(100 - h, y) && dentro(100 + h, y); });
+          if (ok) lo = (lo + hi) / 2; else hi = (lo + hi) / 2;
+        }
+        return lo;
+      }
+      var tam = {};
+      Array.prototype.forEach.call(svg.querySelectorAll("text[data-max]"), function (t) {
+        var max = +t.getAttribute("data-max"), size = +t.getAttribute("data-size"), g = t.getAttribute("data-g"), y = +t.getAttribute("y");
+        if (g === "nat" && tam.nom) size = Math.min(size, tam.nom * .8);
+        var base = size, fin = false;
+        t.removeAttribute("textLength");
+        for (var pasada = 0; pasada < 4; pasada++) {
+          t.setAttribute("font-size", size.toFixed(1));
+          var len = 0; try { len = t.getComputedTextLength(); } catch (e) { return; }
+          if (!len) return;
+          var arr = y - .76 * size - 2, aba = y + .15 * size + 2, W = max;
+          if (marcoI) W = Math.min(W, 2 * mitadMarco(arr, aba));
+          ics.forEach(function (i) {   // un icono a esa altura: el texto (centrado) no puede llegar hasta él
+            if (arr < i.y1 + 2 && aba > i.y0 - 2) { var h = Math.abs((i.x0 + i.x1) / 2 - 100) - (i.x1 - i.x0) / 2 - 5; if (h > 12) W = Math.min(W, 2 * h); }
+          });
+          if (len <= W + .3) { fin = true; break; }
+          size = Math.max(base * .6, size * W / len);
+          if (size <= base * .6 + .01) { t.setAttribute("font-size", size.toFixed(1)); t.setAttribute("textLength", Math.max(10, Math.round(W))); t.setAttribute("lengthAdjust", "spacingAndGlyphs"); fin = true; break; }
+        }
+        if (g === "nom") tam.nom = Math.min(tam.nom || 99, size);
+      });
+      var nom = svg.querySelectorAll('text[data-g="nom"]');   // las dos líneas de un nombre largo comparten tamaño
+      if (nom.length > 1) { var mn = 99; Array.prototype.forEach.call(nom, function (t) { mn = Math.min(mn, +t.getAttribute("font-size")); }); Array.prototype.forEach.call(nom, function (t) { t.setAttribute("font-size", mn); }); }
+    });
+  }
+  function bindPasaporte() {
+    if (PS.estado === "listo") { ajustarSellos(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustarSellos); }
+    var rp = document.getElementById("reintentarPas"); if (rp) rp.onclick = cargarPasaporte;
+    if (PS.estado !== "listo") return;
+    var svg = document.getElementById("svgMapa"), caja = svg.parentNode, W0 = 360, H0 = 145, ptrs = {}, mov = 0, vel = null, raf = 0, anim = 0, committed = null, medida = null;
+    // Fluidez: durante el gesto solo se mueve una transformación CSS del <svg> (la tarjeta gráfica la compone sin
+    // volver a dibujar los 234 países) y se aplica una vez por fotograma. El viewBox real se consolida al soltar
+    // (consolidar), y entonces el mapa queda nítido. Se mide la caja (no el <svg>), porque el <svg> está transformado.
+    function medir() { var r = caja.getBoundingClientRect(); return { left: r.left, top: r.top, w: r.width, h: r.height }; }
+    function limitar(vb) {   // el recuadro sigue la forma de la caja; no sale del mundo ni se acerca de más
+      var m = medida || medir(), A = m.w / m.h, w = Math.min(W0, Math.max(6, vb[2])), h = w / A;
+      var x = h >= H0 && w >= W0 ? -180 : Math.min(-180 + W0 - w, Math.max(-180, vb[0]));
+      var y = h >= H0 ? -85 + (H0 - h) / 2 : Math.min(-85 + H0 - h, Math.max(-85, vb[1]));
+      return [x, y, w, h];
+    }
+    function ajustar(vb) { PS.vb = limitar(vb); if (!raf) raf = requestAnimationFrame(pintar); }
+    // El <svg> mide el doble que la caja (CSS) y dibuja un margen de media caja por cada lado: al arrastrar aparece
+    // zona ya dibujada, sin esperar. `committed` y `PS.vb` son lo que se VE; el viewBox real del <svg> es esa vista ampliada (amp).
+    function amp(v) { return [v[0] - v[2] / 2, v[1] - v[3] / 2, v[2] * 2, v[3] * 2]; }
+    function desplaz() {   // cuánto se ha movido la vista respecto a lo dibujado, en píxeles, y cuánto se ha cambiado el zoom
+      var c = amp(committed), v = amp(PS.vb), s = medida.w / PS.vb[2];   // con el viewBox ampliado, que es el que tiene el <svg>
+      return { tx: (c[0] - v[0]) * s, ty: (c[1] - v[1]) * s, k: c[2] / v[2] };
+    }
+    function pintar() {   // una vez por fotograma: lleva lo dibujado a la vista deseada con translate3d + scale
+      raf = 0; var d = desplaz();
+      svg.style.transform = "translate3d(" + d.tx + "px," + d.ty + "px,0) scale(" + d.k + ")";
+    }
+    function consolidar() {   // lo visible pasa a ser lo dibujado y se quita la transformación, en el mismo fotograma
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      svg.style.transform = ""; svg.setAttribute("viewBox", amp(PS.vb).join(" ")); committed = PS.vb.slice();
+      svg.style.setProperty("--sw", (.8 * PS.vb[2] / medida.w).toFixed(4));   // grosor de frontera constante en píxeles (sin non-scaling-stroke, que es lento)
+    }
+    function sobrado() {   // ¿se ha salido de lo ya dibujado o cambiado el zoom? Entonces toca volver a dibujar
+      var d = desplaz(); return Math.abs(d.k - 1) > .002 || Math.abs(d.tx) > medida.w * .4 || Math.abs(d.ty) > medida.h * .4;
+    }
+    function alSoltar() { if (sobrado()) consolidar(); }   // un arrastre corto dentro del margen no redibuja nada
+    function parar() { if (anim) { cancelAnimationFrame(anim); anim = 0; } vel = null; }
+    function animarA(dest, ms) {   // suaviza + / − / ⌂ interpolando el viewBox (misma transformación, sin redibujar)
+      parar(); medida = medir(); var d0 = PS.vb.slice(), t0 = performance.now(); dest = limitar(dest);
+      (function paso(t) {
+        var u = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - u, 3);
+        ajustar([0, 1, 2, 3].map(function (i) { return d0[i] + (dest[i] - d0[i]) * e; }));
+        if (u < 1) anim = requestAnimationFrame(paso); else { anim = 0; consolidar(); }
+      })(t0);
+    }
+    function inicio() {   // España y Europa: lon -15…35, lat 30…60 (en el mapa: x -15…35, y -60…-30), un plano algo cerrado
+      medida = medir(); var A = medida.w / medida.h, w = 50, h = w / A;
+      if (h < 30) { h = 30; w = h * A; }          // en cajas muy anchas manda el alto
+      var dest = [8 - w / 2, -43 - h / 2, w, h];
+      if (!committed) { ajustar(dest); consolidar(); } else animarA(dest, 350);
+    }
+    medida = medir();
+    if (PS.vb) { committed = PS.vb.slice(); ajustar(PS.vb); consolidar(); } else { committed = null; inicio(); }
+    function zoom(f, cx, cy) {   // devuelve el viewBox con el punto (cx, cy) fijo, en coordenadas del mapa
+      var vb = PS.vb; cx = cx == null ? vb[0] + vb[2] / 2 : cx; cy = cy == null ? vb[1] + vb[3] / 2 : cy;
+      return [cx - (cx - vb[0]) * f, cy - (cy - vb[1]) * f, vb[2] * f, vb[3] * f];
+    }
+    function aMapa(x, y) { var m = medida, vb = PS.vb; return [vb[0] + (x - m.left) / m.w * vb[2], vb[1] + (y - m.top) / m.h * vb[3]]; }
+    document.getElementById("zMas").onclick = function () { animarA(zoom(.5), 220); };
+    document.getElementById("zMenos").onclick = function () { animarA(zoom(2), 220); };
+    document.getElementById("zTodo").onclick = inicio;
+    function dist() { var k = Object.keys(ptrs); return Math.hypot(ptrs[k[0]].x - ptrs[k[1]].x, ptrs[k[0]].y - ptrs[k[1]].y); }
+    svg.addEventListener("pointerdown", function (e) {
+      parar(); medida = medir(); svg.setPointerCapture(e.pointerId);
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY, t: e.timeStamp }; mov = 0;
+    });
+    svg.addEventListener("pointermove", function (e) {
+      var p = ptrs[e.pointerId]; if (!p) return;
+      var m = medida, vb = PS.vb;
+      if (Object.keys(ptrs).length === 2) {
+        var d = dist(); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY, t: e.timeStamp }; var d2 = dist();
+        var k = Object.keys(ptrs), c = aMapa((ptrs[k[0]].x + ptrs[k[1]].x) / 2, (ptrs[k[0]].y + ptrs[k[1]].y) / 2);
+        if (d2 > 0 && d > 0) ajustar(zoom(d / d2, c[0], c[1]));
+        mov = 99; vel = null; return;
+      }
+      var dx = e.clientX - p.x, dy = e.clientY - p.y; mov += Math.abs(dx) + Math.abs(dy);
+      if (mov <= 8) return;
+      var dt = Math.max(1, e.timeStamp - p.t); vel = { x: dx / dt, y: dy / dt };   // px por ms, para la inercia
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+      ajustar([vb[0] - dx / m.w * vb[2], vb[1] - dy / m.h * vb[3], vb[2], vb[3]]);
+      if (sobrado()) consolidar();   // si se llega al borde de lo dibujado, se redibuja ya (una vez)
+    });
+    function fin(e) {
+      var p = ptrs[e.pointerId], solo = Object.keys(ptrs).length === 1, tocar = solo && mov <= 8 && e.type === "pointerup";
+      delete ptrs[e.pointerId];
+      var otros = Object.keys(ptrs); if (otros.length) { ptrs[otros[0]].t = e.timeStamp; vel = null; return; }
+      if (tocar) { var el = document.elementFromPoint(e.clientX, e.clientY); if (el && el.dataset && el.dataset.c) elegirPais(el.dataset.c); return; }
+      if (vel && p && e.type === "pointerup" && e.timeStamp - p.t < 80 && Math.hypot(vel.x, vel.y) > .15) {   // inercia: sigue un poco y frena
+        var m = medida, v = { x: vel.x, y: vel.y }, ult = performance.now();
+        (function paso(t) {
+          var dt = Math.min(50, t - ult); ult = t; var f = Math.pow(.94, dt / 16.7); v.x *= f; v.y *= f;
+          var vb = PS.vb; ajustar([vb[0] - v.x * dt / m.w * vb[2], vb[1] - v.y * dt / m.h * vb[3], vb[2], vb[3]]);
+          if (sobrado()) consolidar();
+          if (Math.hypot(v.x, v.y) > .02) anim = requestAnimationFrame(paso); else { anim = 0; alSoltar(); }
+        })(ult);
+      } else alSoltar();
+    }
+    svg.addEventListener("pointerup", fin); svg.addEventListener("pointercancel", fin);
+    var rueda = 0;
+    svg.addEventListener("wheel", function (e) {
+      e.preventDefault(); parar(); medida = medir(); var c = aMapa(e.clientX, e.clientY); ajustar(zoom(e.deltaY < 0 ? .85 : 1.18, c[0], c[1]));
+      clearTimeout(rueda); rueda = setTimeout(consolidar, 120);
+    }, { passive: false });
+    app.querySelectorAll("[data-s]").forEach(function (el) { el.onclick = function () { elegirPais(el.dataset.s); }; });
+    var sa = document.getElementById("selAnadir"); if (sa) sa.onchange = function () { if (sa.value) elegirPais(sa.value); };
+    var c = PS.sel, g = document.getElementById("pGuardar");
+    var nota = document.getElementById("pNota"); if (nota) nota.oninput = function () { PS.edit.nota = nota.value; };
+    var an = document.getElementById("pAnio"); if (an) an.onchange = function () { if (an.value) { PS.edit.anios.push(an.value); PS.edit.anios.sort(); render(); } };
+    app.querySelectorAll("[data-q]").forEach(function (b) { b.onclick = function () { PS.edit.anios.splice(+b.dataset.q, 1); render(); }; });
+    if (g) g.onclick = function () { guardarPais(c, true, PS.edit.anios.slice(), PS.edit.nota.trim(), PS.edit.anios.length ? [] : PS.edit.medios.slice()); };
+    app.querySelectorAll("[data-v]").forEach(function (b) {
+      b.onclick = function () {
+        var p = b.dataset.v.split(":"), vv = partirVisita(PS.edit.anios[+p[0]]), k = vv.m.indexOf(p[1]);
+        if (k >= 0) vv.m.splice(k, 1); else vv.m.push(p[1]);
+        PS.edit.anios[+p[0]] = unirVisita(vv.y, vv.m); b.setAttribute("aria-pressed", k < 0);
+      };
+    });
+    app.querySelectorAll("[data-m]").forEach(function (b) { b.onclick = function () { var i = PS.edit.medios.indexOf(b.dataset.m); if (i >= 0) PS.edit.medios.splice(i, 1); else PS.edit.medios.push(b.dataset.m); b.setAttribute("aria-pressed", i < 0); }; });
+    var pd = document.getElementById("pDeseo"); if (pd) pd.onclick = function () {
+      var i = DES.indexOf(c); if (i >= 0) DES.splice(i, 1); else DES.push(c);
+      guardarDeseos(); avisoToast(i >= 0 ? "Quitado de deseos: " + nombrePais(c) : "★ En deseos: " + nombrePais(c)); PS.sel = ""; render();
+    };
+    app.querySelectorAll("[data-w]").forEach(function (b) { b.onclick = function () { elegirPais(b.dataset.w); }; });
+    app.querySelectorAll("[data-wq]").forEach(function (b) { b.onclick = function () { DES.splice(DES.indexOf(b.dataset.wq), 1); guardarDeseos(); render(); }; });
+    var q = document.getElementById("pQuitar"); if (q) q.onclick = function () { if (confirm("¿Quitar " + nombrePais(c) + " de tus países visitados?")) guardarPais(c, false, [], "", []); };
+    var x = document.getElementById("pCerrar"); if (x) x.onclick = function () { PS.sel = ""; render(); };
+  }
+  var cambioTab = false;   // al pulsar una pestaña se vuelve arriba; al marcar un país en el pasaporte, no
+  var TITULOS = { nuevos: "Radar", medida: "A medida", pasaporte: "Pasaporte", config: "Ajustes" };
+
+  // Ajustes: PROTOTIPO visual. Los controles se mueven pero no guardan nada ni cambian las búsquedas.
+  var CF = { ida: "dom", dist: 200, otro: true, tren: true, bus: true, ferry: true };
+  var VUELTAS = {
+    vie: "Vuelta el sábado desde las 20:00 o el domingo antes de las 14:30",
+    sab: "Vuelta el domingo desde las 20:00 o el lunes antes de las 14:30",
+    dom: "Vuelta el lunes desde las 20:00 o el martes antes de las 14:30"
+  };
+  function sw(k, v) { return '<button class="sw" type="button" data-sw="' + k + '" aria-pressed="' + v + '" aria-label="' + k + '"></button>'; }
+  function renderConfig() {
+    var dias = [["vie", "Viernes"], ["sab", "Sábado"], ["dom", "Domingo"]];
+    return head("Ajustes") + '<div class="maqueta">Prototipo · aún no guarda nada</div>' +
+      '<section class="cfg"><h2>Días libres</h2><p class="nota">Día de salida desde El Prat (06:00 a 10:00).</p>' +
+      '<div class="chk" role="group" aria-label="Día de ida">' + dias.map(function (d) {
+        return '<button type="button" data-ida="' + d[0] + '" aria-pressed="' + (CF.ida === d[0]) + '">' + d[1] + '</button>'; }).join("") + '</div>' +
+      '<p class="nota" id="cfg-vuelta">' + VUELTAS[CF.ida] + '.</p>' +
+      '<p class="nota">Más adelante: días sueltos pedidos con antelación.</p></section>' +
+      '<section class="cfg"><h2>Otro aeropuerto a la vuelta</h2>' +
+      '<div class="cfg-row"><span>Permitir volver desde otro aeropuerto<small>Llegas a uno y vuelves desde otro</small></span>' + sw("otro", CF.otro) + '</div>' +
+      '<div id="cfg-dist"' + (CF.otro ? '' : ' hidden') + '><div class="cfg-row"><span>Distancia por cada 24 h fuera</span><span class="cfg-big" id="cfg-km">' + CF.dist + ' km</span></div>' +
+      '<input type="range" id="cfg-rng" min="50" max="500" step="25" value="' + CF.dist + '" aria-label="Kilómetros por cada 24 horas">' +
+      '<p class="nota" id="cfg-ej">Con 48 h fuera: hasta ' + (CF.dist * 2) + ' km entre aeropuertos.</p></div></section>' +
+      '<section class="cfg"><h2>Cómo te mueves entre aeropuertos</h2>' +
+      '<div class="cfg-row"><span>Tren</span>' + sw("tren", CF.tren) + '</div>' +
+      '<div class="cfg-row"><span>Autobús o carretera</span>' + sw("bus", CF.bus) + '</div>' +
+      '<div class="cfg-row"><span>Ferri<small>Solo si hay mar de por medio</small></span>' + sw("ferry", CF.ferry) + '</div>' +
+      '<p class="nota">La distancia sola no basta: también contará el tiempo real del traslado.</p></section>';
+  }
+  function bindConfig() {
+    app.querySelectorAll("[data-ida]").forEach(function (b) { b.onclick = function () { CF.ida = b.dataset.ida; render(); }; });
+    app.querySelectorAll("[data-sw]").forEach(function (b) { b.onclick = function () { CF[b.dataset.sw] = !CF[b.dataset.sw]; render(); }; });
+    var r = document.getElementById("cfg-rng");   // el deslizador no repinta (se perdería el arrastre): solo cambia los textos
+    if (r) r.oninput = function () {
+      CF.dist = +r.value;
+      document.getElementById("cfg-km").textContent = CF.dist + " km";
+      document.getElementById("cfg-ej").textContent = "Con 48 h fuera: hasta " + (CF.dist * 2) + " km entre aeropuertos.";
+    };
+  }
+
+  function render() {
+    app.innerHTML = tab === "flash" ? (open >= 0 ? renderDetail() : renderFlash()) : tab === "nuevos" ? renderPaises() : tab === "medida" ? renderMedida() : tab === "pasaporte" ? renderPasaporte() : tab === "config" ? renderConfig() : renderPronto(TITULOS[tab]);
+    if (!(tab === "medida" && M.fase === "form") && !(tab === "pasaporte" && PS.estado === "listo" && !cambioTab) && !(tab === "config" && !cambioTab)) window.scrollTo(0, 0);
+    cambioTab = false;
+    if (tab === "config") bindConfig();
+    if (tab === "medida") bindMedida();
+    if (tab === "pasaporte") bindPasaporte();
+    if (tab === "nuevos" && paisEstado === "listo" && CQ.vista === "semana") bindCuadricula();
+    if (tab === "nuevos") bindVista();
+    app.querySelectorAll(".cal button").forEach(function (el) { el.onclick = function () { cur = +el.dataset.i; todos = false; render(); }; });
+    app.querySelectorAll(".trip[data-t]").forEach(function (el) { el.onclick = function () { open = +el.dataset.t; libres = 0; render(); }; });
+    app.querySelectorAll(".seg button").forEach(function (el) { el.onclick = function () { libres = +el.dataset.l; render(); window.scrollTo(0, document.body.scrollHeight); }; });
+    var b = document.getElementById("back"); if (b) b.onclick = function () { open = -1; render(); };
+    var vm = document.getElementById("vermas"); if (vm) vm.onclick = function () { todos = true; render(); };
+    app.querySelectorAll("[data-r]").forEach(function (el) { el.onclick = function () { abierto = +el.dataset.r; render(); }; });
+    var rp = document.getElementById("reintentarP"); if (rp) rp.onclick = cargarPaises;
+    var br = document.getElementById("backR"); if (br) br.onclick = function () { abierto = -1; render(); };
+    var sm = document.getElementById("selmes"); if (sm) sm.onchange = function () { mesR = +sm.value; render(); };
+    var sn = document.getElementById("solonuevos"); if (sn) sn.onchange = function () { soloNuevos = sn.checked; render(); };
+    var rr = document.getElementById("reintentarR"); if (rr) rr.onclick = cargarRadar;
+    var rt = document.getElementById("reintentar"); if (rt) rt.onclick = cargar;
+    var ba = document.getElementById("actualizar"); if (ba) ba.onclick = actualizar;
+  }
+  function cargar() {
+    estadoCarga = "cargando"; render();
+    fetch("/api/movil-flash", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { if (act.nube) return; datos = ajustarEdad(d); estadoCarga = "listo"; cur = 0; open = -1; render(); })
+      .catch(function () {
+        if (act.nube) return;
+        if (location.protocol === "file:") { datos = EJEMPLO; estadoCarga = "listo"; } else { datos = { domingos: [] }; estadoCarga = "error"; }
+        render();
+      });
+  }
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.onclick = function () {
+      tab = t.dataset.tab; open = -1; abierto = -1; paisAb = -1; CQ.p = -1; cambioTab = true;
+      document.querySelectorAll(".tab").forEach(function (x) { x.setAttribute("aria-selected", x === t ? "true" : "false"); });
+      if (tab === "nuevos" && !paisD) cargarPaises(); else if (tab === "pasaporte" && !PS.vis) cargarPasaporte(); else render();
+    };
+  });
+  datos = { domingos: [] };
+  fetch("aeropuertos.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) { APTOS = d; }).catch(function () {});
+  cargar();
+  if (window.ESCAPADAS_PUBLICADA) { retomarNube(); cargarSalud(); }
+  if (location.protocol !== "file:") {
+    actPreguntar();   // si ya había una actualización en marcha (p. ej. al volver a Safari), se retoma
+    var oculta = 0;
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) { oculta = Date.now(); return; }
+      // Versión publicada: iOS conserva la página vieja al volver a la app; tras 2 min fuera se recarga entera (código y datos nuevos).
+      if (window.ESCAPADAS_PUBLICADA && oculta && Date.now() - oculta > 120000 && act.fase !== "corriendo") { location.reload(); return; }
+      actPreguntar();
+      if (window.ESCAPADAS_PUBLICADA && act.fase !== "corriendo") { retomarNube(); cargarSalud(); }
+    });
+  }
+})();
+</script>
+</body>
+</html>

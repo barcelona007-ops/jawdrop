@@ -1,0 +1,16 @@
+# Claves privadas: nunca a git
+.env
+.env.txt
+*.env
+!.env.example
+# Entorno y datos locales (se regeneran solos)
+.venv/
+cache.sqlite
+*.sqlite
+__pycache__/
+resultados/
+seguimiento_log.txt
+actualizar_log.txt
+auditor_log.txt
+publicar/
+.wrangler/
