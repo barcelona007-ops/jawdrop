@@ -159,24 +159,6 @@ a.kv:active { background: var(--bd); }
 .trip .sub2 { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
 
 /* Pasaporte: mapa táctil + sellos */
-.pn-zona { background: var(--paper); border: 1px solid var(--bd); border-radius: var(--r-card); overflow: hidden; }
-.pn-cab, .pn-fila { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 48px; padding: 8px 14px; }
-.pn-cab { font-family: var(--f-display); font-weight: 700; flex-wrap: wrap; }
-.pn-cab small { font-family: var(--f-data); font-weight: 500; font-size: 12px; color: var(--muted); }
-.pn-cab[aria-expanded=true] { border-bottom: 1px solid var(--bd-soft); }
-.pn-item { border-top: 1px solid var(--bd-soft); }
-.pn-fila { font-size: 15px; }
-.pn-p { font-family: var(--f-data); font-size: 13px; color: var(--muted); white-space: nowrap; }
-.pn-p b { color: var(--ink); font-size: 15px; }
-.pn-ok { font-style: normal; font-size: 12px; font-weight: 700; color: var(--sea); }
-.pn-vis .pn-fila { opacity: .6; }
-.pn-det { padding: 0 14px 12px; display: grid; gap: 6px; font-size: 14px; }
-.pn-det p { margin: 0; }
-.pn-mes { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 10px; border-radius: 10px; background: var(--bg); }
-.pn-mes small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
-.pn-mes .pn-t { font-family: var(--f-data); font-weight: 700; }
-.pn-mes.top { background: var(--rg-bueno); color: var(--rg-bueno-t); }
-.pn-mes.top small { color: inherit; opacity: .85; }
 :root { --mar: #b5d3e3; --tierra: #f5efd9; --frontera: #4a4a3c;
   /* tintas de aduana envejecida, apagadas: óxido, azul aduana, oliva, violeta, terracota (en modo oscuro, versión más clara para que se lean) */
   --sel: #8f948c; --s0: #9a4a35; --s1: #2f4a73; --s2: #5f6b3a; --s3: #5d4670; --s4: #b0654a; }
@@ -271,6 +253,7 @@ a.kv:active { background: var(--bd); }
 .cq-tabla thead th.pais { z-index: 4; }
 .cq-tabla td.pais b { display: block; font-size: 14px; line-height: 1.2; }
 .cq-tabla td.pais span { font-size: 11px; color: var(--muted); }
+.cq-tabla td.pais span.via { display: block; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--sea); }
 .cq-tabla td.c { padding: 3px; }
 .cq-tabla td.c button { width: 100%; min-height: 44px; border: 0; border-radius: 8px; cursor: pointer; font-family: var(--f-data); font-size: 13px; font-weight: 500; }
 .cq-tabla .compacta th.pais, .cq-tabla .compacta td.pais { min-width: 104px; max-width: 104px; padding: 6px 8px; }
@@ -817,6 +800,10 @@ a.kv:active { background: var(--bd); }
     } else if (c.v) h += '<p>' + esc(c.v) + '.</p>';
     return h + (D.ejemplo ? '<p><i>Dato de ejemplo.</i></p>' : '') + '</div>';
   }
+  function cqViaMadrid(f) {   // el país sale sobre todo de Madrid (más de la mitad de las casillas con datos)
+    var n = 0, m = 0; f.celdas.forEach(function (c) { if (c.p != null) { n++; if (c.esc && c.esc.madrid) m++; } });
+    return n > 0 && m * 2 > n;
+  }
   function renderPaises() {
     if (CQ.vista === "larga") return head("Radar") + segVista() + marchaHtml() + renderLarga();
     if (paisEstado === "cargando") return head("Radar") + '<p class="nota">Cargando…</p>';
@@ -831,7 +818,7 @@ a.kv:active { background: var(--bd); }
         return '<th scope="col"><button type="button" class="cq-mes' + (CQ.orden === D.meses.indexOf(m) ? ' on' : '') + '" data-cqo="' + D.meses.indexOf(m) + '" aria-label="Ordenar por ' + CQ_MES[m.nombre] + '">' + (CQ.precios ? m.nombre : m.nombre[0].toUpperCase()) + '</button></th>'; }).join("") + '<th class="fin" scope="col" aria-label="Fin de los 12 meses"></th></tr></thead><tbody>';
     lista.forEach(function (x) {
       var f = x[0], i = D.paises.indexOf(f);
-      h += '<tr><td class="pais"><b>' + esc(x[1]) + '</b><span>' + dec(f.h) + ' h de vuelo' + (f.esc ? ' · con escalas' : '') + '</span></td>' + f.celdas.map(function (c, j) {
+      h += '<tr><td class="pais"><b>' + esc(x[1]) + '</b><span>' + dec(f.h) + ' h de vuelo' + (f.esc ? ' · con escalas' : '') + '</span>' + (cqViaMadrid(f) ? '<span class="via">vía Madrid</span>' : '') + '</td>' + f.celdas.map(function (c, j) {
         if (c.p == null) return '<td class="c"><button class="sin" type="button" disabled aria-label="Sin datos">—</button></td>';
         return '<td class="c"><button type="button" class="' + (c.g ? "ganga" : c.c) + '" data-cp="' + i + '" data-cm="' + j + '" aria-label="' + esc(x[1]) + ', ' + CQ_MES[D.meses[j].nombre] + ', ' + c.p + ' euros">' + (c.g ? "★" : "") + (c.e ? "≈" : "") + c.p + '</button></td>';
       }).join("") + '<td class="fin"></td></tr>';
@@ -1140,8 +1127,8 @@ a.kv:active { background: var(--bd); }
     PS.estado = "cargando"; render();
     Promise.all([fetch("/api/pasaporte", { cache: "no-store" }), PS.mapa ? null : fetch("mapa.json")]).then(function (r) {
       if (!r[0].ok || (r[1] && !r[1].ok)) throw new Error("http");
-      return Promise.all([r[0].json(), r[1] ? r[1].json() : PS.mapa, fetch("pendientes.json").then(function (x) { return x.ok ? x.json() : null; }).catch(function () { return null; })]);
-    }).then(function (a) { PS.vis = a[0].visitados; PS.mapa = a[1]; PN.datos = a[2]; PS.estado = "listo"; render(); })
+      return Promise.all([r[0].json(), r[1] ? r[1].json() : PS.mapa]);
+    }).then(function (a) { PS.vis = a[0].visitados; PS.mapa = a[1]; PS.estado = "listo"; render(); })
       .catch(function () { PS.estado = "error"; render(); });
   }
   function nVis() { return Object.keys(PS.vis).length; }
@@ -1161,39 +1148,6 @@ a.kv:active { background: var(--bd); }
       return '<span class="deseo"><button type="button" data-w="' + c + '">' + bandera(c) + '&nbsp;' + esc(nombrePais(c)) + '</button><button type="button" data-wq="' + c + '" aria-label="Quitar ' + esc(nombrePais(c)) + ' de la lista de deseos">×</button></span>';
     }).join("") + '</div>' : '<p class="nota">Toca un país del mapa y pulsa «Quiero ir» para guardarlo aquí. Sale en azul verdoso en el mapa.</p>');
   }
-  // ---- Por desbloquear desde Madrid: zonas, precio de Kiwi y mejor día de cada mes (datos de pendientes.py → pendientes.json) ----
-  var PN = { datos: null, zona: {}, pais: "" }, MESES_C = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  function fCorta(d) { var a = String(d).split("-"); return +a[2] + " " + MESES_C[+a[1] - 1]; }
-  function mesLargo(m) { var a = m.split("-"); return MESES_C[+a[1] - 1] + " " + a[0].slice(2); }
-  function tramoTxt(t) { return fCorta(t.dia) + (t.via.length ? " · vía " + t.via.join("/") + " (" + t.horas.map(function (h) { return String(h).replace(".", ",") + " h"; }).join(" + ") + ")" : " · directo") + " · " + t.precio + " €"; }
-  function pendDesde(p) { var m = 1e9; if (p.kiwi) m = p.kiwi.total; if (p.meses) Object.keys(p.meses).forEach(function (k) { m = Math.min(m, p.meses[k].total); }); return m; }
-  function pendPais(p) {
-    var vis = !!PS.vis[p.c], ab = PN.pais === p.c, h = '<button type="button" class="pn-fila" data-pn="' + p.c + '" aria-expanded="' + ab + '">' +
-      '<span class="pn-n">' + bandera(p.c) + '&nbsp;' + esc(nombrePais(p.c)) + (vis ? ' <i class="pn-ok">✓ ya está</i>' : '') + '</span>' +
-      '<span class="pn-p">' + (pendDesde(p) < 1e9 ? 'desde <b>' + pendDesde(p) + ' €</b>' : (p.est && p.est !== "—" ? '≈ ' + esc(p.est) + ' €' : '—')) + '</span></button>';
-    if (!ab) return '<div class="pn-item' + (vis ? ' pn-vis' : '') + '">' + h + '</div>';
-    var meses = p.meses ? Object.keys(p.meses).sort() : [], min = 1e9;
-    meses.forEach(function (m) { if (p.meses[m].total < min) min = p.meses[m].total; });
-    h += '<div class="pn-det"><p>' + esc(p.ruta) + '</p><p><b>Visado:</b> ' + esc(p.visa) + '</p>' + (p.nota ? '<p class="nota">' + esc(p.nota) + '</p>' : '') +
-      (p.kiwi ? '<p class="nota">Kiwi, suelto más barato de cada sentido (nov–mar): ' + p.kiwi.total + ' €' + (p.kiwi.directo ? ' · directo: ' + p.kiwi.directo + ' €' : ' · sin directo') + '</p>' : '');
-    if (meses.length) h += '<span class="sub">Mejor ida + vuelta de cada mes</span>' + meses.map(function (m) {
-      var x = p.meses[m], top = x.total === min;
-      return '<div class="pn-mes' + (top ? ' top' : '') + '"><b>' + mesLargo(m) + '</b><span class="pn-t">' + x.total + ' €' + (top ? ' ★' : '') + '</span>' +
-        '<small>' + x.noches + ' noches</small><small>Ida ' + esc(tramoTxt(x.ida)) + '</small><small>Vuelta ' + esc(tramoTxt(x.vuelta)) + '</small></div>';
-    }).join("");
-    else if (p.kiwi) h += '<p class="nota">Sin mes calculado con esa duración todavía.</p>';
-    return '<div class="pn-item' + (vis ? ' pn-vis' : '') + '">' + h + '</div></div>';
-  }
-  function pendHtml() {
-    if (!PN.datos) return '';
-    return '<span class="sub">Por desbloquear desde Madrid</span><p class="nota">Precio = ida y vuelta sueltos más baratos de Kiwi (billetes sueltos, solo mano). ★ = mejor mes. Confirma horarios y visado al reservar.</p>' +
-      PN.datos.zonas.map(function (z) {
-        var ab = !!PN.zona[z.id], l = z.paises.slice().sort(function (a, b) { return (!!PS.vis[a.c] - !!PS.vis[b.c]) || (b.fac - a.fac) || (pendDesde(a) - pendDesde(b)); });
-        var libres = l.filter(function (p) { return !PS.vis[p.c]; }).length;
-        return '<div class="pn-zona"><button type="button" class="pn-cab" data-pz="' + z.id + '" aria-expanded="' + ab + '"><span>' + esc(z.detalle.split(" — ")[0]) + '</span><small>' + libres + ' por ganar · ' + esc(z.dur) + '</small></button>' +
-          (ab ? l.map(pendPais).join("") : '') + '</div>';
-      }).join("");
-  }
   function renderPasaporte() {
     if (PS.estado === "cargando" || PS.estado === "") return head("Pasaporte") + '<p class="nota">Cargando…</p>';
     if (PS.estado === "error") return head("Pasaporte") + '<div class="pronto"><p>' + (window.ESCAPADAS_PUBLICADA ? 'No puedo cargar el pasaporte. Revisa la conexión.' : 'No puedo hablar con el portátil. ¿Sigue encendido y en la misma wifi?') + '</p><button class="cta" id="reintentarPas">Reintentar</button></div>';
@@ -1206,7 +1160,7 @@ a.kv:active { background: var(--bd); }
       '<div class="mapa"><svg id="svgMapa" viewBox="' + v + '" role="img" aria-label="Mapamundi: toca un país para marcarlo">' + paths + '</svg>' +
       '<div class="zoom"><button id="zMas" aria-label="Acercar">+</button><button id="zMenos" aria-label="Alejar">−</button><button id="zTodo" aria-label="Volver a la vista inicial">⌂</button></div></div>';
     h += PS.sel ? fichaPais(PS.sel) : '<p class="nota">Toca un país del mapa para marcarlo. Con dos dedos haces zoom; los países pequeños, mejor desde la lista de abajo.</p>';
-    h += contHtml() + deseosHtml() + pendHtml();
+    h += contHtml() + deseosHtml();
     var cods = Object.keys(PS.vis);
     cods.sort(function (a, b) { return nombrePais(a).localeCompare(nombrePais(b), "es"); });   // siempre por orden alfabético
     var ctx = { formas: [], tintas: [] };
@@ -1303,8 +1257,6 @@ a.kv:active { background: var(--bd); }
     if (PS.estado === "listo") { ajustarSellos(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustarSellos); }
     var rp = document.getElementById("reintentarPas"); if (rp) rp.onclick = cargarPasaporte;
     if (PS.estado !== "listo") return;
-    Array.prototype.forEach.call(document.querySelectorAll("[data-pz]"), function (b) { b.onclick = function () { var z = b.getAttribute("data-pz"); PN.zona[z] = !PN.zona[z]; render(); }; });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-pn]"), function (b) { b.onclick = function () { var c = b.getAttribute("data-pn"); PN.pais = PN.pais === c ? "" : c; render(); }; });
     var svg = document.getElementById("svgMapa"), caja = svg.parentNode, W0 = 360, H0 = 145, ptrs = {}, mov = 0, vel = null, raf = 0, anim = 0, committed = null, medida = null;
     // Fluidez: durante el gesto solo se mueve una transformación CSS del <svg> (la tarjeta gráfica la compone sin
     // volver a dibujar los 234 países) y se aplica una vez por fotograma. El viewBox real se consolida al soltar

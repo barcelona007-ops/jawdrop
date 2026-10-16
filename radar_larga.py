@@ -18,7 +18,7 @@ import frescura
 import kiwi
 import marcha
 
-VERSION = "0.9"
+VERSION = "0.10"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -56,6 +56,18 @@ PAISES_CON_DIRECTO = {
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
                            **({"topes": _topes} if _topes else {})}
+# Países por desbloquear desde Madrid (16-10-2026, lista del usuario): duración propia por zona. Cáucaso/Asia central 5-9 noches, África occidental 4-8,
+# África oriental 10-15, Caribe 15-28 (el usuario: 15 como mínimo, no descartar 3-4 semanas). Una escala (Kiwi con 2 escalas tarda más y no cambia el orden).
+PAISES_PENDIENTES = {
+    **{c: (n, 1, (5, 9)) for c, n in {"UZ": "Uzbekistán", "AZ": "Azerbaiyán", "KZ": "Kazajistán", "KG": "Kirguistán", "TJ": "Tayikistán"}.items()},
+    **{c: (n, 1, (4, 8)) for c, n in {"SN": "Senegal", "CV": "Cabo Verde", "GM": "Gambia", "MR": "Mauritania", "CI": "Costa de Marfil", "GH": "Ghana",
+                                      "BJ": "Benín", "TG": "Togo"}.items()},
+    **{c: (n, 1, (10, 15)) for c, n in {"KE": "Kenia", "RW": "Ruanda", "UG": "Uganda", "DJ": "Yibuti", "SC": "Seychelles"}.items()},
+    **{c: (n, 1, (15, 28)) for c, n in {"CU": "Cuba", "BS": "Bahamas", "JM": "Jamaica", "BB": "Barbados", "TT": "Trinidad y Tobago", "AG": "Antigua y Barbuda",
+                                        "KN": "San Cristóbal y Nieves", "LC": "Santa Lucía"}.items()},
+}
+for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
 for _cod, _nombre in PAISES_CON_DIRECTO.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (5, 8), "cuadricula": _cod}
 
