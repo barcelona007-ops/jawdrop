@@ -685,6 +685,9 @@ a.kv:active { background: var(--bd); }
       '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
       '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>';
   }
+  function lgOrigenMad(c) {   // aviso bien visible arriba de la ficha: este precio sale de Madrid
+    return c.madrid ? '<p style="margin:8px 0;padding:10px 12px;border-radius:10px;border:2px solid var(--rg-caro,#d33);font-weight:700">📍 ORIGEN MADRID: el viaje sale de Barajas (tren Barcelona → Madrid incluido, estimado).</p>' : "";
+  }
   function lgMadrid(c) {
     var m = c.madrid; if (!m) return "";
     function av(ok, h, txt) { return '<p' + (ok ? ' style="color:var(--rg-caro,#d33)"' : '') + '>' + (ok ? '⚠ ' : '') + txt + ' (colchón de unas ' + String(h).replace(".", ",") + ' h)' + (ok ? ': mejor ve el día antes.' : '.') + '</p>'; }
@@ -701,7 +704,7 @@ a.kv:active { background: var(--bd); }
     var m = z.meses[Math.min(LG.mes, z.meses.length - 1)];
     if (LG.abierto >= 0) {
       var c = m.combos[LG.abierto];
-      return '<button class="back" id="lgback">‹ ' + esc(z.nombre) + ' · ' + esc(m.nombre) + '</button><h1 class="city">' + lgTitulo(c) + '</h1>' +
+      return '<button class="back" id="lgback">‹ ' + esc(z.nombre) + ' · ' + esc(m.nombre) + '</button><h1 class="city">' + lgTitulo(c) + '</h1>' + lgOrigenMad(c) +
         lgTramo("Ida", c.ida, c.madrid ? "Sales de Barajas" : "Sales de El Prat", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, "Sales de " + esc(c.vuelta.desde_ciudad), c.madrid ? "Barajas" : "El Prat") + lgMadrid(c) +
         '<div class="kv"><i>Total vuelos (ida + vuelta)</i><b>≈ ' + eur(c.total) + '</b><i>Noches fuera</i><b>' + c.noches + '</b></div>' +
         (c.mismo ? '' : '<p class="nota">Llegas a ' + esc(c.ida.ciudad) + ' y vuelves desde ' + esc(c.vuelta.desde_ciudad) + ': el trayecto entre medias es parte del viaje y no está en el precio.' +
@@ -786,7 +789,7 @@ a.kv:active { background: var(--bd); }
       '</div>';
     if (c.esc) {
       var e = c.esc;
-      h += lgTramo("Ida", e.ida, e.madrid ? "Sales de Barajas" : "Sales de El Prat", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, "Sales de " + esc(e.vuelta.desde_ciudad), e.madrid ? "Barajas" : "El Prat") + lgMadrid(e) +
+      h += lgOrigenMad(e) + lgTramo("Ida", e.ida, e.madrid ? "Sales de Barajas" : "Sales de El Prat", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, "Sales de " + esc(e.vuelta.desde_ciudad), e.madrid ? "Barajas" : "El Prat") + lgMadrid(e) +
         (e.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(e.hub.ap) + ' → Bangkok el ' + lgFecha(e.hub.ida.fecha) + ' (' + esc(e.hub.ida.aerolinea) + ', ' + eur(e.hub.ida.precio) + ') y Bangkok → ' + esc(e.hub.ap) + ' el ' + lgFecha(e.hub.vuelta.fecha) + ' (' + esc(e.hub.vuelta.aerolinea) + ', ' + eur(e.hub.vuelta.precio) + '). Billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
         '<p>' + e.noches + ' noches · precios de Kiwi (≈)</p>';
     } else if (c.t) {

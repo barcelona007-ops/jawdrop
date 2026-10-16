@@ -189,3 +189,7 @@ tu PC. Pasos (una sola vez):
 5. Hotel, ejecución semanal y aviso al móvil — pendiente.
 6. Traslados: leer la web pública de 12Go (sin saltar antibots ni captchas) y ordenar por duración —
    después de la fase 5. Por ahora, solo enlaces y tiempo aproximado.
+
+## Países lejanos con escalas en el Radar (`radar_larga.py` 0.8)
+Dar de alta un país = una línea en `PAISES_LARGOS` (código, nombre, escalas, topes opcionales). Se lee con Kiwi (gratis) desde BCN y desde MAD (tren Ouigo estimado sumado).
+Si la mejor oferta sale de Madrid, la ficha de la casilla lo avisa arriba: «ORIGEN MADRID». Leer uno solo: `radar_larga.py --meses 12 --zona za --max 1` (con `--mes` el filtro `--zona` se ignora y lee todas las zonas).

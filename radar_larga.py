@@ -18,7 +18,7 @@ import frescura
 import kiwi
 import marcha
 
-VERSION = "0.7"
+VERSION = "0.8"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -41,6 +41,11 @@ PAISES_LARGOS = {
     "VN": ("Vietnam", 2, None), "MY": ("Malasia", 2, None), "SG": ("Singapur", 2, None), "PH": ("Filipinas", 2, None),
     "ID": ("Indonesia", 2, None), "KH": ("Camboya", 2, None),
     "JP": ("Japón", 2, None), "KR": ("Corea del Sur", 2, None), "IN": ("India", 2, None), "LK": ("Sri Lanka", 2, None),
+    # Sin directo desde BCN pero sí desde MAD (comprobado con Kiwi el 16-10-2026): casi seguro saldrán con origen Madrid (la ficha lo avisa).
+    "ZA": ("Sudáfrica", 2, None), "ET": ("Etiopía", 2, None), "TZ": ("Tanzania", 2, None), "NG": ("Nigeria", 2, None), "MU": ("Mauricio", 2, None),
+    "PA": ("Panamá", 2, None), "CR": ("Costa Rica", 2, None), "DO": ("Rep. Dominicana", 2, None), "GT": ("Guatemala", 2, None),
+    "EC": ("Ecuador", 2, None), "BO": ("Bolivia", 2, None), "PY": ("Paraguay", 2, None), "UY": ("Uruguay", 2, None),
+    "VE": ("Venezuela", 2, None), "PR": ("Puerto Rico", 2, None), "LB": ("Líbano", 2, None),
 }
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
