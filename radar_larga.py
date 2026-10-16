@@ -18,7 +18,7 @@ import frescura
 import kiwi
 import marcha
 
-VERSION = "0.11"
+VERSION = "0.12"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -54,8 +54,8 @@ PAISES_CON_DIRECTO = {
     "CO": "Colombia", "MX": "México", "PE": "Perú", "CL": "Chile", "AR": "Argentina", "BR": "Brasil",
     "HN": "Honduras", "SV": "El Salvador", "CN": "China", "HK": "Hong Kong",
 }
-# A 6-8,5 h de BCN (Nueva York ~8 h, Toronto/Montreal, Dubái, Doha) sí valen 4-8 noches (el usuario, 16-10): 5-8 noches, SOLO desde BCN (con escala, no vía Madrid)
-# y solo sustituyen al directo si salen más baratas.
+# A 6-8,5 h de BCN (Nueva York ~8 h, Toronto/Montreal, Dubái, Doha) sí valen 4-8 noches (el usuario, 17-10): directo, o UNA escala corta, desde BCN o vía Madrid
+# (tren + vuelo; en Nueva York será un caso raro). Solo sustituyen al directo de la cuadrícula si salen más baratas. Pendiente: tope de 3 h a la escala.
 PAISES_MEDIOS = {"US": "Estados Unidos", "CA": "Canadá", "AE": "Emiratos Árabes", "QA": "Catar"}
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
@@ -75,7 +75,7 @@ for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
 for _cod, _nombre in PAISES_CON_DIRECTO.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (15, 21), "cuadricula": _cod, "sustituye": True}
 for _cod, _nombre in PAISES_MEDIOS.items():
-    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (5, 8), "cuadricula": _cod, "madrid": False}
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 1, "noches": (4, 8), "cuadricula": _cod}
 
 
 # Madrid como segundo origen (16-10-2026): tren Ouigo Barcelona-Madrid + vuelo desde/hasta Madrid. Ouigo no tiene datos públicos: precios y horas ESTIMADOS, editables aquí.
