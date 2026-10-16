@@ -12,9 +12,9 @@
    },
    {
     "modo": "Bus",
-    "texto": "Prestia e Comandè · ~6 € · 40-60 min · cada ~30 min",
-    "enlace": "https://www.prestiaecomande.it",
-    "fiab": "baja"
+    "texto": "precio no publicado en web · 50 min · cada 30 min, todo el año",
+    "enlace": "https://www.prestiaecomande.it/orari-e-linee/",
+    "fiab": "alta"
    }
   ],
   "taxi": {
@@ -120,9 +120,9 @@
   "centro": [
    {
     "modo": "Tren",
-    "texto": "Marconi Express · 12,80 € ida · 23,30 € ida y vuelta · ~7 min · 5:40-0:00 · cada 7-15 min",
+    "texto": "12,80 € ida · 23,30 € ida y vuelta",
     "enlace": "https://www.marconiexpress.it",
-    "fiab": "media"
+    "fiab": "alta"
    },
    {
     "modo": "Bus",
@@ -672,7 +672,7 @@
     "modo": "Tren",
     "texto": "Malpensa Express · 15 € ida · ~51 min a Centrale, ~37 min a Cadorna · cada 30 min · 4:27-0:20",
     "enlace": "https://www.trenord.it/en/the-lines/malpensa-express.aspx",
-    "fiab": "media"
+    "fiab": "alta"
    },
    {
     "modo": "Bus",
