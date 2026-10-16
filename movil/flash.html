@@ -149,6 +149,7 @@ a.kv:active { background: var(--bd); }
 .chk button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
 .fld { display: grid; gap: 8px; }
 .est { background: var(--sea-soft); color: var(--sea); border: 1px solid var(--sea); border-radius: var(--r-card); padding: 12px 16px; font-size: 15px; font-weight: 500; }
+.mr-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar { height: 12px; border: 1px solid var(--bd); border-radius: var(--r-pill); overflow: hidden; background: var(--paper); }
 .bar i { display: block; height: 100%; background: var(--sun); }
 .maqueta { font-family: var(--f-data); font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--sun-ink); border: 1px dashed var(--sun-ink); border-radius: var(--r-btn); padding: 8px 12px; }
@@ -284,9 +285,10 @@ a.kv:active { background: var(--bd); }
 .cq-hoja .kv { grid-template-columns: 1fr; gap: 2px; margin: 8px 0; }
 .cq-hoja .kv b { text-align: left; }
 .cq-hoja .kv i.peq { margin-top: 4px; }
-.cq-hoja { max-height: 85vh; overflow-y: auto; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--paper); border-top: 1px solid var(--bd); border-radius: 20px 20px 0 0; padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
+.cq-hoja { height: 80vh; overflow-y: auto; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--paper); border-top: 1px solid var(--bd); border-radius: 20px 20px 0 0; padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
 .cq-hoja h2 { margin: 0 0 4px; font-family: var(--f-display); font-size: 22px; }
 .cq-hoja p { margin: 6px 0; color: var(--muted); font-size: 14px; }
+.cq-info { min-height: 104px; }
 .cq-x { position: absolute; right: 8px; top: 8px; min-width: 44px; min-height: 44px; border: 0; background: transparent; font-size: 22px; cursor: pointer; }
 .cq-precio { display: inline-block; padding: 2px 10px; border-radius: 8px; font-family: var(--f-data); font-size: 28px; font-weight: 500; margin: 8px 0; }
 .cq-ms { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 10px 0; }
@@ -751,7 +753,7 @@ a.kv:active { background: var(--bd); }
     var d = MR.d, f = d && (d.larga && d.larga.hace_s < 1200 && !d.larga.fin ? ["Radar «Larga»", d.larga] : d.semana && d.semana.hace_s < 1200 && !d.semana.fin ? ["Radar «Semana»", d.semana] : null);
     if (!f) return '<div id="rmarcha"></div>';
     var pc = f[1].total ? Math.round(f[1].hecho / f[1].total * 100) : 0;
-    return '<div id="rmarcha" class="est" role="status"><b>' + f[0] + ' leyendo:</b> ' + f[1].hecho + ' de ' + f[1].total + (f[1].texto ? ' · ' + esc(f[1].texto) : '') +
+    return '<div id="rmarcha" class="est" role="status"><div class="mr-t"><b>' + f[0] + ' leyendo:</b> ' + f[1].hecho + ' de ' + f[1].total + (f[1].texto ? ' · ' + esc(f[1].texto) : '') + '</div>' +
       '<div class="bar" role="progressbar" aria-valuenow="' + pc + '"><i style="width:' + pc + '%"></i></div>' +
       '<span class="nota">Los precios nuevos aparecen cuando termina y se publica.</span></div>';
   }
@@ -772,14 +774,16 @@ a.kv:active { background: var(--bd); }
   function cqFicha(f, j, D) {
     var c = f.celdas[j], m = D.meses[j], mb = cqMejor(f);
     var h = '<div class="cq-hoja" role="dialog" aria-labelledby="cqT"><button class="cq-x" type="button" id="cqx" aria-label="Cerrar">×</button><h2 id="cqT">' + esc(nombrePais(f.cod)) + ' · ' + CQ_MES[m.nombre] + ' ' + m.anio + '</h2>' +
-      '<div class="cq-precio ' + c.c + '">' + (c.g ? "★ " : "") + (c.e ? "≈ " : "") + eur(c.p) + '</div>' +
-      (c.g ? '<p><b>Ganga:</b> ' + c.pct + ' % bajo lo habitual (' + eur(c.mediana) + ').</p>' : '') +
-      (j === mb ? '<p><b>Es el mes más barato del año.</b></p>' : '') +
       '<div class="cq-ms" role="group" aria-label="Mes">' + f.celdas.map(function (x, k) {
         var n = CQ_MES[D.meses[k].nombre].slice(0, 3);
         return x.p == null ? '<button type="button" class="sin" disabled aria-label="' + CQ_MES[D.meses[k].nombre] + ', sin datos"><small>' + n + '</small><b>—</b></button>'
           : '<button type="button" class="' + (x.g ? "ganga" : x.c) + (k === j ? " sel" : "") + '" data-cmm="' + k + '" aria-pressed="' + (k === j) + '" aria-label="' + CQ_MES[D.meses[k].nombre] + ', ' + x.p + ' euros"><small>' + n + '</small><b>' + x.p + '</b></button>';
-      }).join("") + '</div>';
+      }).join("") + '</div>' +
+      '<div class="cq-info">' +
+      '<div class="cq-precio ' + c.c + '">' + (c.g ? "★ " : "") + (c.e ? "≈ " : "") + eur(c.p) + '</div>' +
+      (c.g ? '<p><b>Ganga:</b> ' + c.pct + ' % bajo lo habitual (' + eur(c.mediana) + ').</p>' : '') +
+      (j === mb ? '<p><b>Es el mes más barato del año.</b></p>' : '') +
+      '</div>';
     if (c.esc) {
       var e = c.esc;
       h += lgTramo("Ida", e.ida, e.madrid ? "Sales de Barajas" : "Sales de El Prat", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, "Sales de " + esc(e.vuelta.desde_ciudad), e.madrid ? "Barajas" : "El Prat") + lgMadrid(e) +
@@ -818,9 +822,10 @@ a.kv:active { background: var(--bd); }
   }
   // Abrir, cambiar de mes y cerrar la ficha no mueven la lista: se guarda la posición de la página y de la lista (la tabla tiene su propio scroll) y se devuelve tras pintar.
   function cqRender() {
-    var tb = app.querySelector(".cq-tabla"), x = tb ? tb.scrollLeft : 0, ty = tb ? tb.scrollTop : 0, y = window.scrollY;
+    var tb = app.querySelector(".cq-tabla"), x = tb ? tb.scrollLeft : 0, ty = tb ? tb.scrollTop : 0, y = window.scrollY, ho = app.querySelector(".cq-hoja"), hy = ho ? ho.scrollTop : 0;
     CQ.quieto = true; render(); CQ.quieto = false;
     tb = app.querySelector(".cq-tabla"); if (tb) { tb.scrollLeft = x; tb.scrollTop = ty; }
+    ho = app.querySelector(".cq-hoja"); if (ho && CQ.mantener) ho.scrollTop = hy;
     window.scrollTo(0, y);
   }
   function bindCuadricula() {
@@ -833,7 +838,7 @@ a.kv:active { background: var(--bd); }
     var v = document.getElementById("cqv"); if (v) v.onclick = function () { CQ.verde = !CQ.verde; CQ.p = -1; render(); };
     var pr = document.getElementById("cqp"); if (pr) pr.onclick = function () { CQ.precios = !CQ.precios; CQ.p = -1; render(); };
     app.querySelectorAll("[data-cp]").forEach(function (el) { el.onclick = function () { CQ.p = +el.dataset.cp; CQ.m = +el.dataset.cm; cqRender(); }; });
-    app.querySelectorAll("[data-cmm]").forEach(function (el) { el.onclick = function () { CQ.m = +el.dataset.cmm; cqRender(); }; });
+    app.querySelectorAll("[data-cmm]").forEach(function (el) { el.onclick = function () { CQ.m = +el.dataset.cmm; CQ.mantener = true; cqRender(); CQ.mantener = false; }; });
     var x = document.getElementById("cqx"); if (x) x.onclick = function () { CQ.p = -1; cqRender(); };
   }
   function cargarPaises() {
@@ -1409,9 +1414,11 @@ a.kv:active { background: var(--bd); }
   }
 
   function render() {
+    var cq = tab === "nuevos" && CQ.vista === "semana" && paisEstado === "listo" && !cambioTab && !CQ.quieto, t0 = app.querySelector(".cq-tabla"), p0 = cq && t0 ? [t0.scrollLeft, t0.scrollTop, window.scrollY] : null;
     app.innerHTML = tab === "flash" ? (open >= 0 ? renderDetail() : renderFlash()) : tab === "nuevos" ? renderPaises() : tab === "medida" ? renderMedida() : tab === "pasaporte" ? renderPasaporte() : tab === "config" ? renderConfig() : renderPronto(TITULOS[tab]);
-    if (!(tab === "medida" && M.fase === "form") && !(tab === "pasaporte" && PS.estado === "listo" && !cambioTab) && !(tab === "config" && !cambioTab) && !CQ.quieto) window.scrollTo(0, 0);
+    if (!(tab === "medida" && M.fase === "form") && !(tab === "pasaporte" && PS.estado === "listo" && !cambioTab) && !(tab === "config" && !cambioTab) && !CQ.quieto && !p0) window.scrollTo(0, 0);
     cambioTab = false;
+    if (p0) { var t1 = app.querySelector(".cq-tabla"); if (t1) { t1.scrollLeft = p0[0]; t1.scrollTop = p0[1]; } window.scrollTo(0, p0[2]); }   // refrescos de fondo no mueven la lista
     if (tab === "config") bindConfig();
     if (tab === "medida") bindMedida();
     if (tab === "pasaporte") bindPasaporte();
