@@ -9,6 +9,7 @@ name: Radar diario
 on:
   schedule:
     - cron: "17 5 * * *"
+    - cron: "17 17 * * *"
   workflow_dispatch:
     inputs:
       todo:
