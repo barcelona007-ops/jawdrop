@@ -16,12 +16,13 @@ from pathlib import Path
 import escalas
 import frescura
 import kiwi
+import marcha
 
-VERSION = "0.4"
+VERSION = "0.7"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
-MAX_MESES_POR_PASADA = 6   # ~75 s cada uno: ~8 min por pasada diaria. La primera carga (11 países × 12 meses) mejor en el PC con --todo
+MAX_MESES_POR_PASADA = 30   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
 TOP = 6   # combinaciones que se guardan por zona y mes (la más barata de cada pareja de aeropuertos)
 NOMBRES_MES = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
@@ -44,6 +45,29 @@ PAISES_LARGOS = {
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
                            **({"topes": _topes} if _topes else {})}
+
+
+# Madrid como segundo origen (16-10-2026): tren Ouigo Barcelona-Madrid + vuelo desde/hasta Madrid. Ouigo no tiene datos públicos: precios y horas ESTIMADOS, editables aquí.
+MADRID = True
+TREN_PRECIO = 25         # € por trayecto (estimado; el tren se suma dos veces: ida y vuelta)
+TREN_PRIMERO = "10:30"   # llegada a Madrid del primer Ouigo de la mañana (sale ~07:00, ~3 h)
+TREN_ULTIMO = "20:30"    # salida del último Ouigo Madrid → Barcelona (llega ~23:30)
+AEROPUERTO_H = 2.0       # horas antes del vuelo para estar en el aeropuerto + traslado desde la estación
+MARGEN_MIN = 2.0         # menos horas de colchón que esto = aviso rojo (al usuario le preocupa la situación ferroviaria)
+
+
+def _h(hhmm):
+    return int(hhmm[:2]) + int(hhmm[3:5]) / 60
+
+
+def _con_tren(c):
+    """Combinación con origen/destino MAD: suma el tren (estimado) y calcula el colchón en ida (tren → vuelo) y vuelta (vuelo → último tren)."""
+    colchon_ida = _h(c["ida"]["sale"]) - AEROPUERTO_H - _h(TREN_PRIMERO)
+    colchon_vuelta = _h(TREN_ULTIMO) - (_h(c["vuelta"]["llega"][-5:]) + 1.0)
+    c["total"] += 2 * TREN_PRECIO
+    c["madrid"] = {"tren": TREN_PRECIO, "colchon_ida": round(colchon_ida, 1), "colchon_vuelta": round(colchon_vuelta, 1),
+                   "aviso_ida": colchon_ida < MARGEN_MIN, "aviso_vuelta": colchon_vuelta < MARGEN_MIN}
+    return c
 
 
 def enlace(desde, hasta, dia):
@@ -96,14 +120,22 @@ def _con_hub(z, mes, avisar):
 def leer(zona_id, mes, avisar=print):
     z = ZONAS[zona_id]
     out = _leer(z["paises"], z, mes, avisar)
+    if MADRID:
+        try:
+            out += [_con_tren(c) for c in _leer(z["paises"], z, mes, avisar, origen="MAD")]
+        except kiwi.KiwiBloqueado:
+            avisar(f"  {mes} Madrid: Kiwi bloqueado, se salta")
+        for c in out:
+            c["total"] = round(c["total"])
+        out.sort(key=lambda x: x["total"])
     if z.get("hubs"):
         out += _con_hub(z, mes, avisar)
         out.sort(key=lambda x: x["total"])
     return out
 
 
-def _leer(paises, z, mes, avisar, solo=None):
-    combos, idas, vueltas = escalas.openjaw(paises, mes, z["noches"], z["paradas"])
+def _leer(paises, z, mes, avisar, solo=None, origen="BCN"):
+    combos, idas, vueltas = escalas.openjaw(paises, mes, z["noches"], z["paradas"], origen)
     if solo:
         combos = [c for c in combos if solo(c)]
     ciudad_de = {}
@@ -119,9 +151,9 @@ def _leer(paises, z, mes, avisar, solo=None):
         ida["ciudad"] = ciudad_de.get(a, a)
         vuelta["ciudad"] = ciudad_de.get(b, b)
         vuelta["desde_ciudad"] = vuelta["ciudad"]   # en la vuelta, «ciudad» = de dónde sales
-        vuelta["ciudad"] = "Barcelona"
+        vuelta["ciudad"] = "Madrid" if origen == "MAD" else "Barcelona"
         it = c["interno"]
-        out.append({"total": round(c["total"]), "noches": c["noches"], "mismo": a == b, "aps": [a, b], "ida": ida, "vuelta": vuelta,
+        out.append({"total": round(c["total"]), "origen": origen, "noches": c["noches"], "mismo": a == b, "aps": [a, b], "ida": ida, "vuelta": vuelta,
                     "interno": ({"desde": a, "hasta": b, "precio": round(it["precio"]), "aerolinea": it["aerolinea"], "fecha": it["fecha"]}
                                 if it and not it.get("mismo") else None)})
     out.sort(key=lambda x: x["total"])
@@ -179,8 +211,9 @@ def main(argv):
     else:
         pares = [(zid, mm) for zid in ZONAS for mm in meses]
     fallos = 0
-    for zid, mm in pares:
+    for i, (zid, mm) in enumerate(pares):
         print(f"{zid} {mm}: leyendo Kiwi…")
+        marcha.avisar("larga", i, len(pares), f"{zid} {mm}")
         try:
             almacen.setdefault(zid, {})[mm] = {"f": date.today().isoformat(), "combos": leer(zid, mm)}
             guardar(almacen)
@@ -189,6 +222,8 @@ def main(argv):
         except Exception as e:
             fallos += 1
             print(f"{zid} {mm}: NO se ha leído ({type(e).__name__}: {str(e)[:120]}). Se conserva la lectura anterior.")
+    if pares:
+        marcha.avisar("larga", len(pares), len(pares), "", fin=True)
     if pares or "--construir" in argv:
         construir(almacen)
     else:

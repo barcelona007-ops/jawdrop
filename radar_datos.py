@@ -22,11 +22,12 @@ import cuadricula_demo
 import frescura
 import ganga
 import kiwi
+import marcha
 import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.7"
+VERSION = "0.9"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -169,8 +170,8 @@ def construir(almacen):
             if previa is not None and previa <= c["total"]:
                 continue   # el directo ya es más barato (países con vuelo directo desde BCN)
             fila["celdas"][i] = {"p": c["total"], "c": semaforo.color(c["total"], fila["km"], z.get("topes")), "f": r["f"], "e": True,
-                                 "v": f"{c['ida']['ciudad']} → {c['vuelta']['desde_ciudad']} · {' + '.join(c['ida']['aerolineas'])} · {c['noches']} noches" + (f" · luego {c['hub']['ap']} → Bangkok" if c.get("hub") else ""),
-                                 "esc": {"noches": c["noches"], "ida": c["ida"], "vuelta": c["vuelta"], "hub": c.get("hub")}}
+                                 "v": f"{c['ida']['ciudad']} → {c['vuelta']['desde_ciudad']} · {' + '.join(c['ida']['aerolineas'])} · {c['noches']} noches" + (f" · luego {c['hub']['ap']} → Bangkok" if c.get("hub") else "") + (" · vía Madrid (tren + vuelo)" if c.get("madrid") else ""),
+                                 "esc": {"noches": c["noches"], "ida": c["ida"], "vuelta": c["vuelta"], "hub": c.get("hub"), "madrid": c.get("madrid"), "origen": c.get("origen", "BCN")}}
             con_dato += 1
         fila["esc"] = True
     filas.sort(key=lambda f: f["cod"])
@@ -202,13 +203,16 @@ def main(argv):
         print(f"Meses que tocan leer: {len(due)} de {len(meses)}; esta pasada: {min(len(due), MAX_MESES_POR_PASADA)}.")
         meses = due[:MAX_MESES_POR_PASADA]
     fallos = []
-    for mes in meses:
+    for i, mes in enumerate(meses):
         print(f"{mes}: leyendo Ryanair y Wizz…")
+        marcha.avisar("semana", i, len(meses), mes)
         try:
             print(f"{mes}: {leer_mes(mes, almacen)} países con precio.")
         except Exception as e:   # una fuente cerrada o caída: ese mes no se toca (ni precios ni historial) y se sigue con el resto
             fallos.append(mes)
             print(f"{mes}: NO se ha leído ({type(e).__name__}: {str(e)[:120]}). Se conserva la lectura anterior.")
+    if meses:
+        marcha.avisar("semana", len(meses), len(meses), "", fin=True)
     if meses or "--construir" in argv:
         construir(almacen)
     else:

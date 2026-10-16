@@ -7,8 +7,8 @@
 # Se puede lanzar a mano (Actions → Radar diario → Run workflow); «todo = sí» lee los 12 meses sin mirar la frescura (~1 h).
 name: Radar diario
 on:
-#PAUSADO#   schedule:
-#PAUSADO#     - cron: "17 5 * * 0,1,3,5"
+  schedule:
+    - cron: "17 5 * * *"
   workflow_dispatch:
     inputs:
       todo:
@@ -23,7 +23,7 @@ permissions:
 jobs:
   radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 340   # lectura completa (~2 h) + viajes largos (~40 min); en el repo público los minutos no cuentan
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,18 +34,21 @@ jobs:
       - name: Leer los meses que tocan
         env:
           PYTHONIOENCODING: utf-8
+          ESCAPADAS_URL: ${{ secrets.ESCAPADAS_URL }}
           TODO: ${{ github.event.inputs.todo || 'no' }}
         run: |
           if [ "$TODO" = "sí" ]; then python radar_datos.py --meses 12 --todo; else python radar_datos.py --meses 12; fi
       - name: Leer los viajes largos con escalas (Radar «Larga»)
         env:
           PYTHONIOENCODING: utf-8
+          ESCAPADAS_URL: ${{ secrets.ESCAPADAS_URL }}
           TODO: ${{ github.event.inputs.todo || 'no' }}
         run: python radar_larga.py --meses 12
         continue-on-error: true   # si Kiwi falla, el Radar de la semana ya se ha leído y se sube igual
       - name: Reconstruir la cuadrícula (mete Tailandia con escalas)
         env:
           PYTHONIOENCODING: utf-8
+          ESCAPADAS_URL: ${{ secrets.ESCAPADAS_URL }}
         run: python radar_datos.py --construir
       - name: Subir los datos a main
         run: |
@@ -55,5 +58,6 @@ jobs:
           if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
           git commit -m "Radar diario: lecturas del $(date -u +%F)"
           for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break || sleep 5; done
+          gh workflow run publicar.yml --ref main
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,82 @@
+# Publica la app en Cloudflare Pages cada vez que se sube un cambio a `main` (la página y las funciones).
+# Los datos de Flash/Radar/Países (api/movil-*) los genera el PC con publicar_movil.py: aquí se reutilizan los ya publicados.
+# Necesita en GitHub (Settings → Secrets and variables → Actions): CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID.
+# Los IDs de KV y D1 de tu cuenta van como variables del repo: CF_KV_ID y CF_D1_ID (en el repo público los toml llevan TU_ID_…).
+# Opcional: secret PAISES_VISITADOS (contenido de paises_visitados.txt): el despliegue reconstruye cuadricula.json con tus países SIN commitearlo.
+# El token necesita «Cloudflare Pages: Edit» (página) y «Workers Scripts: Edit» (temporizador de `cron/`).
+name: Publicar en Cloudflare
+on:
+  push:
+    branches: [main]
+    paths: ["movil/**", "functions/**", "wrangler.toml", "cron/**", ".github/workflows/publicar.yml"]
+  workflow_dispatch:
+concurrency: publicar
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Poner los IDs de Cloudflare (variables CF_KV_ID y CF_D1_ID del repositorio)
+        env:
+          KV: ${{ vars.CF_KV_ID }}
+          D1: ${{ vars.CF_D1_ID }}
+        run: |
+          [ -z "$KV" ] || sed -i "s/TU_ID_KV/$KV/" wrangler.toml
+          [ -z "$D1" ] || sed -i "s/TU_ID_D1/$D1/" wrangler.toml cron/wrangler.toml
+          if grep -q 'TU_ID_' wrangler.toml cron/wrangler.toml; then echo "Faltan las variables CF_KV_ID / CF_D1_ID (Settings → Secrets and variables → Actions → Variables)."; exit 1; fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reconstruir cuadricula.json con los países visitados (secret PAISES_VISITADOS; no se guarda en el repositorio)
+        env:
+          PAISES: ${{ secrets.PAISES_VISITADOS }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          if [ -z "$PAISES" ]; then echo "Sin secret PAISES_VISITADOS: se usa movil/cuadricula.json tal cual está en el repositorio."; exit 0; fi
+          printf '%s\n' "$PAISES" > paises_visitados.txt
+          pip install -r requirements.txt
+          python radar_datos.py --construir
+      - name: Preparar la carpeta publicar (código nuevo + datos ya publicados)
+        run: |
+          set -e
+          B="${{ secrets.ESCAPADAS_URL }}"
+          mkdir -p publicar/api
+          for f in api/movil-flash api/movil-radar api/movil-paises pasaporte_inicial.json; do
+            curl -sf -o "publicar/$f" "$B/$f"
+          done
+          for f in manifest.webmanifest icono-180.png icono-192.png icono-512.png mapa.json cuadricula.json aeropuertos.json larga.json; do cp "movil/$f" publicar/; done
+          python3 - <<'PY'
+          h = open("movil/flash.html", encoding="utf-8").read()
+          marca = "<script>window.ESCAPADAS_PUBLICADA = true;</script>"
+          open("publicar/index.html", "w", encoding="utf-8").write(h.replace("<head>", "<head>\n" + marca, 1))
+          PY
+          printf '/api/*\n  Content-Type: application/json; charset=utf-8\n  Cache-Control: no-cache\n' > publicar/_headers
+      - name: Subir a Cloudflare Pages
+        run: npx wrangler@4 pages deploy publicar --project-name escapadas-flash --branch main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  temporizador:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Poner los IDs de Cloudflare (variables CF_KV_ID y CF_D1_ID del repositorio)
+        env:
+          KV: ${{ vars.CF_KV_ID }}
+          D1: ${{ vars.CF_D1_ID }}
+        run: |
+          [ -z "$KV" ] || sed -i "s/TU_ID_KV/$KV/" wrangler.toml
+          [ -z "$D1" ] || sed -i "s/TU_ID_D1/$D1/" wrangler.toml cron/wrangler.toml
+          if grep -q 'TU_ID_' wrangler.toml cron/wrangler.toml; then echo "Faltan las variables CF_KV_ID / CF_D1_ID (Settings → Secrets and variables → Actions → Variables)."; exit 1; fi
+      - name: Subir el temporizador (Worker con cron) a Cloudflare
+        working-directory: cron
+        run: npx wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

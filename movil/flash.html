@@ -411,9 +411,20 @@ a.kv:active { background: var(--bd); }
           return new Promise(function (ok) { setTimeout(ok, 3000); }).then(function () { return post(cuerpo, intento + 1); });
         });
     }
+    // Resultados parciales: cada domingo que la nube termina de cruzar aparece en la lista sin esperar al final.
+    // Sin saltar de domingo ni cerrar lo abierto; solo se repinta si algo ha cambiado.
+    var visto = "";
+    function parcial() {
+      fetch("/api/movil-flash-nube", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+        var s = JSON.stringify(d.domingos || []);
+        if (!d.domingos || !d.domingos.length || s === visto) return;
+        visto = s; datos = d; estadoCarga = "listo"; cur = Math.min(cur, d.domingos.length - 1); act.nube = true; render();
+      }).catch(function () {});
+    }
     function paso(t) {
       if (t.estado === "en curso") {
         act.msg = t.hechas + " de " + t.total; actPintar();
+        parcial();
         // si el temporizador de la nube está dando un paso a la vez, se espera un momento y se vuelve a preguntar
         return (t.ocupada ? new Promise(function (ok) { setTimeout(ok, 4000); }) : Promise.resolve()).then(function () { return post({ accion: "seguir" }); }).then(paso);
       }
@@ -661,6 +672,13 @@ a.kv:active { background: var(--bd); }
       '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
       '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>';
   }
+  function lgMadrid(c) {
+    var m = c.madrid; if (!m) return "";
+    function av(ok, h, txt) { return '<p' + (ok ? ' style="color:var(--rg-caro,#d33)"' : '') + '>' + (ok ? '⚠ ' : '') + txt + ' (colchón de unas ' + String(h).replace(".", ",") + ' h)' + (ok ? ': mejor ve el día antes.' : '.') + '</p>'; }
+    return '<p><b>Barcelona → Madrid en tren + vuelo desde Madrid.</b> Tren Ouigo estimado: ' + eur(m.tren) + ' por trayecto (' + eur(2 * m.tren) + ' sumados al total; no son precios reales).</p>' +
+      av(m.aviso_ida, m.colchon_ida, 'Ida: primer tren de la mañana hasta el vuelo') +
+      av(m.aviso_vuelta, m.colchon_vuelta, 'Vuelta: llegada del vuelo hasta el último tren');
+  }
   function lgTitulo(c) { return c.mismo ? esc(c.ida.ciudad) : esc(c.ida.ciudad) + ' → ' + esc(c.vuelta.desde_ciudad); }
   function renderLarga() {
     if (LG.estado === "cargando") return '<p class="nota">Cargando…</p>';
@@ -671,7 +689,7 @@ a.kv:active { background: var(--bd); }
     if (LG.abierto >= 0) {
       var c = m.combos[LG.abierto];
       return '<button class="back" id="lgback">‹ ' + esc(z.nombre) + ' · ' + esc(m.nombre) + '</button><h1 class="city">' + lgTitulo(c) + '</h1>' +
-        lgTramo("Ida", c.ida, "Sales de El Prat", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, "Sales de " + esc(c.vuelta.desde_ciudad), "El Prat") +
+        lgTramo("Ida", c.ida, c.madrid ? "Sales de Barajas" : "Sales de El Prat", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, "Sales de " + esc(c.vuelta.desde_ciudad), c.madrid ? "Barajas" : "El Prat") + lgMadrid(c) +
         '<div class="kv"><i>Total vuelos (ida + vuelta)</i><b>≈ ' + eur(c.total) + '</b><i>Noches fuera</i><b>' + c.noches + '</b></div>' +
         (c.mismo ? '' : '<p class="nota">Llegas a ' + esc(c.ida.ciudad) + ' y vuelves desde ' + esc(c.vuelta.desde_ciudad) + ': el trayecto entre medias es parte del viaje y no está en el precio.' +
           (c.interno ? ' <b>Referencia:</b> si solo quisieras ver ' + esc(c.vuelta.desde_ciudad) + ', un vuelo ' + c.interno.desde + ' → ' + c.interno.hasta + ' sale desde ' + eur(c.interno.precio) + ' (' + esc(c.interno.aerolinea) + '), según el día.' : '') + '</p>') +
@@ -716,12 +734,27 @@ a.kv:active { background: var(--bd); }
       '<div class="cq-g"><span class="sub">Otros</span><div class="cq-chips"><button class="cq-chip" type="button" id="cqv" aria-pressed="' + CQ.verde + '">Con algún mes verde</button>' +
       '<button class="cq-chip" type="button" id="cqp" aria-pressed="' + CQ.precios + '">Ver precios</button></div></div></div></details>';
   }
+  // Marcha del Radar: las lecturas largas (PC o GitHub) avisan a /api/radar-marcha tras cada mes; aquí se enseña una barra mientras dura.
+  var MR = { d: null };
+  function marchaHtml() {
+    var d = MR.d, f = d && (d.larga && d.larga.hace_s < 1200 && !d.larga.fin ? ["Radar «Larga»", d.larga] : d.semana && d.semana.hace_s < 1200 && !d.semana.fin ? ["Radar «Semana»", d.semana] : null);
+    if (!f) return '<div id="rmarcha"></div>';
+    var pc = f[1].total ? Math.round(f[1].hecho / f[1].total * 100) : 0;
+    return '<div id="rmarcha" class="est" role="status"><b>' + f[0] + ' leyendo:</b> ' + f[1].hecho + ' de ' + f[1].total + (f[1].texto ? ' · ' + esc(f[1].texto) : '') +
+      '<div class="bar" role="progressbar" aria-valuenow="' + pc + '"><i style="width:' + pc + '%"></i></div>' +
+      '<span class="nota">Los precios nuevos aparecen cuando termina y se publica.</span></div>';
+  }
+  function marchaPreguntar() {
+    if (tab !== "nuevos") return;
+    fetch("/api/radar-marcha", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) { MR.d = d; var e = document.getElementById("rmarcha"); if (e) e.outerHTML = marchaHtml(); }).catch(function () {});
+  }
   function renderPaises() {
-    if (CQ.vista === "larga") return head("Radar") + segVista() + renderLarga();
+    if (CQ.vista === "larga") return head("Radar") + segVista() + marchaHtml() + renderLarga();
     if (paisEstado === "cargando") return head("Radar") + '<p class="nota">Cargando…</p>';
     if (paisEstado === "error") return head("Radar") + '<div class="pronto"><p>No he podido cargar la cuadrícula. Revisa la conexión.</p><button class="cta" id="reintentarP" type="button">Reintentar</button></div>';
     var D = paisD, lista = cqLista(), dec = function (n) { return String(n).replace(".", ","); };
-    var h = head("Radar") + segVista() + '<span class="sub">Dónde y cuándo sale barato · una semana (5-8 noches) · ' + lista.length + ' países</span>' +
+    var h = head("Radar") + segVista() + marchaHtml() + '<span class="sub">Dónde y cuándo sale barato · una semana (5-8 noches) · ' + lista.length + ' países</span>' +
       (D.ejemplo ? '<div class="alerta">Precios de EJEMPLO (inventados): sirven para ver el diseño. Los reales llegarán pronto.</div>' : '') +
       filtrosHtml() +
       '<div class="cq-ley"><span><i class="ganga"></i>Ganga ★</span><span><i class="verde"></i>Bueno</span><span><i class="ambar"></i>Habitual</span><span><i class="rojo"></i>Caro</span><span><i class="gris"></i>Sin datos</span></div>' +
@@ -745,7 +778,7 @@ a.kv:active { background: var(--bd); }
         '<p>' + dec(f2.h) + ' h de vuelo desde Barcelona (≈ ' + f2.km.toLocaleString("es-ES") + ' km). ' + (CQ.m !== mj2 ? 'Mes más barato: <b>' + CQ_MES[D.meses[mj2].nombre] + ' (' + eur(f2.celdas[mj2].p) + ')</b>.' : '<b>Es el mes más barato del año</b> (no siempre es ganga).') + '</p>' +
         '<div class="cq-mini">' + f2.celdas.map(function (x2, j) { return '<span class="' + (x2.p == null ? "sin" : x2.c) + (j === CQ.m ? " sel" : "") + '"></span>'; }).join("") + '</div>' +
         '<div class="cq-meses">' + D.meses.map(function (x2) { return '<span>' + x2.nombre[0] + '</span>'; }).join("") + '</div>' +
-        (c2.esc ? lgTramo("Ida", c2.esc.ida, "Sales de El Prat", c2.esc.ida.ciudad) + lgTramo("Vuelta", c2.esc.vuelta, "Sales de " + esc(c2.esc.vuelta.desde_ciudad), "El Prat") +
+        (c2.esc ? lgTramo("Ida", c2.esc.ida, c2.esc.madrid ? "Sales de Barajas" : "Sales de El Prat", c2.esc.ida.ciudad) + lgTramo("Vuelta", c2.esc.vuelta, "Sales de " + esc(c2.esc.vuelta.desde_ciudad), c2.esc.madrid ? "Barajas" : "El Prat") + lgMadrid(c2.esc) +
           (c2.esc.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(c2.esc.hub.ap) + ' → Bangkok el ' + lgFecha(c2.esc.hub.ida.fecha) + ' (' + esc(c2.esc.hub.ida.aerolinea) + ', ' + eur(c2.esc.hub.ida.precio) + ') y Bangkok → ' + esc(c2.esc.hub.ap) + ' el ' + lgFecha(c2.esc.hub.vuelta.fecha) + ' (' + esc(c2.esc.hub.vuelta.aerolinea) + ', ' + eur(c2.esc.hub.vuelta.precio) + '). Son billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
           '<p>' + c2.esc.noches + ' noches · hasta 2 escalas · billetes de Kiwi, orientativos (≈): toca la ida o la vuelta para ver el precio real.</p>' : '') +
         (D.ejemplo ? '<p><i>Dato de ejemplo.</i></p>' : (c2.v && !c2.esc ? '<p>' + esc(c2.v) + '.</p>' : '') + '<p>Leído el ' + c2.f.split("-").reverse().join("/") + '.</p>') + '</div>';
@@ -1379,7 +1412,7 @@ a.kv:active { background: var(--bd); }
   datos = { domingos: [] };
   fetch("aeropuertos.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) { APTOS = d; }).catch(function () {});
   cargar();
-  if (window.ESCAPADAS_PUBLICADA) { retomarNube(); cargarSalud(); }
+  if (window.ESCAPADAS_PUBLICADA) { retomarNube(); cargarSalud(); marchaPreguntar(); setInterval(marchaPreguntar, 6000); }
   if (location.protocol !== "file:") {
     actPreguntar();   // si ya había una actualización en marcha (p. ej. al volver a Safari), se retoma
     var oculta = 0;

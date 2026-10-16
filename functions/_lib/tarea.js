@@ -8,7 +8,7 @@ import * as wz from "./wizz.js";
 import * as kw from "./kiwi.js";
 import { domingoNube, reunir, interesantes } from "./cruce.js";
 
-export const VERSION = "5.1";
+export const VERSION = "5.2";
 const ORIGEN = "BCN";
 const IDA_DESDE = "06:00", IDA_HASTA = "10:00", VUELTA_LUNES_DESDE = "20:00";
 const MAX_REALES = 10;   // consultas reales por trozo (con 3-5 s de pausa, ~50 s)
@@ -40,14 +40,17 @@ function consultaDe(p, hoy) {
 }
 
 function plan(domingos, destinosWizz) {
+  // Domingo a domingo (idas y vueltas, Kiwi y cruce seguidos) para que cada domingo quede completo según avanza la búsqueda:
+  // el iPhone enseña los ya cruzados mientras sigue con los demás.
   const q = [{ t: "ra" }];
-  for (const dom of domingos) q.push({ t: "ri", dom }, { t: "rl", dom }, { t: "rm", dom });
   // Wizz: una consulta por ruta y mes, del primer al último domingo de ese mes (como servidor.py; más largo lo rechaza Wizz)
   const meses = {};
   for (const dom of domingos) (meses[dom.slice(0, 7)] = meses[dom.slice(0, 7)] || []).push(dom);
-  for (const m of Object.values(meses)) for (const d of destinosWizz) q.push({ t: "wh", d, a: m[0], b: m[m.length - 1] });
-  for (const dom of domingos) q.push({ t: "ki", dom }, { t: "kp", dom });
-  for (const dom of domingos) q.push({ t: "cx", dom });
+  for (const dom of domingos) {
+    const m = meses[dom.slice(0, 7)];
+    if (m[0] === dom) for (const d of destinosWizz) q.push({ t: "wh", d, a: m[0], b: m[m.length - 1] });
+    q.push({ t: "ri", dom }, { t: "rl", dom }, { t: "rm", dom }, { t: "ki", dom }, { t: "kp", dom }, { t: "cx", dom });
+  }
   return q;
 }
 
