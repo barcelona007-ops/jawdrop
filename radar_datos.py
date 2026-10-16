@@ -27,7 +27,7 @@ import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.10"
+VERSION = "0.11"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -172,7 +172,7 @@ def construir(almacen):
                 continue
             c = r["combos"][0]
             previa = fila["celdas"][i].get("p")
-            if previa is not None and previa <= c["total"]:
+            if previa is not None and previa <= c["total"] and not z.get("sustituye"):
                 continue   # el directo ya es más barato (países con vuelo directo desde BCN)
             fila["celdas"][i] = {"p": c["total"], "c": semaforo.color(c["total"], fila["km"], z.get("topes")), "f": r["f"], "e": True,
                                  "v": f"{c['ida']['ciudad']} → {c['vuelta']['desde_ciudad']} · {' + '.join(c['ida']['aerolineas'])} · {c['noches']} noches" + (f" · luego {c['hub']['ap']} → Bangkok" if c.get("hub") else "") + (" · vía Madrid (tren + vuelo)" if c.get("madrid") else ""),

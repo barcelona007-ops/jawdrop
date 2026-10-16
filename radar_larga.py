@@ -48,7 +48,8 @@ PAISES_LARGOS = {
     "VE": ("Venezuela", 2, None), "PR": ("Puerto Rico", 2, None), "LB": ("Líbano", 2, None),
 }
 # Lejanos CON directo desde BCN (16-10-2026, idea Colombia): el directo suele ser el más caro; se compara con escalas y con origen MAD en las
-# MISMAS 5-8 noches que la cuadrícula (si el directo gana, la casilla no cambia). Orden = prioridad de lectura.
+# 15-21 noches (el usuario: a Colombia y similares una semana no vale con escalas; con hasta 2 escalas entra también el directo). Su lectura SUSTITUYE al directo de 5-8 noches
+# de la cuadrícula (aunque sea más cara: son otro tipo de viaje). Orden = prioridad de lectura.
 PAISES_CON_DIRECTO = {
     "CO": "Colombia", "MX": "México", "PE": "Perú", "CL": "Chile", "AR": "Argentina", "BR": "Brasil", "US": "Estados Unidos", "CA": "Canadá",
     "HN": "Honduras", "SV": "El Salvador", "CN": "China", "HK": "Hong Kong", "AE": "Emiratos Árabes", "QA": "Catar",
@@ -69,7 +70,7 @@ PAISES_PENDIENTES = {
 for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
 for _cod, _nombre in PAISES_CON_DIRECTO.items():
-    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (5, 8), "cuadricula": _cod}
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (15, 21), "cuadricula": _cod, "sustituye": True}
 
 
 # Madrid como segundo origen (16-10-2026): tren Ouigo Barcelona-Madrid + vuelo desde/hasta Madrid. Ouigo no tiene datos públicos: precios y horas ESTIMADOS, editables aquí.
