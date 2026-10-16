@@ -1166,11 +1166,11 @@ a.kv:active { background: var(--bd); }
   function fCorta(d) { var a = String(d).split("-"); return +a[2] + " " + MESES_C[+a[1] - 1]; }
   function mesLargo(m) { var a = m.split("-"); return MESES_C[+a[1] - 1] + " " + a[0].slice(2); }
   function tramoTxt(t) { return fCorta(t.dia) + (t.via.length ? " · vía " + t.via.join("/") + " (" + t.horas.map(function (h) { return String(h).replace(".", ",") + " h"; }).join(" + ") + ")" : " · directo") + " · " + t.precio + " €"; }
-  function pendDesde(p) { return p.kiwi ? p.kiwi.total : 1e9; }
+  function pendDesde(p) { var m = 1e9; if (p.kiwi) m = p.kiwi.total; if (p.meses) Object.keys(p.meses).forEach(function (k) { m = Math.min(m, p.meses[k].total); }); return m; }
   function pendPais(p) {
     var vis = !!PS.vis[p.c], ab = PN.pais === p.c, h = '<button type="button" class="pn-fila" data-pn="' + p.c + '" aria-expanded="' + ab + '">' +
       '<span class="pn-n">' + bandera(p.c) + '&nbsp;' + esc(nombrePais(p.c)) + (vis ? ' <i class="pn-ok">✓ ya está</i>' : '') + '</span>' +
-      '<span class="pn-p">' + (p.kiwi ? 'desde <b>' + p.kiwi.total + ' €</b>' : (p.est && p.est !== "—" ? '≈ ' + esc(p.est) + ' €' : '—')) + '</span></button>';
+      '<span class="pn-p">' + (pendDesde(p) < 1e9 ? 'desde <b>' + pendDesde(p) + ' €</b>' : (p.est && p.est !== "—" ? '≈ ' + esc(p.est) + ' €' : '—')) + '</span></button>';
     if (!ab) return '<div class="pn-item' + (vis ? ' pn-vis' : '') + '">' + h + '</div>';
     var meses = p.meses ? Object.keys(p.meses).sort() : [], min = 1e9;
     meses.forEach(function (m) { if (p.meses[m].total < min) min = p.meses[m].total; });
