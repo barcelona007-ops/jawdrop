@@ -18,7 +18,7 @@ import frescura
 import kiwi
 import marcha
 
-VERSION = "0.8"
+VERSION = "0.9"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -47,9 +47,17 @@ PAISES_LARGOS = {
     "EC": ("Ecuador", 2, None), "BO": ("Bolivia", 2, None), "PY": ("Paraguay", 2, None), "UY": ("Uruguay", 2, None),
     "VE": ("Venezuela", 2, None), "PR": ("Puerto Rico", 2, None), "LB": ("Líbano", 2, None),
 }
+# Lejanos CON directo desde BCN (16-10-2026, idea Colombia): el directo suele ser el más caro; se compara con escalas y con origen MAD en las
+# MISMAS 5-8 noches que la cuadrícula (si el directo gana, la casilla no cambia). Orden = prioridad de lectura.
+PAISES_CON_DIRECTO = {
+    "CO": "Colombia", "MX": "México", "PE": "Perú", "CL": "Chile", "AR": "Argentina", "BR": "Brasil", "US": "Estados Unidos", "CA": "Canadá",
+    "HN": "Honduras", "SV": "El Salvador", "CN": "China", "HK": "Hong Kong", "AE": "Emiratos Árabes", "QA": "Catar",
+}
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
                            **({"topes": _topes} if _topes else {})}
+for _cod, _nombre in PAISES_CON_DIRECTO.items():
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (5, 8), "cuadricula": _cod}
 
 
 # Madrid como segundo origen (16-10-2026): tren Ouigo Barcelona-Madrid + vuelo desde/hasta Madrid. Ouigo no tiene datos públicos: precios y horas ESTIMADOS, editables aquí.
