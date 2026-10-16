@@ -23,7 +23,7 @@ from flywizz.transport import WizzairTransport
 import aeropuertos as aeropuertos_tabla
 import cache
 
-VERSION = "1.9"
+VERSION = "2.0"
 HORAS_CACHE = 24
 HORAS_CACHE_RED = 72
 PAUSA = 4
@@ -214,7 +214,8 @@ def radar(origen, mes, destinos=None, dias_min=6, dias_max=8, usar_cache=True, a
                 tv = vuelta_dia.get(dv)
                 if tv and (pareja is None or ti["precio"] + tv["precio"] < pareja["total"]):
                     pareja = {"aerolinea": "Wizz Air", "ida": dia, "vuelta": dv, "precio_ida": ti["precio"],
-                              "precio_vuelta": tv["precio"], "total": ti["precio"] + tv["precio"], "noches": n}
+                              "precio_vuelta": tv["precio"], "total": ti["precio"] + tv["precio"], "noches": n,
+                              "tramos": {"ida": ti, "vuelta": tv}}
         res.append({"origen": origen, "destino": d, "ciudad": mejor["ciudad"], "pais": mejor["pais"],
                     "pais_nombre": mejor["pais_nombre"], "salida": mejor["salida"], "precio": mejor["precio"],
                     "directo": True, "ida": (mejor["salida"][:10], mejor["precio"]), "pareja": pareja,

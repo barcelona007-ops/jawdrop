@@ -15,7 +15,7 @@ import ryanair
 import semaforo
 import wizz
 
-VERSION = "0.3"
+VERSION = "0.4"
 ORIGEN = "BCN"
 
 
@@ -23,6 +23,12 @@ def _rango_mes(mes):
     primero = date.fromisoformat(mes + "-01")
     ultimo = date(primero.year + primero.month // 12, primero.month % 12 + 1, 1) - timedelta(days=1)
     return max(primero, date.today()), ultimo
+
+
+def tramo_corto(t):
+    """Datos de un vuelo para la ficha de la cuadrícula: aerolínea, nº de vuelo, ruta, salida/llegada, precio y enlace al proveedor."""
+    return {"a": t["aerolinea"], "n": t.get("vuelo") or "", "d": t["desde"], "h": t["hasta"], "s": t["salida"][:16],
+            "l": (t.get("llegada") or "")[:16], "x": 1 if t.get("llegada_aprox") else 0, "p": round(t["precio"]), "e": t.get("enlace", "")}
 
 
 def ryanair_pareja(destino, mes, n_min, n_max):
@@ -39,7 +45,8 @@ def ryanair_pareja(destino, mes, n_min, n_max):
     m = min(fares, key=lambda f: f["summary"]["price"]["value"])
     o, v = m["outbound"], m["inbound"]
     return {"aerolinea": "Ryanair", "ida": o["departureDate"][:10], "vuelta": v["departureDate"][:10],
-            "total": float(m["summary"]["price"]["value"]), "noches": m["summary"].get("tripDurationDays")}
+            "total": float(m["summary"]["price"]["value"]), "noches": m["summary"].get("tripDurationDays"),
+            "tramos": {"ida": ryanair._tramo(o, "ida"), "vuelta": ryanair._tramo(v, "vuelta")}}
 
 
 def semana_paises(paises, mes, n_min=5, n_max=8, con_wizz=True, avisar=None):

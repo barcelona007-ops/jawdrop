@@ -135,6 +135,11 @@ a.kv:active { background: var(--bd); }
 .apto-c p { margin: 0 0 6px; }
 .apto-c a { color: var(--sun-ink); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-right: 16px; }
 .apto-c .sin { color: var(--muted); font-size: 14px; }
+.apto-c .tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.apto-c .tr a { min-height: 32px; margin-right: 0; font-size: 14px; }
+.sf { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--hi); }
+.sf.alta { background: var(--ok); }
+.sf.media { background: var(--mid); }
 
 .chip.okc { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
 .chip.midc { background: var(--mid-soft); color: var(--mid); border-color: var(--mid); }
@@ -254,12 +259,12 @@ a.kv:active { background: var(--bd); }
 .cq-tabla .compacta td.c { padding: 2px 1px; }
 .cq-tabla .compacta td.c button { font-size: 0; border-radius: 5px; }
 .cq-tabla .compacta td.pais b { font-size: 13px; }
-.cq-tabla .verde, .cq-mini .verde, .cq-precio.verde { background: var(--rg-bueno); color: var(--rg-bueno-t); }
-.cq-tabla .ambar, .cq-mini .ambar, .cq-precio.ambar { background: var(--rg-hab); color: var(--rg-hab-t); }
-.cq-tabla .rojo, .cq-mini .rojo, .cq-precio.rojo { background: var(--rg-caro); color: var(--rg-caro-t); }
+.cq-tabla .verde, .cq-ms .verde, .cq-precio.verde { background: var(--rg-bueno); color: var(--rg-bueno-t); }
+.cq-tabla .ambar, .cq-ms .ambar, .cq-precio.ambar { background: var(--rg-hab); color: var(--rg-hab-t); }
+.cq-tabla .rojo, .cq-ms .rojo, .cq-precio.rojo { background: var(--rg-caro); color: var(--rg-caro-t); }
 .cq-ley .verde { background: var(--rg-bueno); } .cq-ley .ambar { background: var(--rg-hab); } .cq-ley .rojo { background: var(--rg-caro); }
-.cq-tabla .sin, .cq-mini .sin { background: color-mix(in srgb, var(--bd-soft) 35%, transparent); color: var(--muted); }
-.cq-tabla .ganga, .cq-mini .ganga, .cq-precio.ganga { background: var(--rg-ganga); color: #fff; font-weight: 700; }
+.cq-tabla .sin, .cq-ms .sin { background: color-mix(in srgb, var(--bd-soft) 35%, transparent); color: var(--muted); }
+.cq-tabla .ganga, .cq-ms .ganga, .cq-precio.ganga { background: var(--rg-ganga); color: #fff; font-weight: 700; }
 .cq-ley .ganga { background: var(--rg-ganga); } .cq-ley .gris { background: color-mix(in srgb, var(--bd-soft) 35%, transparent); }
 .cq-tabla .compacta td.c button.ganga { font-size: 11px; }
 .cq-tabla .compacta td.c button.ganga::before { content: "★"; }
@@ -284,11 +289,13 @@ a.kv:active { background: var(--bd); }
 .cq-hoja p { margin: 6px 0; color: var(--muted); font-size: 14px; }
 .cq-x { position: absolute; right: 8px; top: 8px; min-width: 44px; min-height: 44px; border: 0; background: transparent; font-size: 22px; cursor: pointer; }
 .cq-precio { display: inline-block; padding: 2px 10px; border-radius: 8px; font-family: var(--f-data); font-size: 28px; font-weight: 500; margin: 8px 0; }
-.cq-mini { display: flex; gap: 4px; margin: 10px 0 4px; }
-.cq-mini span { flex: 1; height: 28px; border-radius: 4px; }
-.cq-mini span.sel { outline: 2px solid var(--ink); }
-.cq-meses { display: flex; gap: 4px; font-size: 10px; color: var(--muted); font-family: var(--f-data); text-transform: uppercase; }
-.cq-meses span { flex: 1; text-align: center; }
+.cq-ms { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 10px 0; }
+.cq-ms button { min-height: 44px; border: 0; border-radius: 8px; cursor: pointer; display: grid; place-items: center; align-content: center; font-family: var(--f-data); line-height: 1.15; }
+.cq-ms button small { font-size: 10px; text-transform: uppercase; opacity: .85; }
+.cq-ms button b { font-size: 13px; font-weight: 500; }
+.cq-ms button:disabled { cursor: default; }
+.cq-ms button.sel { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cq-ms button.sel b { font-weight: 700; }
 </style>
 </head>
 <body>
@@ -559,14 +566,18 @@ a.kv:active { background: var(--bd); }
   function aptoUno(cod, rotulo) {
     var a = APTOS[cod];
     var web = /^https:/.test(a.web || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.web) + '">Web del aeropuerto ›</a>' : "";
-    var mapa = /^https:/.test(a.mapa || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.mapa) + '">Mapa ›</a>' : '<span class="sin">Sin mapa en su web.</span>';
-    var f = (a.revisado || "").split("-"), fecha = f.length === 3 ? f[2] + "/" + f[1] + "/" + f[0] : "";
+    var mapa = /^https:/.test(a.mapa || "") ? '<a target="_blank" rel="noopener" href="' + esc(a.mapa) + '">Mapa ›</a>' : "";
+    var fila = function (modo, texto, enlace, fiab) {   // modo · datos · enlace al operador · semáforo pequeño
+      var tit = fiab === "alta" ? "Leído en la web oficial" : fiab === "media" ? "Varias fuentes, no la oficial" : "Sin comprobar";
+      return '<p class="tr"><i class="sf ' + (fiab === "alta" || fiab === "media" ? fiab : "baja") + '" title="' + tit + '" role="img" aria-label="' + tit + '"></i><b>' + esc(modo) + '</b> ' + esc(texto) +
+        (/^https:/.test(enlace || "") ? ' <a target="_blank" rel="noopener" href="' + esc(enlace) + '">Operador ›</a>' : "") + '</p>';
+    };
+    var t = a.taxi || {};
     return '<details class="apto"><summary><span>✈ ' + rotulo + ' · ' + esc(a.nombre) + ' (' + esc(cod) + ')</span></summary><div class="apto-c">' +
-      '<div>' + web + mapa + '</div>' +
-      '<div><h3>Al centro</h3>' + a.centro.map(function (c) { return '<p><b>' + esc(c[0]) + '</b> · ' + esc(c[1]) + '</p>'; }).join("") + '</div>' +
-      '<div><h3>Taxi</h3><p>' + esc(a.taxi) + '</p></div>' +
-      '<div><h3>Apps (Uber, Bolt, Grab…)</h3><p>' + esc(a.apps) + '</p></div>' +
-      '<p class="sin">' + esc(a.nota) + ' Revisado el ' + fecha + (a.fiab === "baja" ? " · poco contrastado: confírmalo allí" : a.fiab === "alta" ? " · web oficial" : "") + '.</p>' +
+      ((web || mapa) ? '<div>' + web + mapa + '</div>' : "") +
+      '<div><h3>Al centro</h3>' + ((a.centro || []).map(function (c) { return fila(c.modo, c.texto, c.enlace, c.fiab); }).join("") || '<p class="sin">Sin transporte público directo.</p>') + '</div>' +
+      (t.texto ? '<div><h3>Taxi</h3>' + fila("Taxi", t.texto, t.enlace, t.fiab) + '</div>' : "") +
+      (a.apps ? '<div><h3>Apps</h3><p>' + esc(a.apps) + '</p></div>' : "") +
       '</div></details>';
   }
   function renderDetail() {
@@ -749,6 +760,38 @@ a.kv:active { background: var(--bd); }
     fetch("/api/radar-marcha", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (d) { MR.d = d; var e = document.getElementById("rmarcha"); if (e) e.outerHTML = marchaHtml(); }).catch(function () {});
   }
+  var CQ_DIA = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  function cqDia(f) { var d = new Date(String(f).slice(0, 10) + "T12:00:00"); return CQ_DIA[d.getDay()] + " " + d.getDate() + " " + LG_MES[d.getMonth() + 1]; }
+  // Vuelo suelto de la ficha (lecturas con detalle «t»): mismo formato de tarjeta que en Flash; el enlace lleva al proveedor.
+  function cqTramo(rot, t) {
+    var ab = t.e ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.e) + '" aria-label="Abrir ' + rot.toLowerCase() + ' en ' + esc(t.a) + '">' : '<div class="kv">';
+    return ab + '<i>' + rot + ' · ' + esc(t.a) + (t.n ? ' · ' + esc(t.n) : '') + '</i><b>' + (t.p != null ? eur(t.p) : "—") + '</b>' +
+      '<i>' + cqDia(t.s) + ' · ' + t.s.slice(11) + ' ' + esc(t.d) + '</i><b>llega ' + (t.l ? t.l.slice(11) + ' ' + esc(t.h) : esc(t.h)) + '</b>' +
+      (t.x ? '<i class="peq">llegada ≈</i><b></b>' : '') + (t.e ? '</a>' : '</div>');
+  }
+  function cqFicha(f, j, D) {
+    var c = f.celdas[j], m = D.meses[j], mb = cqMejor(f);
+    var h = '<div class="cq-hoja" role="dialog" aria-labelledby="cqT"><button class="cq-x" type="button" id="cqx" aria-label="Cerrar">×</button><h2 id="cqT">' + esc(nombrePais(f.cod)) + ' · ' + CQ_MES[m.nombre] + ' ' + m.anio + '</h2>' +
+      '<div class="cq-precio ' + c.c + '">' + (c.g ? "★ " : "") + (c.e ? "≈ " : "") + eur(c.p) + '</div>' +
+      (c.g ? '<p><b>Ganga:</b> ' + c.pct + ' % bajo lo habitual (' + eur(c.mediana) + ').</p>' : '') +
+      (j === mb ? '<p><b>Es el mes más barato del año.</b></p>' : '') +
+      '<div class="cq-ms" role="group" aria-label="Mes">' + f.celdas.map(function (x, k) {
+        var n = CQ_MES[D.meses[k].nombre].slice(0, 3);
+        return x.p == null ? '<button type="button" class="sin" disabled aria-label="' + CQ_MES[D.meses[k].nombre] + ', sin datos"><small>' + n + '</small><b>—</b></button>'
+          : '<button type="button" class="' + (x.g ? "ganga" : x.c) + (k === j ? " sel" : "") + '" data-cmm="' + k + '" aria-pressed="' + (k === j) + '" aria-label="' + CQ_MES[D.meses[k].nombre] + ', ' + x.p + ' euros"><small>' + n + '</small><b>' + x.p + '</b></button>';
+      }).join("") + '</div>';
+    if (c.esc) {
+      var e = c.esc;
+      h += lgTramo("Ida", e.ida, e.madrid ? "Sales de Barajas" : "Sales de El Prat", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, "Sales de " + esc(e.vuelta.desde_ciudad), e.madrid ? "Barajas" : "El Prat") + lgMadrid(e) +
+        (e.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(e.hub.ap) + ' → Bangkok el ' + lgFecha(e.hub.ida.fecha) + ' (' + esc(e.hub.ida.aerolinea) + ', ' + eur(e.hub.ida.precio) + ') y Bangkok → ' + esc(e.hub.ap) + ' el ' + lgFecha(e.hub.vuelta.fecha) + ' (' + esc(e.hub.vuelta.aerolinea) + ', ' + eur(e.hub.vuelta.precio) + '). Billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
+        '<p>' + e.noches + ' noches · precios de Kiwi (≈)</p>';
+    } else if (c.t) {
+      h += cqTramo("Ida", c.t.ida) + cqTramo("Vuelta", c.t.vuelta) + '<p>' + esc(c.ci) + ' · ' + c.n + ' noches</p>';
+    } else if (c.ci) {   // lectura antigua sin horas ni enlaces: se enseña lo guardado y se completa en la próxima lectura
+      h += '<div class="kv"><i>' + esc(c.ci) + ' · ' + esc(c.a) + '</i><b>' + eur(c.p) + '</b><i>Ida ' + cqDia(c.i) + '</i><b>Vuelta ' + cqDia(c.r) + '</b><i class="peq">' + c.n + ' noches · horas y enlaces: en la próxima lectura</i><b></b></div>';
+    } else if (c.v) h += '<p>' + esc(c.v) + '.</p>';
+    return h + (D.ejemplo ? '<p><i>Dato de ejemplo.</i></p>' : '') + '</div>';
+  }
   function renderPaises() {
     if (CQ.vista === "larga") return head("Radar") + segVista() + marchaHtml() + renderLarga();
     if (paisEstado === "cargando") return head("Radar") + '<p class="nota">Cargando…</p>';
@@ -770,20 +813,15 @@ a.kv:active { background: var(--bd); }
     });
     if (!lista.length) h += '<tr><td colspan="' + (D.meses.length + 2) + '" style="padding:24px;text-align:left">Ningún país con este filtro.</td></tr>';
     h += '</tbody></table></div></div><p class="nota">' + CQ_MES[D.meses[0].nombre] + ' ' + D.meses[0].anio + ' a ' + CQ_MES[D.meses[D.meses.length - 1].nombre] + ' ' + D.meses[D.meses.length - 1].anio + ' · la banda rayada marca el final.</p>';
-    if (CQ.p >= 0) {
-      var f2 = D.paises[CQ.p], c2 = f2.celdas[CQ.m], m2 = D.meses[CQ.m], mj2 = cqMejor(f2);
-      h += '<div class="cq-hoja" role="dialog" aria-labelledby="cqT"><button class="cq-x" type="button" id="cqx" aria-label="Cerrar">×</button><h2 id="cqT">' + esc(nombrePais(f2.cod)) + ' · ' + CQ_MES[m2.nombre] + ' ' + m2.anio + '</h2>' +
-        '<div class="cq-precio ' + c2.c + '">' + (c2.g ? "★ " : "") + (c2.e ? "≈ " : "") + eur(c2.p) + '</div>' +
-        '<p>' + (c2.g ? '<b>Ganga:</b> un ' + c2.pct + ' % por debajo de lo habitual (' + eur(c2.mediana) + ') para este país y este mes.' : (c2.c === "verde" ? "Bueno: buen precio" : c2.c === "ambar" ? "Habitual: precio normal" : "Caro: por encima de lo normal") + ' para este viaje.') + ' Ida y vuelta, 1 adulto, solo vuelos.</p>' +
-        '<p>' + dec(f2.h) + ' h de vuelo desde Barcelona (≈ ' + f2.km.toLocaleString("es-ES") + ' km). ' + (CQ.m !== mj2 ? 'Mes más barato: <b>' + CQ_MES[D.meses[mj2].nombre] + ' (' + eur(f2.celdas[mj2].p) + ')</b>.' : '<b>Es el mes más barato del año</b> (no siempre es ganga).') + '</p>' +
-        '<div class="cq-mini">' + f2.celdas.map(function (x2, j) { return '<span class="' + (x2.p == null ? "sin" : x2.c) + (j === CQ.m ? " sel" : "") + '"></span>'; }).join("") + '</div>' +
-        '<div class="cq-meses">' + D.meses.map(function (x2) { return '<span>' + x2.nombre[0] + '</span>'; }).join("") + '</div>' +
-        (c2.esc ? lgTramo("Ida", c2.esc.ida, c2.esc.madrid ? "Sales de Barajas" : "Sales de El Prat", c2.esc.ida.ciudad) + lgTramo("Vuelta", c2.esc.vuelta, "Sales de " + esc(c2.esc.vuelta.desde_ciudad), c2.esc.madrid ? "Barajas" : "El Prat") + lgMadrid(c2.esc) +
-          (c2.esc.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(c2.esc.hub.ap) + ' → Bangkok el ' + lgFecha(c2.esc.hub.ida.fecha) + ' (' + esc(c2.esc.hub.ida.aerolinea) + ', ' + eur(c2.esc.hub.ida.precio) + ') y Bangkok → ' + esc(c2.esc.hub.ap) + ' el ' + lgFecha(c2.esc.hub.vuelta.fecha) + ' (' + esc(c2.esc.hub.vuelta.aerolinea) + ', ' + eur(c2.esc.hub.vuelta.precio) + '). Son billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
-          '<p>' + c2.esc.noches + ' noches · hasta 2 escalas · billetes de Kiwi, orientativos (≈): toca la ida o la vuelta para ver el precio real.</p>' : '') +
-        (D.ejemplo ? '<p><i>Dato de ejemplo.</i></p>' : (c2.v && !c2.esc ? '<p>' + esc(c2.v) + '.</p>' : '') + '<p>Leído el ' + c2.f.split("-").reverse().join("/") + '.</p>') + '</div>';
-    }
+    if (CQ.p >= 0) h += cqFicha(D.paises[CQ.p], CQ.m, D);
     return h;
+  }
+  // Abrir, cambiar de mes y cerrar la ficha no mueven la lista: se guarda la posición de la página y de la lista (la tabla tiene su propio scroll) y se devuelve tras pintar.
+  function cqRender() {
+    var tb = app.querySelector(".cq-tabla"), x = tb ? tb.scrollLeft : 0, ty = tb ? tb.scrollTop : 0, y = window.scrollY;
+    CQ.quieto = true; render(); CQ.quieto = false;
+    tb = app.querySelector(".cq-tabla"); if (tb) { tb.scrollLeft = x; tb.scrollTop = ty; }
+    window.scrollTo(0, y);
   }
   function bindCuadricula() {
     var fl = document.getElementById("cqfil"); if (fl) fl.ontoggle = function () { CQ.fo = fl.open; };
@@ -794,8 +832,9 @@ a.kv:active { background: var(--bd); }
     app.querySelectorAll("[data-cqt]").forEach(function (el) { el.onclick = function () { CQ.filtro = el.dataset.cqt; CQ.p = -1; render(); }; });
     var v = document.getElementById("cqv"); if (v) v.onclick = function () { CQ.verde = !CQ.verde; CQ.p = -1; render(); };
     var pr = document.getElementById("cqp"); if (pr) pr.onclick = function () { CQ.precios = !CQ.precios; CQ.p = -1; render(); };
-    app.querySelectorAll("[data-cp]").forEach(function (el) { el.onclick = function () { CQ.p = +el.dataset.cp; CQ.m = +el.dataset.cm; render(); }; });
-    var x = document.getElementById("cqx"); if (x) x.onclick = function () { CQ.p = -1; render(); };
+    app.querySelectorAll("[data-cp]").forEach(function (el) { el.onclick = function () { CQ.p = +el.dataset.cp; CQ.m = +el.dataset.cm; cqRender(); }; });
+    app.querySelectorAll("[data-cmm]").forEach(function (el) { el.onclick = function () { CQ.m = +el.dataset.cmm; cqRender(); }; });
+    var x = document.getElementById("cqx"); if (x) x.onclick = function () { CQ.p = -1; cqRender(); };
   }
   function cargarPaises() {
     paisEstado = "cargando"; render();
@@ -1371,7 +1410,7 @@ a.kv:active { background: var(--bd); }
 
   function render() {
     app.innerHTML = tab === "flash" ? (open >= 0 ? renderDetail() : renderFlash()) : tab === "nuevos" ? renderPaises() : tab === "medida" ? renderMedida() : tab === "pasaporte" ? renderPasaporte() : tab === "config" ? renderConfig() : renderPronto(TITULOS[tab]);
-    if (!(tab === "medida" && M.fase === "form") && !(tab === "pasaporte" && PS.estado === "listo" && !cambioTab) && !(tab === "config" && !cambioTab)) window.scrollTo(0, 0);
+    if (!(tab === "medida" && M.fase === "form") && !(tab === "pasaporte" && PS.estado === "listo" && !cambioTab) && !(tab === "config" && !cambioTab) && !CQ.quieto) window.scrollTo(0, 0);
     cambioTab = false;
     if (tab === "config") bindConfig();
     if (tab === "medida") bindMedida();

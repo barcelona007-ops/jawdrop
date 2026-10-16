@@ -33,7 +33,7 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "1.5"
+VERSION = "1.6"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
 PAUSA = 5
@@ -279,7 +279,8 @@ def semana_pais(origen, pais, mes, n_min=5, n_max=8, usar_cache=True):
                 mejor = {"aerolinea": i["aerolinea"] if i["aerolinea"] == v["aerolinea"] else f'{i["aerolinea"]} + {v["aerolinea"]}',
                          "ida": i["salida"][:10], "vuelta": v["salida"][:10], "total": i["precio"] + v["precio"], "noches": n,
                          "destino": i["destino"], "ciudad": i["ciudad"], "pais": pais,
-                         "orientativo": bool(i.get("precio_orientativo") or v.get("precio_orientativo"))}
+                         "orientativo": bool(i.get("precio_orientativo") or v.get("precio_orientativo")),
+                         "tramos": {"ida": i, "vuelta": v}}
     return mejor
 
 

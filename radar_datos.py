@@ -27,7 +27,7 @@ import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.9"
+VERSION = "0.10"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -114,6 +114,8 @@ def leer_mes(mes, almacen, avisar=print):
                          "destino": m["destino"], "ida": m["ida"], "vuelta": m["vuelta"], "noches": m["noches"]}
             if m.get("orientativo"):
                 res[pais]["e"] = True
+            if m.get("tramos"):   # detalle de cada vuelo para la ficha (hora, nº de vuelo, enlace); las lecturas antiguas no lo tienen
+                res[pais]["t"] = {k: semana.tramo_corto(v) for k, v in m["tramos"].items()}
     anotar_historial(cargar_historial(), mes, res, hoy)
     almacen[mes] = res
     ALMACEN.parent.mkdir(exist_ok=True)
@@ -145,6 +147,9 @@ def construir(almacen):
                 g = ganga.evaluar(r["p"], previas)
                 celda = {"p": r["p"], "c": semaforo.color(r["p"], km), "f": r["f"], "e": bool(r.get("e")),
                          "v": f"{r['ciudad']} · {r['aerolinea']} · {r['ida']} → {r['vuelta']} ({r['noches']} noches)"}
+                celda.update(ci=r["ciudad"], ap=r["destino"], a=r["aerolinea"], i=r["ida"], r=r["vuelta"], n=r["noches"])   # para la ficha
+                if r.get("t"):
+                    celda["t"] = r["t"]
                 if g["estado"] == "ganga":
                     celda.update(g=1, sem=celda["c"], c="ganga", mediana=g["mediana"], pct=g["pct"])
                     gangas += 1
