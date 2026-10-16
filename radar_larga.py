@@ -55,7 +55,7 @@ PAISES_CON_DIRECTO = {
     "HN": "Honduras", "SV": "El Salvador", "CN": "China", "HK": "Hong Kong",
 }
 # A 6-8,5 h de BCN (Nueva York ~8 h, Toronto/Montreal, Dubái, Doha) sí valen 4-8 noches (el usuario, 17-10): directo, o UNA escala corta, desde BCN o vía Madrid
-# (tren + vuelo; en Nueva York será un caso raro). Solo sustituyen al directo de la cuadrícula si salen más baratas. Pendiente: tope de 3 h a la escala.
+# (tren + vuelo; en Nueva York será un caso raro). Solo sustituyen al directo de la cuadrícula si salen más baratas. Escalas de 2-4 h aceptadas, sin tope.
 PAISES_MEDIOS = {"US": "Estados Unidos", "CA": "Canadá", "AE": "Emiratos Árabes", "QA": "Catar"}
 for _cod, (_nombre, _paradas, _topes) in PAISES_LARGOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": (25, 35), "cuadricula": _cod,
