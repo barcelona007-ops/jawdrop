@@ -17,8 +17,9 @@ import escalas
 import frescura
 import kiwi
 import marcha
+import trenes
 
-VERSION = "0.12"
+VERSION = "0.14"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -73,31 +74,67 @@ PAISES_PENDIENTES = {
 for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
 for _cod, _nombre in PAISES_CON_DIRECTO.items():
-    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (15, 21), "cuadricula": _cod, "sustituye": True}
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (15, 21), "cuadricula": _cod, "sustituye": True, "margen": 0.20, "madrid_directo": False}
 for _cod, _nombre in PAISES_MEDIOS.items():
-    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 1, "noches": (4, 8), "cuadricula": _cod}
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 1, "noches": (4, 8), "cuadricula": _cod, "margen": 0.20}
 
 
-# Madrid como segundo origen (16-10-2026): tren Ouigo Barcelona-Madrid + vuelo desde/hasta Madrid. Ouigo no tiene datos públicos: precios y horas ESTIMADOS, editables aquí.
+# Madrid como segundo origen (16-10-2026): tren Barcelona-Madrid + vuelo desde/hasta Madrid. Desde 17-10-2026 el tren es REAL (trenes.py: horarios GTFS de Renfe y Ouigo + precio de Ouigo; sin precio de Renfe/Iryo).
 MADRID = True
-TREN_PRECIO = 25         # € por trayecto (estimado; el tren se suma dos veces: ida y vuelta)
-TREN_PRIMERO = "10:30"   # llegada a Madrid del primer Ouigo de la mañana (sale ~07:00, ~3 h)
-TREN_ULTIMO = "20:30"    # salida del último Ouigo Madrid → Barcelona (llega ~23:30)
-AEROPUERTO_H = 2.0       # horas antes del vuelo para estar en el aeropuerto + traslado desde la estación
-MARGEN_MIN = 2.0         # menos horas de colchón que esto = aviso rojo (al usuario le preocupa la situación ferroviaria)
+ANTELACION_H = 6.0       # ida: el tren debe llegar a Madrid al menos tantas horas antes del vuelo (el usuario, 17-10-2026, por la situación ferroviaria)
+NOCHE_MADRID = 60        # € ESTIMADOS de una noche en Madrid cuando ningún tren del mismo día llega con esa antelación (se va el día antes y se suma al total)
+MARGEN_MIN = 2.0         # vuelta: menos horas de colchón que esto = aviso rojo
 
 
 def _h(hhmm):
     return int(hhmm[:2]) + int(hhmm[3:5]) / 60
 
 
+def _tramo_tren(fecha, sentido, hora_vuelo):
+    """Mejor tren para llegar al vuelo (ida: llegada a Madrid ≥ ANTELACION_H antes del vuelo; si ese día no hay ninguno, el del día anterior + NOCHE_MADRID)
+    o salir tras él (vuelta: salida ≥ llegada del vuelo + 1 h)."""
+    r = _tren_dia(fecha, sentido, hora_vuelo)
+    if sentido == "BCN-MAD" and r["aviso"]:
+        antes = _tren_dia((date.fromisoformat(fecha) - timedelta(days=1)).isoformat(), sentido, hora_vuelo + 24)
+        if antes["elegida"] and not antes["aviso"]:
+            antes["noche"] = NOCHE_MADRID
+            antes["_avisos"] = r["_avisos"] + antes["_avisos"]
+            return antes
+    return r
+
+
+def _tren_dia(fecha, sentido, hora_vuelo):
+    """Mejor tren de ese día (una opción por operador).
+    Una opción por operador (con margen y la más barata; sin precio, la que deja más colchón). `elegida` = la más barata con precio real."""
+    todos, avisos = trenes.opciones(fecha, sentido)
+    for t in todos:
+        t["colchon"] = round((hora_vuelo - _h(t["llega"])) if sentido == "BCN-MAD" else (_h(t["sale"]) - (hora_vuelo + 1.0)), 1)
+    minimo = ANTELACION_H if sentido == "BCN-MAD" else MARGEN_MIN   # ida: antelación exigida; vuelta: colchón deseado
+    validos = [t for t in todos if t["colchon"] >= (ANTELACION_H if sentido == "BCN-MAD" else 0)]
+    buenos = [t for t in validos if t["colchon"] >= minimo] or validos
+    mejor = {}
+    for t in sorted(buenos, key=lambda t: (t["precio"] is None, t["precio"] or 0, -t["colchon"])):
+        mejor.setdefault(t["op"], t)
+    ops = sorted(mejor.values(), key=lambda t: (t["precio"] is None, t["precio"] or 0))
+    elegida = next((t for t in ops if t["precio"] is not None), None)
+    ref = elegida or (ops[0] if ops else None)   # el aviso rojo mira el tren elegido; sin precio, el de más colchón disponible
+    return {"fecha": fecha, "opciones": ops, "elegida": elegida, "_avisos": avisos,
+            "colchon": ref["colchon"] if ref else None, "aviso": (not ref) or ref["colchon"] < minimo}
+
+
 def _con_tren(c):
-    """Combinación con origen/destino MAD: suma el tren (estimado) y calcula el colchón en ida (tren → vuelo) y vuelta (vuelo → último tren)."""
-    colchon_ida = _h(c["ida"]["sale"]) - AEROPUERTO_H - _h(TREN_PRIMERO)
-    colchon_vuelta = _h(TREN_ULTIMO) - (_h(c["vuelta"]["llega"][-5:]) + 1.0)
-    c["total"] += 2 * TREN_PRECIO
-    c["madrid"] = {"tren": TREN_PRECIO, "colchon_ida": round(colchon_ida, 1), "colchon_vuelta": round(colchon_vuelta, 1),
-                   "aviso_ida": colchon_ida < MARGEN_MIN, "aviso_vuelta": colchon_vuelta < MARGEN_MIN}
+    """Combinación con origen/destino MAD: suma el tren REAL (horarios GTFS + precio Ouigo; Renfe/Iryo sin precio, con aviso) y calcula el colchón
+    en ida (tren → vuelo) y vuelta (vuelo → tren). Si no hay precio real, no se suma nada y `tren_sin_precio` lo dice (nunca un precio de relleno)."""
+    llega = c["vuelta"]["llega"]                                     # "MM-DD HH:MM"
+    f_vuelta = date.fromisoformat(c["vuelta"]["fecha"])
+    f_llega = date(f_vuelta.year + (llega[:2] < c["vuelta"]["fecha"][5:7]), int(llega[:2]), int(llega[3:5]))
+    ida = _tramo_tren(c["ida"]["fecha"], "BCN-MAD", _h(c["ida"]["sale"]))
+    vuelta = _tramo_tren(f_llega.isoformat(), "MAD-BCN", _h(llega[-5:]))
+    avisos = {(a["operador"], a["motivo"]): a for x in (ida, vuelta) for a in x.pop("_avisos")}   # sin repetir entre ida y vuelta
+    precios = [x["elegida"]["precio"] for x in (ida, vuelta) if x["elegida"]]
+    c["total"] += sum(precios) + ida.get("noche", 0)
+    c["madrid"] = {"ida": ida, "vuelta": vuelta, "avisos": list(avisos.values()), "tren": round(sum(precios)), "noche": ida.get("noche", 0), "tren_sin_precio": len(precios) < 2,
+                   "colchon_ida": ida["colchon"], "colchon_vuelta": vuelta["colchon"], "aviso_ida": ida["aviso"], "aviso_vuelta": vuelta["aviso"]}
     return c
 
 
@@ -148,6 +185,24 @@ def _con_hub(z, mes, avisar):
     return res
 
 
+def _priorizar(out, margen, madrid_directo=True):
+    """Reglas del usuario para destinos medios (17-10-2026). Sencilla = salida de BCN con UNA aerolínea (directo o escala planificada). Madrid solo vale con vuelo
+    DIRECTO desde Madrid (el total ya lleva el tren; en los lejanos basta UNA aerolínea). Madrid y los billetes sueltos (otra aerolínea, p. ej. Vueling a un hub europeo + transatlántico) solo
+    ganan a la mejor sencilla si cuestan `margen` (20 %) menos o más barato; si no, manda la sencilla. El resto sigue ordenado por precio."""
+    def sencilla(c):
+        return c.get("origen") != "MAD" and not c["ida"]["sueltos"] and not c["vuelta"]["sueltos"]
+    def madrid_ok(c):
+        if madrid_directo:
+            return not c["ida"]["escalas"] and not c["vuelta"]["escalas"]
+        return not c["ida"]["sueltos"] and not c["vuelta"]["sueltos"]
+    out = [c for c in out if c.get("origen") != "MAD" or madrid_ok(c)]
+    base = [c for c in out if sencilla(c)]
+    if not base:
+        return out
+    mejor = next((c for c in out if not sencilla(c) and c["total"] <= base[0]["total"] * (1 - margen)), base[0])
+    return [mejor] + [c for c in out if c is not mejor]
+
+
 def leer(zona_id, mes, avisar=print):
     z = ZONAS[zona_id]
     out = _leer(z["paises"], z, mes, avisar)
@@ -162,6 +217,8 @@ def leer(zona_id, mes, avisar=print):
     if z.get("hubs"):
         out += _con_hub(z, mes, avisar)
         out.sort(key=lambda x: x["total"])
+    if z.get("margen"):
+        out = _priorizar(out, z["margen"], z.get("madrid_directo", True))
     return out
 
 

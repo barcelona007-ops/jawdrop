@@ -33,7 +33,7 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "1.6"
+VERSION = "1.7"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
 PAUSA = 5
@@ -71,6 +71,29 @@ COMISION = {
     "HV": {"fijo": 0.0, "pendiente": 1.12, "margen": 3, "medido": "3 vuelos BCN-AMS (+12 %)"},
     "XQ": {"fijo": 0.0, "pendiente": 1.0, "margen": 4, "medido": "1 vuelo BCN-ADB (140 = 140)"},
     "V7": {"fijo": 3.0, "pendiente": 1.0, "margen": 4, "medido": "1 vuelo BCN-NTE (29→32)"},
+    # Iberojet (E9), medido el 17-10-2026 con 1.029 vuelos de su web (iberojet_mapa.py) frente a Kiwi (contraste_comision.py): NO hay una comisión única
+    # (con una sola fórmula el error llega a 600 €); Kiwi vende otra tarifa y la diferencia depende de la RUTA. Clave «E9 ORIGEN-DESTINO», una recta por ruta;
+    # margen = error que no supera el 90 % de los vuelos (grande en Honduras y La Romana: ahí el precio de Kiwi es poco fiable).
+    "E9 BCN-SAL": {"fijo": -12.8, "pendiente": 1.411, "margen": 31, "medido": "35 vuelos, 2026-10-17"},
+    "E9 BCN-XPL": {"fijo": -36.0, "pendiente": 1.272, "margen": 8, "medido": "37 vuelos, 2026-10-17"},
+    "E9 BKK-MAD": {"fijo": -5.0, "pendiente": 1.134, "margen": 3, "medido": "34 vuelos, 2026-10-17"},
+    "E9 CUN-MAD": {"fijo": -2.8, "pendiente": 1.024, "margen": 7, "medido": "58 vuelos, 2026-10-17"},
+    "E9 LRM-MAD": {"fijo": -49.9, "pendiente": 1.367, "margen": 87, "medido": "31 vuelos, 2026-10-17"},
+    "E9 MAD-BKK": {"fijo": -7.1, "pendiente": 1.267, "margen": 12, "medido": "33 vuelos, 2026-10-17"},
+    "E9 MAD-CUN": {"fijo": -36.1, "pendiente": 1.150, "margen": 14, "medido": "53 vuelos, 2026-10-17"},
+    "E9 MAD-LRM": {"fijo": -105.7, "pendiente": 1.224, "margen": 65, "medido": "31 vuelos, 2026-10-17"},
+    "E9 MAD-PUJ": {"fijo": -62.9, "pendiente": 1.282, "margen": 26, "medido": "57 vuelos, 2026-10-17"},
+    "E9 MAD-QRO": {"fijo": -165.7, "pendiente": 1.570, "margen": 32, "medido": "67 vuelos, 2026-10-17"},
+    "E9 MAD-SAL": {"fijo": -55.2, "pendiente": 1.513, "margen": 20, "medido": "35 vuelos, 2026-10-17"},
+    "E9 MAD-SJO": {"fijo": 49.3, "pendiente": 1.141, "margen": 40, "medido": "90 vuelos, 2026-10-17"},
+    "E9 MAD-XPL": {"fijo": -28.8, "pendiente": 1.253, "margen": 6, "medido": "73 vuelos, 2026-10-17"},
+    "E9 PUJ-MAD": {"fijo": 61.1, "pendiente": 1.094, "margen": 24, "medido": "55 vuelos, 2026-10-17"},
+    "E9 QRO-MAD": {"fijo": -45.9, "pendiente": 1.304, "margen": 15, "medido": "68 vuelos, 2026-10-17"},
+    "E9 SAL-BCN": {"fijo": -22.6, "pendiente": 1.420, "margen": 19, "medido": "35 vuelos, 2026-10-17"},
+    "E9 SAL-MAD": {"fijo": -55.6, "pendiente": 1.489, "margen": 20, "medido": "35 vuelos, 2026-10-17"},
+    "E9 SJO-MAD": {"fijo": -11.1, "pendiente": 1.158, "margen": 43, "medido": "93 vuelos, 2026-10-17"},
+    "E9 XPL-BCN": {"fijo": -96.5, "pendiente": 1.985, "margen": 108, "medido": "36 vuelos, 2026-10-17"},
+    "E9 XPL-MAD": {"fijo": 186.3, "pendiente": 1.430, "margen": 124, "medido": "73 vuelos, 2026-10-17"},
 }
 
 # Aerolíneas que ya se leen directamente (más exactas): Ryanair (FR, RK, AL Malta Air, RR Buzz) y Wizz
@@ -137,7 +160,7 @@ def _tramo(it):
     precio_kiwi = float(it["priceEur"]["amount"])
     codigo = s["carrier"]["code"]
     precio, extra = precio_kiwi, {"precio_orientativo": True}
-    com = COMISION.get(codigo)
+    com = COMISION.get(f"{codigo} {desde}-{hasta}") or COMISION.get(codigo)   # primero la ruta (Iberojet), si no, la aerolínea
     if com:
         # precio de la aerolínea = (Kiwi - fijo) / pendiente, redondeado al euro como lo da la aerolínea
         precio = float(max(round((precio_kiwi - com["fijo"]) / com["pendiente"]), 0))

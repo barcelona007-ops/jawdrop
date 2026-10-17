@@ -687,14 +687,23 @@ a.kv:active { background: var(--bd); }
       '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>';
   }
   function lgOrigenMad(c) {   // aviso bien visible arriba de la ficha: este precio sale de Madrid
-    return c.madrid ? '<p style="margin:8px 0;padding:10px 12px;border-radius:10px;border:2px solid var(--rg-caro,#d33);font-weight:700">📍 ORIGEN MADRID: el viaje sale de Barajas (tren Barcelona → Madrid incluido, estimado).</p>' : "";
+    return c.madrid ? '<p style="margin:8px 0;padding:10px 12px;border-radius:10px;border:2px solid var(--rg-caro,#d33);font-weight:700">📍 ORIGEN MADRID: el viaje sale de Barajas (tren Barcelona → Madrid' + (c.madrid.tren_sin_precio ? ', SIN precio de tren completo: ver abajo' : ' incluido') + ').</p>' : "";
+  }
+  function lgTrenes(t, titulo, vuelta) {   // un trayecto: una línea por operador (horario y precio real) + aviso de colchón
+    var l = t.opciones.map(function (o) {
+      return '<li><b>' + esc(o.op) + '</b> ' + esc(o.tren) + ' · ' + o.sale + ' → ' + o.llega + ' · ' + (o.precio != null ? '<b>' + eur(o.precio) + '</b>' + (t.elegida === o || (t.elegida && t.elegida.op === o.op && t.elegida.sale === o.sale) ? ' ✔ elegido' : '') : '<i>sin precio</i>') + '</li>';
+    }).join("");
+    var ok = t.colchon != null && !t.aviso;
+    return '<p><b>' + titulo + '</b> (' + lgFecha(t.fecha) + ')</p>' + (l ? '<ul style="margin:4px 0 4px 18px">' + l + '</ul>' : '<p style="color:var(--rg-caro,#d33)">⚠ ' + (vuelta ? 'Ya no hay tren de vuelta ese día: tendrías que dormir en Madrid.' : 'Ningún tren con horario que llegue a tiempo ese día.') + '</p>') +
+      (t.colchon != null ? '<p' + (ok ? '' : ' style="color:var(--rg-caro,#d33)"') + '>' + (ok ? '' : '⚠ ') + 'Colchón de unas ' + String(t.colchon).replace(".", ",") + ' h' + (ok ? '.' : (vuelta ? ': muy justo; mejor vuelve al día siguiente.' : ': mejor ve el día antes.')) + '</p>' : '') +
+      (t.noche ? '<p>🛏 Ningún tren del mismo día llega a Madrid con 6 h de antelación: vas el día antes y duermes en Madrid (≈' + eur(t.noche) + ' estimados, ya sumados al total).</p>' : '');
   }
   function lgMadrid(c) {
-    var m = c.madrid; if (!m) return "";
-    function av(ok, h, txt) { return '<p' + (ok ? ' style="color:var(--rg-caro,#d33)"' : '') + '>' + (ok ? '⚠ ' : '') + txt + ' (colchón de unas ' + String(h).replace(".", ",") + ' h)' + (ok ? ': mejor ve el día antes.' : '.') + '</p>'; }
-    return '<p><b>Barcelona → Madrid en tren + vuelo desde Madrid.</b> Tren Ouigo estimado: ' + eur(m.tren) + ' por trayecto (' + eur(2 * m.tren) + ' sumados al total; no son precios reales).</p>' +
-      av(m.aviso_ida, m.colchon_ida, 'Ida: primer tren de la mañana hasta el vuelo') +
-      av(m.aviso_vuelta, m.colchon_vuelta, 'Vuelta: llegada del vuelo hasta el último tren');
+    var m = c.madrid; if (!m || !m.ida) return "";
+    var av = (m.avisos || []).map(function (a) { return '<li><b>' + esc(a.operador) + ':</b> ' + esc(a.motivo) + ' <i>(' + esc((a.hora || "").slice(11, 16)) + ')</i></li>'; }).join("");
+    return '<p><b>Barcelona → Madrid en tren + vuelo desde Madrid.</b> ' + (m.tren ? 'Tren sumado al total: ' + eur(m.tren) + ' (precio real de la opción más barata con margen).' : 'No se ha sumado tren: no hay precio real.') + '</p>' +
+      lgTrenes(m.ida, 'Ida en tren') + lgTrenes(m.vuelta, 'Vuelta en tren', true) +
+      (av ? '<p><b>Avisos de operadores</b></p><ul style="margin:4px 0 4px 18px">' + av + '</ul>' : '');
   }
   function lgTitulo(c) { return c.mismo ? esc(c.ida.ciudad) : esc(c.ida.ciudad) + ' → ' + esc(c.vuelta.desde_ciudad); }
   function renderLarga() {

@@ -14,3 +14,6 @@ actualizar_log.txt
 auditor_log.txt
 publicar/
 .wrangler/
+
+# GTFS descargados (se regeneran con trenes_gtfs.py)
+datos/gtfs/
