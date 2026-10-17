@@ -254,6 +254,9 @@ a.kv:active { background: var(--bd); }
 .cq-tabla td.pais b { display: block; font-size: 14px; line-height: 1.2; }
 .cq-tabla td.pais span { font-size: 11px; color: var(--muted); }
 .cq-tabla td.pais span.via { display: block; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--sea); }
+.hilo { display: grid; gap: 4px; margin: -4px 0 8px; font-size: 13px; }
+.hilo a { color: var(--ink); text-decoration: none; border-left: 3px solid var(--sea); padding: 6px 10px; background: var(--bg); border-radius: 0 8px 8px 0; min-height: 32px; }
+.hilo a b { font-family: var(--f-data); font-weight: 700; }
 .cq-tabla td.c { padding: 3px; }
 .cq-tabla td.c button { width: 100%; min-height: 44px; border: 0; border-radius: 8px; cursor: pointer; font-family: var(--f-data); font-size: 13px; font-weight: 500; }
 .cq-tabla .compacta th.pais, .cq-tabla .compacta td.pais { min-width: 104px; max-width: 104px; padding: 6px 8px; }
@@ -684,7 +687,14 @@ a.kv:active { background: var(--bd); }
     return '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' +
       '<i>' + rot + ' · ' + esc(t.aerolineas.join(" + ")) + '</i><b>≈ ' + eur(t.precio) + '</b>' +
       '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
-      '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>';
+      '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>' + lgHilo(t);
+  }
+  function lgHilo(t) {   // cada vuelo suelto de la ruta, con enlace al buscador de esa fecha: así se puede mover ±1-4 días en la aerolínea
+    if (!t.vuelos || t.vuelos.length < 2) return "";
+    return '<div class="hilo"><span class="sub">Vuelo a vuelo</span>' + t.vuelos.map(function (v) {
+      var d = v[2].slice(0, 10);
+      return '<a target="_blank" rel="noopener" href="https://www.google.com/travel/flights?q=' + encodeURIComponent("Flights to " + v[1] + " from " + v[0] + " on " + d + " oneway") + '"><b>' + esc(v[0]) + ' → ' + esc(v[1]) + '</b> ' + lgFecha(d) + ' ' + v[2].slice(11) + ' → ' + v[3].slice(11) + (v[3].slice(0, 10) !== d ? ' (+' + Math.round((new Date(v[3].slice(0, 10)) - new Date(d)) / 864e5) + ')' : '') + ' · ' + esc(v[4]) + '</a>';
+    }).join("") + '</div>';
   }
   function lgOrigenMad(c) {   // aviso bien visible arriba de la ficha: este precio sale de Madrid
     return c.madrid ? '<p style="margin:8px 0;padding:10px 12px;border-radius:10px;border:2px solid var(--rg-caro,#d33);font-weight:700">📍 ORIGEN MADRID: el viaje sale de Barajas (tren Barcelona → Madrid' + (c.madrid.tren_sin_precio ? ', SIN precio de tren completo: ver abajo' : ' incluido') + ').</p>' : "";

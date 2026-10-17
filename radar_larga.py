@@ -19,7 +19,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.14"
+VERSION = "0.15"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -151,6 +151,7 @@ def _tramo(it, sentido):
             "sueltos": len(it["aerolineas"]) > 1,
             "escalas": [{"ap": e["aeropuerto"], "ciudad": escalas.HUBS.get(e["aeropuerto"], e["ciudad"]), "pais": e["pais"], "horas": e["horas"],
                          "tipo": e["tipo"], "nuevo": e["pais_nuevo"]} for e in it["escalas"]],
+            "vuelos": [[x["desde"], x["hasta"], x["sale_local"][:16].replace("T", " "), x["llega_local"][:16].replace("T", " "), x["aerolinea"]] for x in t],   # cada vuelo suelto: para tirar del hilo en la aerolínea
             "enlace": enlace(t[0]["desde"], t[-1]["hasta"], it["salida"])}
 
 
