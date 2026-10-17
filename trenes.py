@@ -15,7 +15,7 @@ import cache
 import trenes_gtfs
 import trenes_ouigo
 
-VERSION = "0.2"
+VERSION = "0.3"
 ESTADO = os.path.join("datos", "trenes_estado.json")
 CACHE_HORAS = 4            # precio del tren: 2-6 h según la nota del 16-10
 PAUSA_S = (10, 40)         # pausa aleatoria entre peticiones reales (se afina con pruebas_trenes.json)
@@ -106,14 +106,16 @@ def opciones(fecha, sentido):
             motivo_ouigo = f"sin respuesta o cambio en su web ({type(e).__name__})"
     if motivo_ouigo:
         avisos.append({"operador": "Ouigo", "motivo": motivo_ouigo})
+    # Ouigo: si su API devuelve trenes, ESA es la lista (horas y precio reales). El GTFS descargado se queda atrás en fechas lejanas
+    # (en febrero ni tenía trenes y las horas no coincidían), así que solo se usa para Ouigo cuando la API no responde.
+    for sale, (llega, precio) in sorted(precios.items()):
+        out.append({"op": "Ouigo", "tren": "", "sale": sale, "llega": llega, "precio": precio, "nota": "agotado o no a la venta" if precio is None else ""})
     for t in trenes_gtfs.del_dia(fecha, sentido):
+        if t["op"] == "Ouigo" and precios:
+            continue
         precio, nota = None, AVISO_FIJO.get(t["op"], "sin precio")
         if t["op"] == "Ouigo":
-            if precios:
-                llega, precio = precios.get(t["sale"], (t["llega"], None))[0:2]
-                nota = "agotado o no a la venta" if precio is None else ""
-            else:
-                nota = motivo_ouigo or "sin precio"
+            nota = motivo_ouigo or "sin precio"
         out.append({"op": t["op"], "tren": t["tren"], "sale": t["sale"], "llega": t["llega"], "precio": precio, "nota": nota})
     for op in AVISO_FIJO:
         avisos.append({"operador": op, "motivo": AVISO_FIJO[op]})
