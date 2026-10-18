@@ -27,7 +27,7 @@ import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.13"
+VERSION = "0.14"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -190,6 +190,18 @@ def construir(almacen):
                                  "esc": {"noches": c["noches"], "ida": c["ida"], "vuelta": c["vuelta"], "hub": c.get("hub"), "madrid": c.get("madrid"), "origen": c.get("origen", "BCN")}}
             con_dato += 1
         fila["esc"] = True
+    # Celdas rescatadas (18-10-2026): se perdió parte de radar_larga.json; estas celdas salen de la cuadrícula publicada antes de perderla.
+    # Solo rellenan huecos: cualquier lectura real nueva manda sobre ellas.
+    try:
+        rescate = json.loads((Path(__file__).resolve().parent / "datos" / "cuadricula_rescatada.json").read_text(encoding="utf-8"))["celdas"]
+    except (OSError, ValueError, KeyError):
+        rescate = {}
+    for f in filas:
+        for i, mes in enumerate(meses):
+            c = (rescate.get(f["cod"]) or {}).get(mes["id"])
+            if c and f["celdas"][i].get("p") is None:
+                f["celdas"][i] = c
+                con_dato += 1
     for f in filas:
         if f["cod"] in radar_larga.AVISOS:   # peligro / sin ruta (el usuario, 17-10-2026)
             t, m = radar_larga.AVISOS[f["cod"]]
