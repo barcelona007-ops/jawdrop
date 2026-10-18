@@ -14,7 +14,9 @@ export async function onRequestGet({ env, request }) {
   const lista = tarea ? (JSON.parse(tarea.detalle).domingos || []) : [];
   const domingos = [];
   let masViejo = null, conWizz = 0, conKiwi = 0;
+  const hoy = new Date().toISOString().slice(0, 10);
   for (const dom of lista) {
+    if (dom <= hoy) continue; // domingo de hoy o pasado: sus vuelos ya salieron
     const r = await leer(env, ["nube", "flash", dom]);
     if (!r) continue;
     const x = r.datos;

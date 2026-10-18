@@ -15,7 +15,7 @@ import json
 import semaforo
 import ver_resultados as vr
 
-VERSION = "0.4"
+VERSION = "0.5"
 
 AEROLINEAS = {"FR": "Ryanair", "W6": "Wizz Air", "W4": "Wizz Air", "VY": "Vueling"}
 MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -78,11 +78,11 @@ def _fecha(dia):
 
 
 def datos(hoy=None):
-    """{domingos: [{dia, fecha, opciones: [...]}], generado}. Solo domingos de hoy en adelante."""
+    """{domingos: [{dia, fecha, opciones: [...]}], generado}. Solo domingos futuros (el de hoy ya salió)."""
     hoy = (hoy or date.today()).isoformat()
     vr._INDICE = None
     vr._PAQUETES = None
-    archivos = sorted(p for p in vr.CARPETA.glob("20??-??-??.md") if p.stem >= hoy)
+    archivos = sorted(p for p in vr.CARPETA.glob("20??-??-??.md") if p.stem > hoy)
     domingos, generado = [], ""
     for a in archivos:
         base = vr.leer_domingo(a)
@@ -133,7 +133,7 @@ def datos_radar(hoy=None):
         lista = []
         for x in m.get("lista", []):
             b = x["mejor"]
-            if b["ida"][0] < hoy.isoformat():
+            if b["ida"][0] <= hoy.isoformat():
                 continue
             p = x.get("pareja")
             lista.append({
