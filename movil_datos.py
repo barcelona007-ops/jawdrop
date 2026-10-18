@@ -8,14 +8,15 @@ Prueba:  .venv\\Scripts\\python.exe movil_datos.py
 """
 import html as _html
 import re
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 import json
 
 import semaforo
 import ver_resultados as vr
 
-VERSION = "0.5"
+VERSION = "0.6"
 
 AEROLINEAS = {"FR": "Ryanair", "W6": "Wizz Air", "W4": "Wizz Air", "VY": "Vueling"}
 MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -78,11 +79,12 @@ def _fecha(dia):
 
 
 def datos(hoy=None):
-    """{domingos: [{dia, fecha, opciones: [...]}], generado}. Solo domingos futuros (el de hoy ya salió)."""
+    """{domingos: [{dia, fecha, opciones: [...]}], generado}. Un domingo desaparece cuando sale su último vuelo de ida (hora de España), no a las 00:00."""
+    ahora = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%dT%H:%M")
     hoy = (hoy or date.today()).isoformat()
     vr._INDICE = None
     vr._PAQUETES = None
-    archivos = sorted(p for p in vr.CARPETA.glob("20??-??-??.md") if p.stem > hoy)
+    archivos = sorted(p for p in vr.CARPETA.glob("20??-??-??.md") if p.stem >= hoy)
     domingos, generado = [], ""
     for a in archivos:
         base = vr.leer_domingo(a)
@@ -101,6 +103,9 @@ def datos(hoy=None):
             for x in opciones:
                 if (x["destino"], x["desde"]) in mejor:
                     x.setdefault("conLibres", {})[str(e)] = mejor[(x["destino"], x["desde"])]
+        ultima = max((x["ida"]["sale"] for x in opciones), default="")
+        if ultima and f"{a.stem}T{ultima}" < ahora:
+            continue
         domingos.append({"dia": a.stem, "fecha": _fecha(a.stem), "opciones": opciones})
     return {"domingos": domingos, "generado": generado, "dias": DIAS_VUELTA}
 
@@ -133,7 +138,7 @@ def datos_radar(hoy=None):
         lista = []
         for x in m.get("lista", []):
             b = x["mejor"]
-            if b["ida"][0] <= hoy.isoformat():
+            if b["ida"][0] < hoy.isoformat():
                 continue
             p = x.get("pareja")
             lista.append({

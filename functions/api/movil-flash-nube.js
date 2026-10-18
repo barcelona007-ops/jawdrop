@@ -14,12 +14,15 @@ export async function onRequestGet({ env, request }) {
   const lista = tarea ? (JSON.parse(tarea.detalle).domingos || []) : [];
   const domingos = [];
   let masViejo = null, conWizz = 0, conKiwi = 0;
-  const hoy = new Date().toISOString().slice(0, 10);
+  const ahora = new Date().toLocaleString("sv-SE", { timeZone: "Europe/Madrid" }).slice(0, 16).replace(" ", "T"); // hora de España
   for (const dom of lista) {
-    if (dom <= hoy) continue; // domingo de hoy o pasado: sus vuelos ya salieron
+    if (dom < ahora.slice(0, 10)) continue; // domingo ya pasado
     const r = await leer(env, ["nube", "flash", dom]);
     if (!r) continue;
     const x = r.datos;
+    // el domingo se acaba cuando sale el último vuelo de ida (hora de España), no a las 00:00
+    const ultima = x.opciones.reduce((m, o) => (o.ida && o.ida.sale > m ? o.ida.sale : m), "");
+    if (ultima && dom + "T" + ultima < ahora) continue;
     domingos.push({ dia: x.dia, fecha: x.fecha, opciones: x.opciones.map((o) => ({ ...o, nuevo: !!o.pais && !visitados[o.pais] })) });
     masViejo = masViejo === null ? x.guardado : Math.min(masViejo, x.guardado);
     conWizz += x.con_wizz || 0;

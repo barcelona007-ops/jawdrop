@@ -19,7 +19,7 @@ const dormir = (ms) => new Promise((x) => setTimeout(x, ms));
 function proximosDomingos(n) {
   const hoy = new Date().toISOString().slice(0, 10);
   const d = new Date(hoy + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + ((7 - d.getUTCDay()) % 7 || 7)); // si hoy es domingo, sus vuelos ya salieron: empieza el siguiente
+  d.setUTCDate(d.getUTCDate() + ((7 - d.getUTCDay()) % 7));
   const res = [];
   for (let i = 0; i < n; i++) { res.push(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() + 7); }
   return { hoy, domingos: res };
