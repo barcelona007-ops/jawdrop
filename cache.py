@@ -89,3 +89,26 @@ def lecturas(fuente, origen=None, destino=None):
     finally:
         con.close()
     return [dict(zip(("origen", "destino", "salida", "precio", "directo", "visto"), f)) for f in filas]
+
+
+def limpiar_kiwi_sin_compactar(horas=24, compactar=False):
+    """Borra de la caché las respuestas de Kiwi ya caducadas (nunca se reutilizan y son lo que más crece).
+    No toca hoteles, SerpApi ni nada con caducidad larga. El hueco queda libre DENTRO del archivo y lo
+    reutilizan las siguientes lecturas (no hace falta compactar; VACUUM necesita espacio libre igual al archivo).
+    Devuelve cuántas borró."""
+    con = _con()
+    try:
+        viejas = [k for k, j in con.execute("SELECT clave, json FROM respuestas WHERE guardado<?",
+                                            (time.time() - horas * 3600,))
+                  if j.startswith('[{"__typename"')]
+        con.executemany("DELETE FROM respuestas WHERE clave=?", [(k,) for k in viejas])
+        con.commit()
+        if compactar:
+            con.execute("VACUUM")
+    finally:
+        con.close()
+    return len(viejas)
+
+
+if __name__ == "__main__":
+    print(f"Borradas {limpiar_kiwi_sin_compactar()} respuestas caducadas de Kiwi.")

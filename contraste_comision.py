@@ -1,7 +1,7 @@
 """
 contraste_comision.py — Mide cuánto suma Kiwi sobre el precio de la web de una aerolínea (el usuario, 17-10-2026; empezando por Iberojet, E9).
 
-Precios de la web: datos/iberojet_precios.json (los apunta iberojet_mapa.py: un vuelo directo por fila, con su precio de la web).
+Precios de la web: datos/iberojet_precios.json (E9, los apunta iberojet_mapa.py) y datos/level_precios.json (LL, level_mapa.py: un vuelo directo por fila, con su precio de la web).
 Para cada ruta y mes, pide a Kiwi los vuelos directos del rango (por la caché y con la pausa normal), empareja el de la aerolínea el mismo día y ajusta
 precio_kiwi = fijo + pendiente × precio_web (mínimos cuadrados). Imprime el bloque listo para pegar en `kiwi.COMISION`. No escribe nada.
 
@@ -19,6 +19,7 @@ import kiwi
 
 CARPETA = Path(__file__).resolve().parent / "datos"
 IBEROJET = CARPETA / "iberojet_precios.json"
+LEVEL = CARPETA / "level_precios.json"   # level_mapa.py: precio de ida suelta, tarifa Economy Light
 CSV = CARPETA / "precios_web.csv"
 
 
@@ -38,6 +39,8 @@ def vuelos_web(sigla, usar_csv, origenes):
     out = []
     if sigla == "E9" and IBEROJET.exists():
         out += [(v["origen"], v["destino"], v["fecha"], float(v["precio"])) for v in json.loads(IBEROJET.read_text(encoding="utf-8"))["vuelos"].values()]
+    if sigla == "LL" and LEVEL.exists():
+        out += [(v["origen"], v["destino"], v["fecha"], float(v["precio"])) for v in json.loads(LEVEL.read_text(encoding="utf-8"))["vuelos"].values()]
     if usar_csv and CSV.exists():
         out += [(f["origen"], f["destino"], f["fecha"], float(f["precio_web"].replace(",", "."))) for f in csv.DictReader(CSV.open(encoding="utf-8")) if f["sigla"] == sigla]
     if origenes:

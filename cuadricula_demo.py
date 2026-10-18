@@ -18,8 +18,8 @@ VERSION = "0.2"
 SALIDA = Path(__file__).resolve().parent / "movil" / "cuadricula.json"
 
 MAPA = Path(__file__).resolve().parent / "movil" / "mapa.json"
-# Territorios sin vuelos comerciales o que no son países para viajar: se dejan fuera de la cuadrícula
-FUERA = {"ES", "AQ", "VA", "SM", "MC", "AD", "LI", "TF", "GS", "HM", "BV", "UM", "PN", "TK", "NU", "CK", "NF", "CX", "CC",
+# Territorios sin vuelos comerciales o que no son países para viajar: se dejan fuera de la cuadrícula. (AD, LI, MC, SM y VA SÍ entran desde el 17-10-2026: se llega por el país vecino, ver radar_datos.VIA_VECINO)
+FUERA = {"ES", "AQ", "TF", "GS", "HM", "BV", "UM", "PN", "TK", "NU", "CK", "NF", "CX", "CC",
          "SJ", "AX", "BL", "MF", "SH", "FK", "PM", "WF", "AS", "GU", "MP", "VI", "VG", "AI", "MS", "TC", "KY", "BM", "AW", "CW", "SX", "BQ"}
 
 

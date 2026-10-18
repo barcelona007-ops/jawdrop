@@ -254,6 +254,10 @@ a.kv:active { background: var(--bd); }
 .cq-tabla td.pais b { display: block; font-size: 14px; line-height: 1.2; }
 .cq-tabla td.pais span { font-size: 11px; color: var(--muted); }
 .cq-tabla td.pais span.via { display: block; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--sea); }
+.cq-tabla td.pais span.avi { display: block; font-size: 10px; font-weight: 700; color: #b3261e; }
+.cq-tabla td.pais span.avi.sinruta { color: var(--muted); }
+.avi-ficha { border-left: 3px solid #b3261e; padding: 6px 10px; background: var(--bg); border-radius: 0 8px 8px 0; font-size: 13px; }
+.avi-ficha.sinruta { border-left-color: var(--muted); }
 .hilo { display: grid; gap: 4px; margin: -4px 0 8px; font-size: 13px; }
 .hilo a { color: var(--ink); text-decoration: none; border-left: 3px solid var(--sea); padding: 6px 10px; background: var(--bg); border-radius: 0 8px 8px 0; min-height: 32px; }
 .hilo a b { font-family: var(--f-data); font-weight: 700; }
@@ -428,6 +432,7 @@ a.kv:active { background: var(--bd); }
     // Sin saltar de domingo ni cerrar lo abierto; solo se repinta si algo ha cambiado.
     var visto = "";
     function parcial() {
+      if (open >= 0) return;
       fetch("/api/movil-flash-nube", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
         var s = JSON.stringify(d.domingos || []);
         if (!d.domingos || !d.domingos.length || s === visto) return;
@@ -456,6 +461,7 @@ a.kv:active { background: var(--bd); }
   }
   // Al abrir la versión publicada: si había una actualización a medias se continúa; si ya terminó, se enseñan sus resultados.
   function retomarNube() {
+    if (open >= 0) return;   // con un destino abierto, nada de fondo lo cierra ni repinta
     fetch("/api/actualizar", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (t) {
       if (t.estado === "en curso" && act.fase !== "corriendo") {
         // Hay una búsqueda en marcha (la dirige GitHub, despacio, a las 01:00 y a las 13:00): no se acelera desde el móvil;
@@ -495,6 +501,7 @@ a.kv:active { background: var(--bd); }
       .catch(function () { act.fase = "reposo"; act.aviso = "El portátil no responde. ¿Sigue encendido y en la misma wifi?"; actPintar(); });
   }
   function recargarSilencioso() {   // vuelve a leer los resultados sin pantalla de «cargando» ni saltar de domingo
+    if (open >= 0) return;
     fetch("/api/movil-flash", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (d) { var i = cur; datos = ajustarEdad(d); estadoCarga = "listo"; cur = Math.min(i, Math.max(d.domingos.length - 1, 0)); open = -1; todos = false; render(); })
       .catch(function () {});
@@ -533,7 +540,7 @@ a.kv:active { background: var(--bd); }
   function cargarSalud() {
     if (!window.ESCAPADAS_PUBLICADA) return;
     fetch("/api/estado", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { salud = d; render(); }).catch(function () {});
+      .then(function (d) { salud = d; if (open < 0) render(); }).catch(function () {});
   }
   function aviso() {
     return datos.ejemplo ? '<p class="nota">Datos de ejemplo: la página no está conectada al portátil.</p>' : '';
@@ -701,7 +708,7 @@ a.kv:active { background: var(--bd); }
   }
   function lgTrenes(t, titulo, vuelta) {   // un trayecto: una línea por operador (horario y precio real) + aviso de colchón
     var l = t.opciones.map(function (o) {
-      return '<li><b>' + esc(o.op) + '</b> ' + esc(o.tren) + ' · ' + o.sale + ' → ' + o.llega + ' · ' + (o.precio != null ? '<b>' + eur(o.precio) + '</b>' + (t.elegida === o || (t.elegida && t.elegida.op === o.op && t.elegida.sale === o.sale) ? ' ✔ elegido' : '') : '<i>sin precio</i>') + '</li>';
+      return '<li><b>' + esc(o.op) + '</b> ' + esc(o.tren) + ' · ' + o.sale + ' → ' + o.llega + ' · ' + (o.precio != null ? '<b>' + eur(o.precio) + '</b>' + (t.elegida === o || (t.elegida && t.elegida.op === o.op && t.elegida.sale === o.sale) ? ' ✔ elegido' : '') : (o.desde != null ? '<i>desde ' + eur(o.desde) + ' (el más barato del día, de cualquier tren)</i>' : '<i>sin precio</i>')) + '</li>';
     }).join("");
     var ok = t.colchon != null && !t.aviso;
     return '<p><b>' + titulo + '</b> (' + lgFecha(t.fecha) + ')</p>' + (l ? '<ul style="margin:4px 0 4px 18px">' + l + '</ul>' : '<p style="color:var(--rg-caro,#d33)">⚠ ' + (vuelta ? 'Ya no hay tren de vuelta ese día: tendrías que dormir en Madrid.' : 'Ningún tren con horario que llegue a tiempo ese día.') + '</p>') +
@@ -803,6 +810,7 @@ a.kv:active { background: var(--bd); }
           : '<button type="button" class="' + (x.g ? "ganga" : x.c) + (k === j ? " sel" : "") + '" data-cmm="' + k + '" aria-pressed="' + (k === j) + '" aria-label="' + CQ_MES[D.meses[k].nombre] + ', ' + x.p + ' euros"><small>' + n + '</small><b>' + x.p + '</b></button>';
       }).join("") + '</div>' +
       '<div class="cq-info">' +
+      (f.aviso ? '<p class="avi-ficha ' + f.aviso.t + '">' + (f.aviso.t === 'peligro' ? '⚠ ' : '') + esc(f.aviso.m) + '</p>' : '') +
       '<div class="cq-precio ' + c.c + '">' + (c.g ? "★ " : "") + (c.e ? "≈ " : "") + eur(c.p) + '</div>' +
       (c.g ? '<p><b>Ganga:</b> ' + c.pct + ' % bajo lo habitual (' + eur(c.mediana) + ').</p>' : '') +
       (j === mb ? '<p><b>Es el mes más barato del año.</b></p>' : '') +
@@ -837,7 +845,7 @@ a.kv:active { background: var(--bd); }
         return '<th scope="col"><button type="button" class="cq-mes' + (CQ.orden === D.meses.indexOf(m) ? ' on' : '') + '" data-cqo="' + D.meses.indexOf(m) + '" aria-label="Ordenar por ' + CQ_MES[m.nombre] + '">' + (CQ.precios ? m.nombre : m.nombre[0].toUpperCase()) + '</button></th>'; }).join("") + '<th class="fin" scope="col" aria-label="Fin de los 12 meses"></th></tr></thead><tbody>';
     lista.forEach(function (x) {
       var f = x[0], i = D.paises.indexOf(f);
-      h += '<tr><td class="pais"><b>' + esc(x[1]) + '</b><span>' + dec(f.h) + ' h de vuelo' + (f.esc ? ' · con escalas' : '') + '</span>' + (cqViaMadrid(f) ? '<span class="via">vía Madrid</span>' : '') + '</td>' + f.celdas.map(function (c, j) {
+      h += '<tr><td class="pais"><b>' + esc(x[1]) + '</b><span>' + dec(f.h) + ' h de vuelo' + (f.esc ? ' · con escalas' : '') + '</span>' + (cqViaMadrid(f) ? '<span class="via">vía Madrid</span>' : '') + (f.aviso ? '<span class="avi ' + f.aviso.t + '">' + (f.aviso.t === 'peligro' ? '⚠ no recomendado' : 'sin ruta') + '</span>' : '') + '</td>' + f.celdas.map(function (c, j) {
         if (c.p == null) return '<td class="c"><button class="sin" type="button" disabled aria-label="Sin datos">—</button></td>';
         return '<td class="c"><button type="button" class="' + (c.g ? "ganga" : c.c) + '" data-cp="' + i + '" data-cm="' + j + '" aria-label="' + esc(x[1]) + ', ' + CQ_MES[D.meses[j].nombre] + ', ' + c.p + ' euros">' + (c.g ? "★" : "") + (c.e ? "≈" : "") + c.p + '</button></td>';
       }).join("") + '<td class="fin"></td></tr>';

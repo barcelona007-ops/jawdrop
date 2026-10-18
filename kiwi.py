@@ -33,7 +33,7 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "1.7"
+VERSION = "2.0"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
 PAUSA = 5
@@ -94,7 +94,26 @@ COMISION = {
     "E9 SJO-MAD": {"fijo": -11.1, "pendiente": 1.158, "margen": 43, "medido": "93 vuelos, 2026-10-17"},
     "E9 XPL-BCN": {"fijo": -96.5, "pendiente": 1.985, "margen": 108, "medido": "36 vuelos, 2026-10-17"},
     "E9 XPL-MAD": {"fijo": 186.3, "pendiente": 1.430, "margen": 124, "medido": "73 vuelos, 2026-10-17"},
+    # Level (LL), medido el 17-10-2026 con 1.255 vuelos-día de su web (level_mapa.py, tarifa Economy Light de ida suelta) frente a Kiwi: Kiwi = web × 1,064 en JFK, MIA,
+    # SCL (error 1-3 €) y × 1,069 en Buenos Aires. Falla algún día (margen 5): cuando la web tiene dos vuelos el mismo día o Kiwi vende otro cupo (JFK-BCN y MIA-BCN, hasta ±30 €).
+    # Level a Lima (LIM) sale en Kiwi con código IB (Iberia), no LL: sin medir.
+    "LL": {"fijo": -1.0, "pendiente": 1.064, "margen": 5, "medido": "1.255 vuelos, 2026-10-17: BCN-JFK/MIA/SCL y vueltas"},
+    "LL BCN-EZE": {"fijo": -4.5, "pendiente": 1.069, "margen": 3, "medido": "280 vuelos, 2026-10-17"},
+    "LL EZE-BCN": {"fijo": -3.3, "pendiente": 1.068, "margen": 4, "medido": "276 vuelos, 2026-10-17"},
 }
+
+# Aerolíneas cuyo precio de Kiwi se corrige también en los itinerarios de escalas() (radar de largo plazo): ahí enseñamos el precio de la aerolínea, no el de Kiwi.
+# Solo vuelos directos de una aerolínea (con escalas Kiwi suma varios tramos y no se puede deshacer). El usuario, 17-10-2026: Level e Iberojet (esta última con una recta por ruta, margen mayor).
+CORREGIR_ESCALAS = ("LL", "E9")
+
+
+def precio_aerolinea(precio_kiwi, sigla, desde, hasta):
+    """Precio de la web de la aerolínea a partir del de Kiwi (inverso de COMISION), o None si no hay comisión medida."""
+    com = COMISION.get(f"{sigla} {desde}-{hasta}") or COMISION.get(sigla)
+    if not com:
+        return None
+    return float(max(round((precio_kiwi - com["fijo"]) / com["pendiente"]), 0))
+
 
 # Aerolíneas que ya se leen directamente (más exactas): Ryanair (FR, RK, AL Malta Air, RR Buzz) y Wizz
 YA_LEIDAS = ("FR", "RK", "AL", "RR", "W6", "W4", "W9", "5W")
@@ -311,7 +330,7 @@ def escalas(origenes, destinos, desde, hasta, paradas=1, limite=50, usar_cache=T
     """Itinerarios de SOLO IDA con hasta `paradas` escalas (1 por defecto), con salida entre `desde` y `hasta` (AAAA-MM-DD),
     de cualquier aerolínea (Ryanair y Wizz incluidas: aquí no hay directo que leer aparte). Los `limite` más baratos del rango.
     Cada uno: precio_kiwi, aerolineas, tramos (aeropuerto, ciudad, país, hora local y UTC), escalas (aeropuerto, país, horas, llegada y
-    salida locales, cambia_equipaje), horas totales y proveedor. Precio = el de Kiwi (orientativo: no se le descuenta comisión).
+    salida locales, cambia_equipaje), horas totales y proveedor. Precio = el de Kiwi (`precio_kiwi`); en directos de Level e Iberojet (`CORREGIR_ESCALAS`) además `precio_web` = estimado de la aerolínea (el que se enseña).
     Todo pasa por la caché y la pausa de siempre; una consulta."""
     its = cache.con_cache(["kiwi", "escalas1", origenes, destinos, desde, hasta, paradas, limite], HORAS_CACHE,
                           lambda: _consulta(origenes, destinos, desde, "00:00", "23:59", limite, hasta, paradas, CONSULTA_ESC), usar_cache)
@@ -332,7 +351,9 @@ def escalas(origenes, destinos, desde, hasta, paradas=1, limite=50, usar_cache=T
                         "horas": round((t(segs[i]["source"]) - t(segs[i - 1]["destination"])).total_seconds() / 3600, 1),
                         "llega_local": tramos[i - 1]["llega_local"], "sale_local": tramos[i]["sale_local"],
                         "cambia_equipaje": bool(lays[i].get("isBaggageRecheck"))})
-        res.append({"precio_kiwi": float(it["priceEur"]["amount"]), "aerolineas": sorted({x["aerolinea"] for x in tramos}),
+        precio_kiwi = float(it["priceEur"]["amount"])
+        web = precio_aerolinea(precio_kiwi, tramos[0]["sigla"], tramos[0]["desde"], tramos[0]["hasta"]) if len(tramos) == 1 and tramos[0]["sigla"] in CORREGIR_ESCALAS else None
+        res.append({"precio_kiwi": precio_kiwi, **({"precio_web": web} if web is not None else {}), "aerolineas": sorted({x["aerolinea"] for x in tramos}),
                     "tramos": tramos, "escalas": esc, "horas_total": round(it["duration"] / 3600, 1),
                     "proveedor": (it.get("provider") or {}).get("name", ""), "destino": tramos[-1]["hasta"],
                     "ciudad": tramos[-1]["ciudad_hasta"], "pais": tramos[-1]["pais_hasta"], "salida": tramos[0]["sale_local"][:10]})

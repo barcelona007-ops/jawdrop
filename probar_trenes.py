@@ -10,9 +10,11 @@ import random
 import time
 from datetime import date, datetime, timedelta
 
+import trenes_iryo
 import trenes_ouigo
+import trenes_renfe
 
-VERSION = "0.1"
+VERSION = "0.2"
 SALIDA = os.path.join("datos", "pruebas_trenes.json")
 DESCANSO_TANDA, DESCANSO_RITMO = 300, 900  # segundos entre tandas / entre ritmos
 
@@ -33,7 +35,24 @@ def adaptador_ouigo():
     return pedir
 
 
-ADAPTADORES = {"ouigo": adaptador_ouigo}
+def adaptador_iryo():
+    i = trenes_iryo.Iryo()
+
+    def pedir(fecha, ida):
+        o_, d_ = (trenes_iryo.BCN, trenes_iryo.MAD) if ida else (trenes_iryo.MAD, trenes_iryo.BCN)
+        return len([t for t in i.dia(fecha, o_, d_) if t["precio"] is not None])
+    return pedir
+
+
+def adaptador_renfe():
+    """Calendario de precios mínimos de Renfe: cada petición pide 30 días desde la fecha (rangos distintos)."""
+    def pedir(fecha, ida):
+        fin = str(date.fromisoformat(fecha) + timedelta(days=30))
+        return len([v for v in trenes_renfe.calendario("BCN-MAD" if ida else "MAD-BCN", fecha, fin).values() if v is not None])
+    return pedir
+
+
+ADAPTADORES = {"ouigo": adaptador_ouigo, "iryo": adaptador_iryo, "renfe": adaptador_renfe}
 
 
 def guardar(reg):

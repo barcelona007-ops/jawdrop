@@ -1,0 +1,1802 @@
+{
+ "NP": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 379,
+  "horas": 20.3,
+  "aerolineas": [
+   "Air Arabia",
+   "Pegasus"
+  ],
+  "hubs": [
+   "SAW",
+   "SHJ"
+  ],
+  "destino": "KTM",
+  "ciudad": "Katmandú",
+  "n": 5
+ },
+ "MG": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 602,
+  "horas": 19.9,
+  "aerolineas": [
+   "Ethiopian Airlines",
+   "ITA Airways"
+  ],
+  "hubs": [
+   "FCO",
+   "ADD"
+  ],
+  "destino": "NOS",
+  "ciudad": "Nosy Be",
+  "n": 5
+ },
+ "BY": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "LI": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "RU": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "AF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 397,
+  "horas": 12.1,
+  "aerolineas": [
+   "Etihad Airways"
+  ],
+  "hubs": [
+   "AUH"
+  ],
+  "destino": "KBL",
+  "ciudad": "Kabul",
+  "n": 5
+ },
+ "BH": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 229,
+  "horas": 17.2,
+  "aerolineas": [
+   "Gulf Air Bahrain",
+   "Pegasus"
+  ],
+  "hubs": [
+   "SAW",
+   "AUH"
+  ],
+  "destino": "BAH",
+  "ciudad": "Manama",
+  "n": 5
+ },
+ "BD": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 371,
+  "horas": 21.2,
+  "aerolineas": [
+   "Etihad Airways",
+   "Vueling"
+  ],
+  "hubs": [
+   "MXP",
+   "AUH"
+  ],
+  "destino": "DAC",
+  "ciudad": "Daca",
+  "n": 5
+ },
+ "BT": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 583,
+  "horas": 31.7,
+  "aerolineas": [
+   "Etihad Airways",
+   "Hahn Air Technologies"
+  ],
+  "hubs": [
+   "AUH",
+   "CCU"
+  ],
+  "destino": "PBH",
+  "ciudad": "Paro",
+  "n": 5
+ },
+ "BN": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 439,
+  "horas": 35.2,
+  "aerolineas": [
+   "AirAsia",
+   "Etihad Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "KUL"
+  ],
+  "destino": "BWN",
+  "ciudad": "Bandar Seri Begawan",
+  "n": 5
+ },
+ "IR": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "IQ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 150,
+  "horas": 8.7,
+  "aerolineas": [
+   "Pegasus"
+  ],
+  "hubs": [
+   "SAW"
+  ],
+  "destino": "BGW",
+  "ciudad": "Bagdad",
+  "n": 5
+ },
+ "MV": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 385,
+  "horas": 19.0,
+  "aerolineas": [
+   "Azerbaijan Airlines"
+  ],
+  "hubs": [
+   "GYD"
+  ],
+  "destino": "MLE",
+  "ciudad": "Malé",
+  "n": 5
+ },
+ "MN": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 360,
+  "horas": 32.0,
+  "aerolineas": [
+   "Pegasus",
+   "Scat Airlines"
+  ],
+  "hubs": [
+   "SAW",
+   "NQZ"
+  ],
+  "destino": "UBN",
+  "ciudad": "Ulán Bator",
+  "n": 5
+ },
+ "MM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 383,
+  "horas": 31.8,
+  "aerolineas": [
+   "China Southern Airlines",
+   "Vueling"
+  ],
+  "hubs": [
+   "CDG",
+   "CAN"
+  ],
+  "destino": "RGN",
+  "ciudad": "Rangún",
+  "n": 5
+ },
+ "KP": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 808,
+  "horas": 40.2,
+  "aerolineas": [
+   "Air China",
+   "Azerbaijan Airlines"
+  ],
+  "hubs": [
+   "GYD",
+   "PEK"
+  ],
+  "destino": "FNJ",
+  "ciudad": "Pionyang",
+  "n": 5
+ },
+ "OM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 134,
+  "horas": 11.4,
+  "aerolineas": [
+   "Pegasus"
+  ],
+  "hubs": [
+   "SAW"
+  ],
+  "destino": "MCT",
+  "ciudad": "Mascate",
+  "n": 5
+ },
+ "PK": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 122,
+  "horas": 11.4,
+  "aerolineas": [
+   "Pegasus"
+  ],
+  "hubs": [
+   "SAW"
+  ],
+  "destino": "KHI",
+  "ciudad": "Karachi",
+  "n": 5
+ },
+ "SY": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 186,
+  "horas": 17.2,
+  "aerolineas": [
+   "Dan Air",
+   "Wizz Air Malta"
+  ],
+  "hubs": [
+   "OTP"
+  ],
+  "destino": "ALP",
+  "ciudad": "Aleppo",
+  "n": 5
+ },
+ "TL": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 630,
+  "horas": 41.8,
+  "aerolineas": [
+   "China Eastern Airlines",
+   "Citilink"
+  ],
+  "hubs": [
+   "PVG",
+   "DPS"
+  ],
+  "destino": "DIL",
+  "ciudad": "Dili",
+  "n": 5
+ },
+ "TM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 359,
+  "horas": 23.1,
+  "aerolineas": [
+   "Turkmenistan Airlines",
+   "Wizz Air Malta"
+  ],
+  "hubs": [
+   "MXP"
+  ],
+  "destino": "ASB",
+  "ciudad": "Asjabad",
+  "n": 5
+ },
+ "YE": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "AO": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 397,
+  "horas": 19.8,
+  "aerolineas": [
+   "TAP Portugal",
+   "Vueling"
+  ],
+  "hubs": [
+   "LIS"
+  ],
+  "destino": "NBJ",
+  "ciudad": "Luanda",
+  "n": 5
+ },
+ "BW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 612,
+  "horas": 19.4,
+  "aerolineas": [
+   "Air Botswana",
+   "Air Europa"
+  ],
+  "hubs": [
+   "MAD",
+   "JNB"
+  ],
+  "destino": "GBE",
+  "ciudad": "Gaborone",
+  "n": 5
+ },
+ "BF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 318,
+  "horas": 20.1,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Ryanair"
+  ],
+  "hubs": [
+   "MXP",
+   "CMN"
+  ],
+  "destino": "OUA",
+  "ciudad": "Uagadugú",
+  "n": 5
+ },
+ "BI": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 529,
+  "horas": 26.8,
+  "aerolineas": [
+   "Brussels Airlines",
+   "Wizz Air UK"
+  ],
+  "hubs": [
+   "LHR",
+   "BRU"
+  ],
+  "destino": "BJM",
+  "ciudad": "Buyumbura",
+  "n": 5
+ },
+ "CM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 297,
+  "horas": 21.4,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling"
+  ],
+  "hubs": [
+   "BRU",
+   "CMN"
+  ],
+  "destino": "DLA",
+  "ciudad": "Duala",
+  "n": 5
+ },
+ "CF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 487,
+  "horas": 32.8,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling"
+  ],
+  "hubs": [
+   "NTE",
+   "CMN"
+  ],
+  "destino": "BGF",
+  "ciudad": "Bangui",
+  "n": 5
+ },
+ "TD": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 304,
+  "horas": 8.4,
+  "aerolineas": [
+   "Air Algerie",
+   "Vueling"
+  ],
+  "hubs": [
+   "ALG"
+  ],
+  "destino": "NDJ",
+  "ciudad": "Yamena",
+  "n": 5
+ },
+ "KM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 541,
+  "horas": 26.6,
+  "aerolineas": [
+   "Kenya Airways",
+   "Vueling"
+  ],
+  "hubs": [
+   "CDG",
+   "NBO"
+  ],
+  "destino": "HAH",
+  "ciudad": "Moroni",
+  "n": 5
+ },
+ "CG": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 504,
+  "horas": 17.5,
+  "aerolineas": [
+   "Air Algerie",
+   "Vueling"
+  ],
+  "hubs": [
+   "MRS",
+   "ALG"
+  ],
+  "destino": "BZV",
+  "ciudad": "Brazzaville",
+  "n": 5
+ },
+ "CD": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 400,
+  "horas": 27.2,
+  "aerolineas": [
+   "Kenya Airways",
+   "Vueling"
+  ],
+  "hubs": [
+   "CDG",
+   "NBO"
+  ],
+  "destino": "FIH",
+  "ciudad": "Kinshasa",
+  "n": 5
+ },
+ "GQ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 465,
+  "horas": 32.6,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling"
+  ],
+  "hubs": [
+   "LPA",
+   "CMN"
+  ],
+  "destino": "SSG",
+  "ciudad": "Malabo",
+  "n": 5
+ },
+ "ER": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 368,
+  "horas": 25.4,
+  "aerolineas": [
+   "Ryanair",
+   "Wizz Air Malta",
+   "flynas"
+  ],
+  "hubs": [
+   "FCO",
+   "JED"
+  ],
+  "destino": "ASM",
+  "ciudad": "Asmara",
+  "n": 5
+ },
+ "SZ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 640,
+  "horas": 16.2,
+  "aerolineas": [
+   "Air Europa",
+   "Hahn Air Technologies"
+  ],
+  "hubs": [
+   "MAD",
+   "JNB"
+  ],
+  "destino": "SHO",
+  "ciudad": "Manzini",
+  "n": 5
+ },
+ "GA": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 514,
+  "horas": 27.9,
+  "aerolineas": [
+   "Air Algerie",
+   "Vueling"
+  ],
+  "hubs": [
+   "ALG"
+  ],
+  "destino": "LBV",
+  "ciudad": "Libreville",
+  "n": 5
+ },
+ "GN": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 304,
+  "horas": 19.7,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling"
+  ],
+  "hubs": [
+   "GVA",
+   "CMN"
+  ],
+  "destino": "CKY",
+  "ciudad": "Conakri",
+  "n": 5
+ },
+ "GW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 330,
+  "horas": 21.9,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling",
+   "easyJet"
+  ],
+  "hubs": [
+   "OPO",
+   "RAI"
+  ],
+  "destino": "OXB",
+  "ciudad": "Bisáu",
+  "n": 5
+ },
+ "LS": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 708,
+  "horas": 18.5,
+  "aerolineas": [
+   "Air Europa",
+   "Airlink"
+  ],
+  "hubs": [
+   "MAD",
+   "JNB"
+  ],
+  "destino": "MSU",
+  "ciudad": "Maseru",
+  "n": 5
+ },
+ "LR": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 564,
+  "horas": 10.5,
+  "aerolineas": [
+   "Royal Air Maroc"
+  ],
+  "hubs": [
+   "CMN"
+  ],
+  "destino": "ROB",
+  "ciudad": "Monrovia",
+  "n": 5
+ },
+ "LY": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 169,
+  "horas": 25.6,
+  "aerolineas": [
+   "Pegasus",
+   "Ryanair"
+  ],
+  "hubs": [
+   "MAN",
+   "SAW"
+  ],
+  "destino": "MJI",
+  "ciudad": "Trípoli",
+  "n": 5
+ },
+ "MW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 689,
+  "horas": 32.7,
+  "aerolineas": [
+   "Ethiopian Airlines",
+   "Etihad Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "NBO"
+  ],
+  "destino": "LLW",
+  "ciudad": "Lilongüe",
+  "n": 5
+ },
+ "ML": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 327,
+  "horas": 18.6,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Vueling"
+  ],
+  "hubs": [
+   "VCE",
+   "CMN"
+  ],
+  "destino": "BKO",
+  "ciudad": "Bamako",
+  "n": 5
+ },
+ "MZ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 409,
+  "horas": 32.7,
+  "aerolineas": [
+   "TAP Portugal",
+   "Wizz Air Malta"
+  ],
+  "hubs": [
+   "FCO",
+   "LIS"
+  ],
+  "destino": "MPM",
+  "ciudad": "Maputo",
+  "n": 5
+ },
+ "NA": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 538,
+  "horas": 24.1,
+  "aerolineas": [
+   "Lufthansa",
+   "Vueling"
+  ],
+  "hubs": [
+   "BRU",
+   "MUC"
+  ],
+  "destino": "WDH",
+  "ciudad": "Windhoek",
+  "n": 5
+ },
+ "NE": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 326,
+  "horas": 18.9,
+  "aerolineas": [
+   "Air Algerie",
+   "Vueling"
+  ],
+  "hubs": [
+   "ALG"
+  ],
+  "destino": "NIM",
+  "ciudad": "Niamey",
+  "n": 5
+ },
+ "ST": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 417,
+  "horas": 19.3,
+  "aerolineas": [
+   "TAAG Angola Airlines",
+   "Vueling"
+  ],
+  "hubs": [
+   "LIS",
+   "NBJ"
+  ],
+  "destino": "TMS",
+  "ciudad": "Santo Tomé",
+  "n": 5
+ },
+ "SL": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 320,
+  "horas": 16.3,
+  "aerolineas": [
+   "ASKY Airlines",
+   "Vueling"
+  ],
+  "hubs": [
+   "BJL"
+  ],
+  "destino": "FNA",
+  "ciudad": "Freetown",
+  "n": 5
+ },
+ "SO": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 551,
+  "horas": 22.3,
+  "aerolineas": [
+   "Pegasus",
+   "SalamAir"
+  ],
+  "hubs": [
+   "SAW",
+   "MCT"
+  ],
+  "destino": "MGQ",
+  "ciudad": "Mogadiscio",
+  "n": 5
+ },
+ "SS": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 610,
+  "horas": 19.9,
+  "aerolineas": [
+   "Egyptair",
+   "Vueling"
+  ],
+  "hubs": [
+   "CAI"
+  ],
+  "destino": "JUB",
+  "ciudad": "Yuba",
+  "n": 5
+ },
+ "SD": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 383,
+  "horas": 14.4,
+  "aerolineas": [
+   "Badr Airlines",
+   "Iberia Airlines"
+  ],
+  "hubs": [
+   "MAD",
+   "CAI"
+  ],
+  "destino": "PZU",
+  "ciudad": "Puerto",
+  "n": 5
+ },
+ "ZM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 533,
+  "horas": 26.5,
+  "aerolineas": [
+   "Etihad Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "ADD"
+  ],
+  "destino": "LUN",
+  "ciudad": "Lusaka",
+  "n": 5
+ },
+ "ZW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 569,
+  "horas": 29.2,
+  "aerolineas": [
+   "Uganda Airlines",
+   "Vueling"
+  ],
+  "hubs": [
+   "LGW",
+   "EBB"
+  ],
+  "destino": "HRE",
+  "ciudad": "Harare",
+  "n": 5
+ },
+ "BZ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 545,
+  "horas": 30.3,
+  "aerolineas": [
+   "Ryanair",
+   "TAP Portugal",
+   "WestJet"
+  ],
+  "hubs": [
+   "LIS",
+   "YYZ"
+  ],
+  "destino": "BZE",
+  "ciudad": "Ciudad de Belice",
+  "n": 5
+ },
+ "DM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 871,
+  "horas": 29.8,
+  "aerolineas": [
+   "Ryanair",
+   "Sunrise Airways",
+   "Virgin Atlantic Airways"
+  ],
+  "hubs": [
+   "LHR",
+   "ANU"
+  ],
+  "destino": "DOM",
+  "ciudad": "Parroquia de San Andrés",
+  "n": 5
+ },
+ "GD": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 522,
+  "horas": 31.9,
+  "aerolineas": [
+   "JetBlue Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "JFK"
+  ],
+  "destino": "GND",
+  "ciudad": "St. George",
+  "n": 5
+ },
+ "HT": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 594,
+  "horas": 27.2,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Sunrise Airways"
+  ],
+  "hubs": [
+   "CMN",
+   "MIA"
+  ],
+  "destino": "CAP",
+  "ciudad": "Cabo Haitiano",
+  "n": 5
+ },
+ "NI": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 493,
+  "horas": 17.4,
+  "aerolineas": [
+   "Avianca"
+  ],
+  "hubs": [
+   "BOG",
+   "SAL"
+  ],
+  "destino": "MGA",
+  "ciudad": "Managua",
+  "n": 5
+ },
+ "VC": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 503,
+  "horas": 31.7,
+  "aerolineas": [
+   "JetBlue Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "JFK"
+  ],
+  "destino": "SVD",
+  "ciudad": "San Vicente",
+  "n": 5
+ },
+ "GY": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 483,
+  "horas": 33.7,
+  "aerolineas": [
+   "JetBlue Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "JFK"
+  ],
+  "destino": "GEO",
+  "ciudad": "Georgetown",
+  "n": 5
+ },
+ "SR": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 547,
+  "horas": 35.5,
+  "aerolineas": [
+   "Royal Air Maroc",
+   "Surinam Airways"
+  ],
+  "hubs": [
+   "CMN",
+   "MIA"
+  ],
+  "destino": "PBM",
+  "ciudad": "Paramaribo",
+  "n": 5
+ },
+ "AU": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 609,
+  "horas": 32.9,
+  "aerolineas": [
+   "Etihad Airways"
+  ],
+  "hubs": [
+   "AUH"
+  ],
+  "destino": "MEL",
+  "ciudad": "Melbourne",
+  "n": 5
+ },
+ "FJ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 749,
+  "horas": 35.5,
+  "aerolineas": [
+   "Fiji Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "SFO"
+  ],
+  "destino": "NAN",
+  "ciudad": "Nadi",
+  "n": 5
+ },
+ "KI": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 1354,
+  "horas": 34.8,
+  "aerolineas": [
+   "Fiji Airways",
+   "Iberia Airlines"
+  ],
+  "hubs": [
+   "LAX",
+   "NAN"
+  ],
+  "destino": "TRW",
+  "ciudad": "Tarawa Sur (Bairiki)",
+  "n": 5
+ },
+ "MH": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 1987,
+  "horas": 48.6,
+  "aerolineas": [
+   "Nauru Air Corporation",
+   "Qantas"
+  ],
+  "hubs": [
+   "DXB",
+   "BNE"
+  ],
+  "destino": "MAJ",
+  "ciudad": "Majuro",
+  "n": 4
+ },
+ "FM": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "NR": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 2223,
+  "horas": 44.8,
+  "aerolineas": [
+   "Emirates",
+   "Nauru Air Corporation"
+  ],
+  "hubs": [
+   "DXB",
+   "BNE"
+  ],
+  "destino": "INU",
+  "ciudad": "Yaren",
+  "n": 5
+ },
+ "NZ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 889,
+  "horas": 43.7,
+  "aerolineas": [
+   "Etihad Airways",
+   "Jetstar Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "MEL"
+  ],
+  "destino": "AKL",
+  "ciudad": "Auckland",
+  "n": 5
+ },
+ "PW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 699,
+  "horas": 40.0,
+  "aerolineas": [
+   "China Airlines",
+   "Ryanair"
+  ],
+  "hubs": [
+   "FCO",
+   "TPE"
+  ],
+  "destino": "ROR",
+  "ciudad": "Koror",
+  "n": 5
+ },
+ "PG": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 764,
+  "horas": 45.7,
+  "aerolineas": [
+   "Air Niugini",
+   "SKY express",
+   "Scoot"
+  ],
+  "hubs": [
+   "ATH",
+   "SIN"
+  ],
+  "destino": "POM",
+  "ciudad": "Puerto Moresby",
+  "n": 5
+ },
+ "WS": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1372,
+  "horas": 59.7,
+  "aerolineas": [
+   "Air New Zealand",
+   "China Eastern Airlines"
+  ],
+  "hubs": [
+   "PVG",
+   "AKL"
+  ],
+  "destino": "APW",
+  "ciudad": "Apia",
+  "n": 5
+ },
+ "SB": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1337,
+  "horas": 54.8,
+  "aerolineas": [
+   "Jetstar Airways",
+   "Solomon Airlines",
+   "Tway Airlines"
+  ],
+  "hubs": [
+   "ICN",
+   "BNE"
+  ],
+  "destino": "HIR",
+  "ciudad": "Honiara",
+  "n": 5
+ },
+ "TO": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1178,
+  "horas": 30.1,
+  "aerolineas": [
+   "Etihad Airways",
+   "Qantas"
+  ],
+  "hubs": [
+   "AUH",
+   "SYD"
+  ],
+  "destino": "TBU",
+  "ciudad": "Nukualofa",
+  "n": 5
+ },
+ "TV": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 1291,
+  "horas": 34.7,
+  "aerolineas": [
+   "Fiji Airways",
+   "Iberia Airlines"
+  ],
+  "hubs": [
+   "LAX",
+   "NAN"
+  ],
+  "destino": "FUN",
+  "ciudad": "Funafuti",
+  "n": 3
+ },
+ "VU": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 972,
+  "horas": 30.7,
+  "aerolineas": [
+   "Etihad Airways",
+   "Jetstar Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "SYD"
+  ],
+  "destino": "VLI",
+  "ciudad": "Port Vila",
+  "n": 5
+ },
+ "TW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 334,
+  "horas": 29.2,
+  "aerolineas": [
+   "SKY express",
+   "Scoot"
+  ],
+  "hubs": [
+   "ATH",
+   "SIN"
+  ],
+  "destino": "TPE",
+  "ciudad": "Taipéi",
+  "n": 5
+ },
+ "MO": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 408,
+  "horas": 20.8,
+  "aerolineas": [
+   "Juneyao Airlines",
+   "Spring Airlines",
+   "Vueling"
+  ],
+  "hubs": [
+   "BRU",
+   "PVG"
+  ],
+  "destino": "MFM",
+  "ciudad": "Macau",
+  "n": 5
+ },
+ "PS": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "EH": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "GL": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 498,
+  "horas": 30.1,
+  "aerolineas": [
+   "Air Greenland",
+   "Norwegian Air Sweden"
+  ],
+  "hubs": [
+   "CPH"
+  ],
+  "destino": "GOH",
+  "ciudad": "Nuuk",
+  "n": 5
+ },
+ "SJ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 188,
+  "horas": 28.4,
+  "aerolineas": [
+   "SAS",
+   "Wizz Air UK"
+  ],
+  "hubs": [
+   "LHR",
+   "OSL"
+  ],
+  "destino": "LYR",
+  "ciudad": "Longyearbyen",
+  "n": 5
+ },
+ "GI": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 73,
+  "horas": 26.8,
+  "aerolineas": [
+   "Vueling",
+   "easyJet"
+  ],
+  "hubs": [
+   "MAN"
+  ],
+  "destino": "GIB",
+  "ciudad": "Gibraltar",
+  "n": 5
+ },
+ "AW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 448,
+  "horas": 31.5,
+  "aerolineas": [
+   "Ryanair",
+   "TAP Portugal",
+   "WestJet"
+  ],
+  "hubs": [
+   "LIS",
+   "YYZ"
+  ],
+  "destino": "AUA",
+  "ciudad": "Aruba",
+  "n": 5
+ },
+ "CW": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 416,
+  "horas": 18.3,
+  "aerolineas": [
+   "Corendon Airlines Europe",
+   "Vueling"
+  ],
+  "hubs": [
+   "DUS"
+  ],
+  "destino": "CUR",
+  "ciudad": "Willemstad",
+  "n": 5
+ },
+ "SX": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 417,
+  "horas": 29.4,
+  "aerolineas": [
+   "JetBlue Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "JFK"
+  ],
+  "destino": "SXM",
+  "ciudad": "Lower Prince's Quarter",
+  "n": 5
+ },
+ "BQ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 479,
+  "horas": 30.4,
+  "aerolineas": [
+   "TUI fly Netherlands",
+   "Transavia"
+  ],
+  "hubs": [
+   "AMS",
+   "CUR"
+  ],
+  "destino": "BON",
+  "ciudad": "Bonaire",
+  "n": 5
+ },
+ "GP": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 439,
+  "horas": 22.9,
+  "aerolineas": [
+   "Air Caraïbes",
+   "Vueling"
+  ],
+  "hubs": [
+   "ORY"
+  ],
+  "destino": "PTP",
+  "ciudad": "Pointe-à-Pitre",
+  "n": 5
+ },
+ "MQ": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 454,
+  "horas": 31.4,
+  "aerolineas": [
+   "Air Caraïbes",
+   "Ryanair"
+  ],
+  "hubs": [
+   "ORY"
+  ],
+  "destino": "FDF",
+  "ciudad": "Fort-de-France",
+  "n": 5
+ },
+ "RE": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 340,
+  "horas": 22.7,
+  "aerolineas": [
+   "French Bee",
+   "Vueling"
+  ],
+  "hubs": [
+   "ORY"
+  ],
+  "destino": "RUN",
+  "ciudad": "Saint-Denis",
+  "n": 5
+ },
+ "YT": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 464,
+  "horas": 39.7,
+  "aerolineas": [
+   "Kenya Airways",
+   "Transavia France"
+  ],
+  "hubs": [
+   "CDG",
+   "NBO"
+  ],
+  "destino": "DZA",
+  "ciudad": "Mamoudzou",
+  "n": 5
+ },
+ "GF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 773,
+  "horas": 26.0,
+  "aerolineas": [
+   "Air Caraïbes",
+   "Transavia France"
+  ],
+  "hubs": [
+   "ORY"
+  ],
+  "destino": "CAY",
+  "ciudad": "Cayena",
+  "n": 5
+ },
+ "PF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 666,
+  "horas": 33.6,
+  "aerolineas": [
+   "French Bee",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "SFO"
+  ],
+  "destino": "PPT",
+  "ciudad": "Tahití",
+  "n": 5
+ },
+ "NC": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1168,
+  "horas": 27.9,
+  "aerolineas": [
+   "Etihad Airways",
+   "Qantas"
+  ],
+  "hubs": [
+   "AUH",
+   "SYD"
+  ],
+  "destino": "NOU",
+  "ciudad": "Numea",
+  "n": 5
+ },
+ "WF": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "PM": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "BM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 441,
+  "horas": 33.5,
+  "aerolineas": [
+   "Air Canada",
+   "TAP Portugal",
+   "Vueling"
+  ],
+  "hubs": [
+   "LIS",
+   "YYZ"
+  ],
+  "destino": "BDA",
+  "ciudad": "Bermudas",
+  "n": 5
+ },
+ "KY": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 441,
+  "horas": 28.8,
+  "aerolineas": [
+   "Cayman Airways",
+   "Royal Air Maroc"
+  ],
+  "hubs": [
+   "CMN",
+   "MIA"
+  ],
+  "destino": "GCM",
+  "ciudad": "Gran Caimán",
+  "n": 5
+ },
+ "TC": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 459,
+  "horas": 31.5,
+  "aerolineas": [
+   "JetBlue Airways",
+   "TAP Portugal"
+  ],
+  "hubs": [
+   "LIS",
+   "JFK"
+  ],
+  "destino": "PLS",
+  "ciudad": "Providenciales",
+  "n": 5
+ },
+ "VG": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 578,
+  "horas": 26.3,
+  "aerolineas": [
+   "Iberia Airlines",
+   "interCaribbean Airways"
+  ],
+  "hubs": [
+   "MAD",
+   "SJU"
+  ],
+  "destino": "EIS",
+  "ciudad": "Tortola",
+  "n": 5
+ },
+ "VI": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 593,
+  "horas": 27.6,
+  "aerolineas": [
+   "Frontier Airlines",
+   "JetBlue Airways",
+   "Level"
+  ],
+  "hubs": [
+   "MIA",
+   "SJU"
+  ],
+  "destino": "STT",
+  "ciudad": "Saint Thomas",
+  "n": 5
+ },
+ "AI": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 641,
+  "horas": 25.7,
+  "aerolineas": [
+   "Anguilla Air Services",
+   "JetBlue Airways",
+   "Level"
+  ],
+  "hubs": [
+   "JFK",
+   "SXM"
+  ],
+  "destino": "AXA",
+  "ciudad": "Anguilla",
+  "n": 5
+ },
+ "MS": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 708,
+  "horas": 46.2,
+  "aerolineas": [
+   "Finnair",
+   "JetBlue Airways",
+   "Windward Islands Airways"
+  ],
+  "hubs": [
+   "JFK",
+   "SXM"
+  ],
+  "destino": "MNI",
+  "ciudad": "Brades",
+  "n": 5
+ },
+ "GU": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 583,
+  "horas": 28.5,
+  "aerolineas": [
+   "Air China",
+   "Air Seoul"
+  ],
+  "hubs": [
+   "PEK",
+   "ICN"
+  ],
+  "destino": "GUM",
+  "ciudad": "Hagåtña",
+  "n": 5
+ },
+ "MP": {
+  "ok": true,
+  "origen": "MAD",
+  "precio": 607,
+  "horas": 30.3,
+  "aerolineas": [
+   "Air China",
+   "Jeju Air"
+  ],
+  "hubs": [
+   "PEK",
+   "ICN"
+  ],
+  "destino": "SPN",
+  "ciudad": "Saipán",
+  "n": 5
+ },
+ "AS": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "CK": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1073,
+  "horas": 31.5,
+  "aerolineas": [
+   "Etihad Airways",
+   "Jetstar Airways"
+  ],
+  "hubs": [
+   "AUH",
+   "SYD"
+  ],
+  "destino": "RAR",
+  "ciudad": "Rarotonga",
+  "n": 5
+ },
+ "NU": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "TK": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "IO": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "GG": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 124,
+  "horas": 6.1,
+  "aerolineas": [
+   "Aurigny Air Services",
+   "easyJet"
+  ],
+  "hubs": [
+   "BHX"
+  ],
+  "destino": "GCI",
+  "ciudad": "Guernsey",
+  "n": 5
+ },
+ "JE": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 77,
+  "horas": 10.2,
+  "aerolineas": [
+   "Wizz Air UK",
+   "easyJet"
+  ],
+  "hubs": [
+   "LGW"
+  ],
+  "destino": "JER",
+  "ciudad": "Saint Helier",
+  "n": 5
+ },
+ "IM": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 74,
+  "horas": 6.4,
+  "aerolineas": [
+   "Vueling",
+   "easyJet"
+  ],
+  "hubs": [
+   "MAN"
+  ],
+  "destino": "IOM",
+  "ciudad": "Douglas",
+  "n": 5
+ },
+ "FK": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "SH": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "PN": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "BL": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 696,
+  "horas": 43.6,
+  "aerolineas": [
+   "JetBlue Airways",
+   "Level",
+   "Windward Islands Airways"
+  ],
+  "hubs": [
+   "JFK",
+   "SXM"
+  ],
+  "destino": "SBH",
+  "ciudad": "San Bartolomé",
+  "n": 5
+ },
+ "MF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 542,
+  "horas": 24.8,
+  "aerolineas": [
+   "Air Caraïbes",
+   "Vueling"
+  ],
+  "hubs": [
+   "ORY",
+   "PTP"
+  ],
+  "destino": "SFG",
+  "ciudad": "San Martín (Isla)",
+  "n": 5
+ },
+ "AX": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 123,
+  "horas": 7.6,
+  "aerolineas": [
+   "Vueling",
+   "populAir"
+  ],
+  "hubs": [
+   "ARN"
+  ],
+  "destino": "MHQ",
+  "ciudad": "Mariehamn",
+  "n": 5
+ },
+ "CC": {
+  "ok": false,
+  "motivo": "Kiwi no devuelve itinerarios"
+ },
+ "CX": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 2339,
+  "horas": 42.4,
+  "aerolineas": [
+   "Qantas"
+  ],
+  "hubs": [
+   "DXB",
+   "PER"
+  ],
+  "destino": "XCH",
+  "ciudad": "Shire of Christmas Island",
+  "n": 5
+ },
+ "NF": {
+  "ok": true,
+  "origen": "BCN",
+  "precio": 1189,
+  "horas": 28.6,
+  "aerolineas": [
+   "Etihad Airways",
+   "Qantas"
+  ],
+  "hubs": [
+   "AUH",
+   "SYD"
+  ],
+  "destino": "NLK",
+  "ciudad": "Pino Quemado",
+  "n": 5
+ }
+}

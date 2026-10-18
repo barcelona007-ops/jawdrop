@@ -27,7 +27,7 @@ import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.11"
+VERSION = "0.13"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -37,6 +37,12 @@ MAX_DESCUBRIR_POR_PASADA = 40                              # países a comprobar
 REVISAR_SIN_DIRECTO_DIAS, REVISAR_CON_DIRECTO_DIAS = 45, 90
 MAX_MESES_POR_PASADA = 3                                   # para repartir el trabajo entre días
 NOCHES = (5, 8)
+# Países sin aeropuerto (el usuario, 17-10-2026): se cuenta el vuelo al aeropuerto comercial más cercano del país vecino; el traslado hasta el país NO se suma
+# (ya se cuadrará). código: (país vecino, aeropuertos que valen, cómo se llega desde el aeropuerto).
+VIA_VECINO = {
+    "LI": ("CH", {"ZRH"}, "tren y bus a Liechtenstein"), "MC": ("FR", {"NCE"}, "tren a Mónaco"), "SM": ("IT", {"RMI", "BLQ", "FRL"}, "bus a San Marino"),
+    "VA": ("IT", {"FCO", "CIA"}, "metro o tren al Vaticano"), "AD": ("FR", {"TLS", "PGF"}, "bus a Andorra"),
+}
 
 
 def cargar():
@@ -105,6 +111,11 @@ def leer_mes(mes, almacen, avisar=print):
             continue
         if p:
             filas.setdefault(pais, []).append(p)
+    for cod, (vecino, aps, como) in VIA_VECINO.items():   # la mejor pareja que aterriza en un aeropuerto válido del vecino
+        buenas = [x for x in filas.get(vecino, []) if x.get("destino") in aps]
+        if buenas:
+            m = min(buenas, key=lambda x: x["total"])
+            filas[cod] = [dict(m, ciudad=f"{m['ciudad']} (luego {como})")]
     hoy = date.today().isoformat()
     res = {}
     for pais, lista in filas.items():
@@ -179,11 +190,17 @@ def construir(almacen):
                                  "esc": {"noches": c["noches"], "ida": c["ida"], "vuelta": c["vuelta"], "hub": c.get("hub"), "madrid": c.get("madrid"), "origen": c.get("origen", "BCN")}}
             con_dato += 1
         fila["esc"] = True
+    for f in filas:
+        if f["cod"] in radar_larga.AVISOS:   # peligro / sin ruta (el usuario, 17-10-2026)
+            t, m = radar_larga.AVISOS[f["cod"]]
+            f["aviso"] = {"t": t, "m": m}
     filas.sort(key=lambda f: f["cod"])
     salida = {"version": VERSION, "ejemplo": False, "viaje": "semana", "noches": list(NOCHES),
               "visitados": cuadricula_demo.visitados(), "generado": hoy.isoformat(), "leyenda": semaforo.leyenda(),
               "meses": meses, "paises": filas}
-    cuadricula_demo.SALIDA.write_text(json.dumps(salida, ensure_ascii=False), encoding="utf-8")
+    tmp = cuadricula_demo.SALIDA.with_suffix(".tmp")   # escribe y renombra: si falla (disco lleno) queda la cuadrícula anterior
+    tmp.write_text(json.dumps(salida, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(cuadricula_demo.SALIDA)
     print(f"{len(filas)} países × {len(meses)} meses: {con_dato} casillas con precio real, {gangas} gangas → {cuadricula_demo.SALIDA}")
 
 

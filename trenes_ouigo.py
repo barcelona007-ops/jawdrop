@@ -1,11 +1,11 @@
 """Cliente mínimo de Ouigo (API web de venta). Una petición = un día, con horas y precios.
 
-VERSION 0.1. No usa la librería `ouigo` de PyPI (rota desde que Ouigo cambió sus estaciones).
+VERSION 0.2 (18-10-2026: renueva el token si da 401). No usa la librería `ouigo` de PyPI (rota desde que Ouigo cambió sus estaciones).
 Errores: ErrorOperador con el motivo en claro (bloqueo, límite, cambio de la web...)."""
 import json
 import requests
 
-VERSION = "0.1"
+VERSION = "0.2"
 BASE = "https://mdw02.api-es.ouigo.com/api"
 UA = "EscapadasFlash/1.0 (uso personal)"
 BCN, MAD = "7171801", "MT1"  # Barcelona-Sants, Madrid (todas las estaciones)
@@ -43,11 +43,14 @@ class Ouigo:
 
     def dia(self, fecha, origen=BCN, destino=MAD):
         """Lista de trenes de un día: [{salida, llegada, precio, tren}] (solo con plaza)."""
-        if not self.token:
-            self.login()
-        r = _chk(self.s.post(f"{BASE}/Sale/journeysearch", timeout=20,
-                             headers={"authorization": "Bearer " + self.token},
-                             json={"origin": origen, "destination": destino, "outbound_date": fecha,
-                                   "passengers": [{"discount_cards": [], "disability_type": "NH", "type": "A"}]}),
-                 "búsqueda")
-        return r.json()
+        cuerpo = {"origin": origen, "destination": destino, "outbound_date": fecha,
+                  "passengers": [{"discount_cards": [], "disability_type": "NH", "type": "A"}]}
+        for intento in (1, 2):
+            if not self.token:
+                self.login()
+            r = self.s.post(f"{BASE}/Sale/journeysearch", timeout=20, json=cuerpo,
+                            headers={"authorization": "Bearer " + self.token})
+            if r.status_code == 401 and intento == 1:  # el token caduca a las pocas horas: uno nuevo y reintento
+                self.token = None
+                continue
+            return _chk(r, "búsqueda").json()

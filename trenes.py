@@ -13,17 +13,18 @@ from datetime import date, datetime, timedelta
 
 import cache
 import trenes_gtfs
+import trenes_iryo
 import trenes_ouigo
+import trenes_renfe
 
-VERSION = "0.3"
+VERSION = "0.5"
 ESTADO = os.path.join("datos", "trenes_estado.json")
 CACHE_HORAS = 4            # precio del tren: 2-6 h según la nota del 16-10
 PAUSA_S = (10, 40)         # pausa aleatoria entre peticiones reales (se afina con pruebas_trenes.json)
 TOPE_DIA = {"Ouigo": 300}   # la prueba de aguante aguantó 100 seguidas sin pausa; 300/día es muy prudente   # peticiones reales por día y operador
 FRENO_H = 24
 AVISO_FIJO = {
-    "Renfe": "solo horarios: su web de venta pide captcha y no se salta, así que no hay precio",
-    "Iryo": "sin horarios ni precio: no publica horarios abiertos y su web de venta va tras Cloudflare Turnstile (no se salta)",
+    "Renfe": "solo el precio MÍNIMO del día (calendario público de renfe.com); el precio de cada tren pide captcha y no se salta",
 }
 
 
@@ -45,6 +46,32 @@ def aviso_operador(op):
     return None
 
 
+def _freno(op):
+    """Motivo del freno de 24 h de ese operador, o None."""
+    e = _estado().get(op, {})
+    if e.get("parado_hasta", "") > datetime.now().isoformat():
+        return f"parado hasta {e['parado_hasta'][:16]}: {e['motivo']} ({e['hora'][:16]})"
+    return None
+
+
+def _desde_renfe(fecha, sentido):
+    """Precio mínimo del día en Renfe (€), o None; lanza ErrorOperador. Una petición por mes y sentido (caché CACHE_HORAS)."""
+    d = date.fromisoformat(fecha)
+    ini = max(date.today(), d.replace(day=1))
+    fin = (d.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+    def pedir():
+        try:
+            r = trenes_renfe.calendario(sentido, ini.isoformat(), fin.isoformat())
+        except trenes_ouigo.ErrorOperador as e:
+            _apuntar("Renfe", e)
+            raise
+        _apuntar("Renfe")
+        return r
+
+    return cache.con_cache(("tren-renfe-cal", sentido, ini.isoformat()[:7]), CACHE_HORAS, pedir).get(fecha)
+
+
 def _apuntar(op, fallo=None):
     """Cuenta una petición real; si hay fallo de bloqueo, frena al operador 24 h."""
     e = _estado()
@@ -53,13 +80,45 @@ def _apuntar(op, fallo=None):
     o["peticiones"] = {hoy: o.get("peticiones", {}).get(hoy, 0) + 1}
     if fallo:
         o["motivo"], o["hora"] = fallo.motivo, datetime.now().isoformat(timespec="seconds")
-        if fallo.codigo in (403, 429) or "captcha" in fallo.motivo.lower():
+        if fallo.codigo in (401, 403, 429) or "captcha" in fallo.motivo.lower():
             o["parado_hasta"] = (datetime.now() + timedelta(hours=FRENO_H)).isoformat(timespec="seconds")
     _guardar(e)
 
 
-_ouigo = None
+_ouigo = _iryo = None
 _ultima = [0.0]
+_ultima_op = {}
+
+
+def _cuidado(op, hacer):
+    """Una petición real con todas las reglas: tope diario, pausa aleatoria, contador y freno de 24 h si bloquea."""
+    if _estado().get(op, {}).get("peticiones", {}).get(date.today().isoformat(), 0) >= TOPE_DIA.get(op, 300):
+        raise trenes_ouigo.ErrorOperador(op, f"tope diario de {TOPE_DIA.get(op, 300)} peticiones alcanzado (configurable)")
+    espera = random.uniform(*PAUSA_S) - (time.time() - _ultima_op.get(op, 0))
+    if espera > 0:
+        time.sleep(espera)
+    try:
+        r = hacer()
+    except trenes_ouigo.ErrorOperador as e:
+        _ultima_op[op] = time.time()
+        _apuntar(op, e)
+        raise
+    _ultima_op[op] = time.time()
+    _apuntar(op)
+    return r
+
+
+def _precios_iryo(fecha, sentido):
+    """[{sale, llega, precio|None}] de Iryo ese día, o lanza ErrorOperador."""
+    global _iryo
+    o_, d_ = (trenes_iryo.BCN, trenes_iryo.MAD) if sentido == "BCN-MAD" else (trenes_iryo.MAD, trenes_iryo.BCN)
+
+    def pedir():
+        global _iryo
+        _iryo = _iryo or trenes_iryo.Iryo()
+        return _cuidado("Iryo", lambda: _iryo.dia(fecha, o_, d_))
+
+    return cache.con_cache(("tren-iryo", fecha, sentido), CACHE_HORAS, pedir)
 
 
 def _precios_ouigo(fecha, sentido):
@@ -110,14 +169,41 @@ def opciones(fecha, sentido):
     # (en febrero ni tenía trenes y las horas no coincidían), así que solo se usa para Ouigo cuando la API no responde.
     for sale, (llega, precio) in sorted(precios.items()):
         out.append({"op": "Ouigo", "tren": "", "sale": sale, "llega": llega, "precio": precio, "nota": "agotado o no a la venta" if precio is None else ""})
+    iryo, motivo_iryo = [], _freno("Iryo")
+    if not motivo_iryo:
+        try:
+            iryo = _precios_iryo(fecha, sentido)
+            if not iryo:
+                avisos.append({"operador": "Iryo", "motivo": "sin trenes a la venta ese día (¿fuera de su ventana de venta?)"})
+        except trenes_ouigo.ErrorOperador as e:
+            motivo_iryo = e.motivo
+        except Exception as e:
+            motivo_iryo = f"sin respuesta o cambio en su web ({type(e).__name__})"
+    if motivo_iryo:
+        avisos.append({"operador": "Iryo", "motivo": motivo_iryo})
+    for t in iryo:
+        out.append({"op": "Iryo", "tren": "", "sale": t["sale"], "llega": t["llega"], "precio": t["precio"], "nota": "agotado o no a la venta" if t["precio"] is None else ""})
+    desde, motivo_renfe = None, _freno("Renfe")
+    if not motivo_renfe:
+        try:
+            desde = _desde_renfe(fecha, sentido)
+        except trenes_ouigo.ErrorOperador as e:
+            motivo_renfe = e.motivo
+        except Exception as e:
+            motivo_renfe = f"sin respuesta o cambio en su web ({type(e).__name__})"
+    if motivo_renfe:
+        avisos.append({"operador": "Renfe", "motivo": motivo_renfe})
     for t in trenes_gtfs.del_dia(fecha, sentido):
         if t["op"] == "Ouigo" and precios:
             continue
         precio, nota = None, AVISO_FIJO.get(t["op"], "sin precio")
         if t["op"] == "Ouigo":
             nota = motivo_ouigo or "sin precio"
-        out.append({"op": t["op"], "tren": t["tren"], "sale": t["sale"], "llega": t["llega"], "precio": precio, "nota": nota})
+        extra = {"desde": desde} if t["op"] == "Renfe" and desde is not None else {}
+        out.append({"op": t["op"], "tren": t["tren"], "sale": t["sale"], "llega": t["llega"], "precio": precio, "nota": nota, **extra})
     for op in AVISO_FIJO:
+        if op == "Renfe" and desde is not None:
+            continue   # Renfe da el mínimo del día: ya no es «sin precio»; la nota de cada tren lo explica
         avisos.append({"operador": op, "motivo": AVISO_FIJO[op]})
     for a in avisos:
         a["hora"] = ahora

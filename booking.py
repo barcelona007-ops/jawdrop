@@ -8,10 +8,13 @@ app. Los parámetros salen de una búsqueda real suya (11-10-2026): `nflt=roomfa
 """
 from urllib.parse import urlencode
 
-VERSION = "0.3"
+VERSION = "0.4"
 
 
-def busqueda(ciudad, entrada, salida, adultos=1):
+FILTROS = "roomfacility=38;min_bathrooms=1;review_score=70"   # baño privado + «Baños: 1» (el contador) + nota 7+
+
+
+def busqueda(ciudad, entrada, salida, adultos=1, filtros=FILTROS):
     """Enlace a los resultados de Booking: baño privado, más baratos primero.
 
     ciudad: texto tal cual lo escribiría el usuario («Palermo, Italia»); Booking lo resuelve por nombre.
@@ -19,7 +22,7 @@ def busqueda(ciudad, entrada, salida, adultos=1):
     return "https://www.booking.com/searchresults.es.html?" + urlencode({
         "ss": ciudad, "lang": "es", "checkin": entrada, "checkout": salida,
         "group_adults": adultos, "no_rooms": 1, "group_children": 0,
-        "nflt": "roomfacility=38;min_bathrooms=1;review_score=70", "order": "price", "selected_currency": "EUR"})
+        "nflt": filtros, "order": "price", "selected_currency": "EUR"})
 
 
 def hotel(nombre, ciudad, entrada, salida, adultos=1):

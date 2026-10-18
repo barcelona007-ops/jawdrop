@@ -22,7 +22,7 @@ from datetime import date, timedelta
 import kiwi
 import paises
 
-VERSION = "0.7"
+VERSION = "0.8"
 HORAS_CONEXION_MAX = 6
 HORAS_STOPOVER_MIN = 8
 HORAS_DIA_MIN = 5
@@ -99,21 +99,26 @@ def _linea(it):
             f"{it['horas_total']:>5.1f} h  {' + '.join(it['aerolineas'])[:34]:<34} {via}")
 
 
-def openjaw(paises, mes, noches=(25, 35), paradas=2, origen="BCN"):
-    """Ida a cualquiera de `paises` (códigos) con la ida en `mes` y vuelta desde cualquiera de ellos, `noches` más tarde.
+def precio(it):
+    """Precio que se enseña de un itinerario: el estimado de la aerolínea si lo hay (Level), si no el de Kiwi."""
+    return it.get("precio_web", it["precio_kiwi"])
+
+
+def openjaw(paises, mes, noches=(25, 35), paradas=2, origen="BCN", paises_vuelta=None):
+    """Ida a cualquiera de `paises` (códigos) con la ida en `mes` y vuelta desde cualquiera de ellos (o de `paises_vuelta`, p. ej. los vecinos), `noches` más tarde.
     Devuelve (combinaciones de más barata a más cara, idas, vueltas). Cada combinación: ida, vuelta, total, noches, mismo_aeropuerto."""
     p = date.fromisoformat(mes + "-01")
     fin_mes = date(p.year + p.month // 12, p.month % 12 + 1, 1) - timedelta(days=1)
     d1 = max(p, date.today())
     idas = buscar(origen, paises, d1.isoformat(), fin_mes.isoformat(), paradas, "ida")
-    vueltas = buscar(origen, paises, (d1 + timedelta(days=noches[0])).isoformat(), (fin_mes + timedelta(days=noches[1])).isoformat(), paradas, "vuelta")
+    vueltas = buscar(origen, paises_vuelta or paises, (d1 + timedelta(days=noches[0])).isoformat(), (fin_mes + timedelta(days=noches[1])).isoformat(), paradas, "vuelta")
     combos = []
     for i in idas[:150]:
         di = date.fromisoformat(i["salida"])
         for v in vueltas:
             n = (date.fromisoformat(v["salida"]) - di).days
             if noches[0] <= n <= noches[1]:
-                combos.append({"ida": i, "vuelta": v, "total": i["precio_kiwi"] + v["precio_kiwi"], "noches": n,
+                combos.append({"ida": i, "vuelta": v, "total": precio(i) + precio(v), "noches": n,
                                "mismo_aeropuerto": i["destino"] == v["tramos"][0]["desde"]})
     combos.sort(key=lambda c: c["total"])
     return combos, idas, vueltas

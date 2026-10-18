@@ -9,21 +9,26 @@ Precios de Kiwi (solo ida, orientativos). Guarda con fecha en datos/radar_larga.
 Uso:  .venv\\Scripts\\python.exe radar_larga.py --mes 2027-02 [--mes 2027-03]   |   --meses 12 [--zona vn] [--max 30] (solo los que tocan, máx. 6 por pasada salvo --max)   |   --construir
 """
 import json
+import os
 import sys
+import time
 from datetime import date, timedelta
 from pathlib import Path
 
+import aeropuertos
 import escalas
 import frescura
 import kiwi
 import marcha
 import trenes
 
-VERSION = "0.15"
+VERSION = "0.23"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
-MAX_MESES_POR_PASADA = 30   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
+MAX_MESES_POR_PASADA = 60   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
+EN_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"   # jawdrop: lee desde el mes MÁS LEJANO y con tope 40 (un trabajo dura <5,6 h a ~7 min por casilla); el PC lee desde el más cercano, así no se pisan
+REFRESCO_CADA = 5   # lecturas entre reconstrucciones de movil/cuadricula.json (3 s cada una): la cuadrícula se va llenando mientras se lee
 TOP = 6   # combinaciones que se guardan por zona y mes (la más barata de cada pareja de aeropuertos)
 NOMBRES_MES = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
@@ -73,10 +78,62 @@ PAISES_PENDIENTES = {
 }
 for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
+# Más países por regiones (17-10-2026, sondeo de Kiwi `sondeo_paises.py`: ven BCN/MAD con ≤2 escalas 69 de 75). Duración (el usuario, 17-10): Oriente Medio y Asia central
+# 5-9, África occidental 4-8, África central/oriental 10-15, África austral 12-20, Asia sur/sudeste 15-30 (el usuario, 17-10: mínimo 15), Caribe y Guayanas 15-28, Oceanía mínimo 25 (25-35).
+PAISES_REGIONES = {
+    **{c: (n, 2, (5, 9)) for c, n in {"AF": "Afganistán", "BH": "Baréin", "OM": "Omán", "IQ": "Irak", "SY": "Siria", "PK": "Pakistán", "TM": "Turkmenistán",
+                                      "LY": "Libia"}.items()},
+    **{c: (n, 2, (4, 8)) for c, n in {"BF": "Burkina Faso", "ML": "Mali", "NE": "Níger", "GN": "Guinea", "GW": "Guinea-Bisáu", "SL": "Sierra Leona",
+                                      "LR": "Liberia", "ST": "Santo Tomé y Príncipe", "TD": "Chad"}.items()},
+    **{c: (n, 2, (10, 15)) for c, n in {"CM": "Camerún", "CF": "Rep. Centroafricana", "CG": "Congo", "CD": "RD Congo", "GQ": "Guinea Ecuatorial", "GA": "Gabón",
+                                        "BI": "Burundi", "ER": "Eritrea", "SO": "Somalia", "SS": "Sudán del Sur", "SD": "Sudán", "KM": "Comoras"}.items()},
+    **{c: (n, 2, (12, 20)) for c, n in {"AO": "Angola", "BW": "Botsuana", "ZM": "Zambia", "ZW": "Zimbabue", "MZ": "Mozambique", "NA": "Namibia", "MG": "Madagascar",
+                                        "MW": "Malaui", "LS": "Lesoto", "SZ": "Esuatini"}.items()},
+    **{c: (n, 2, (15, 30)) for c, n in {"BD": "Bangladés", "BT": "Bután", "BN": "Brunéi", "MV": "Maldivas", "MN": "Mongolia", "MM": "Birmania", "NP": "Nepal",
+                                        "TL": "Timor Oriental", "KP": "Corea del Norte", "TW": "Taiwán", "MO": "Macao"}.items()},
+    **{c: (n, 2, (15, 28)) for c, n in {"BZ": "Belice", "NI": "Nicaragua", "HT": "Haití", "DM": "Dominica", "GD": "Granada", "VC": "San Vicente y las Granadinas",
+                                        "GY": "Guyana", "SR": "Surinam"}.items()},
+    **{c: (n, 2, (25, 35)) for c, n in {"AU": "Australia", "NZ": "Nueva Zelanda", "FJ": "Fiyi", "KI": "Kiribati", "MH": "Islas Marshall", "NR": "Nauru",
+                                        "PW": "Palaos", "PG": "Papúa Nueva Guinea", "WS": "Samoa", "SB": "Islas Salomón", "TO": "Tonga", "VU": "Vanuatu"}.items()},
+}
+# Territorios que el sondeo de Kiwi sí ve (17-10-2026, `datos/sondeo_paises.json`) y que tienen casilla en el mapa. Duración: Pacífico 25-35 como Oceanía, Groenlandia
+# como Oriente Medio/Asia central (5-9), islas británicas del Canal y Man (con escala en Londres/Manchester) 4-8. Palestina, Sáhara Occ., Falkland...: Kiwi no los ve.
+PAISES_REGIONES.update({
+    "GL": ("Groenlandia", 2, (5, 9)), "PF": ("Polinesia Francesa", 2, (25, 35)), "NC": ("Nueva Caledonia", 2, (25, 35)),
+    "GG": ("Guernsey", 1, (4, 8)), "JE": ("Jersey", 1, (4, 8)), "IM": ("Isla de Man", 1, (4, 8)),
+})
+for _cod, (_nombre, _paradas, _noches) in PAISES_REGIONES.items():
+    ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
+
+# Avisos que salen en la cuadrícula (el usuario, 17-10): «peligro» = hay vuelo comercial pero NO es recomendable viajar (consultar Exteriores); «sinruta» = sin vuelo útil.
+_PEL = "Hay vuelo comercial, pero viajar no es recomendable. Mira las recomendaciones del Ministerio de Exteriores antes de decidir."
+AVISOS = {
+    **{c: ("peligro", _PEL) for c in "AF IQ SY LY SS SO SD CF ML BF NE TD HT LB".split()},
+    "KP": ("peligro", "Cerrado al turismo ahora; se espera que reabra vía China (Pekín-Pionyang). El precio es solo hasta Pekín-Pionyang según Kiwi y no es recomendable ir. Mira Exteriores."),
+    "BY": ("sinruta", "Sin vuelo en Kiwi. Se puede entrar por tierra desde Polonia o Lituania (frontera lenta, visado) o vía un tercer país. Por estudiar, no se lee aún."),
+    "RU": ("sinruta", "Sin vuelo en Kiwi desde la UE, pero se entra vía Emiratos, China, Estambul, Belgrado o Ereván (visado). Por estudiar, no se lee aún."),
+    "IR": ("sinruta", "Sin ruta: Kiwi no encuentra vuelos y viajar no es recomendable. Mira Exteriores."),
+    "YE": ("sinruta", "Sin ruta: no hay vuelos comerciales útiles (guerra) y viajar no es recomendable."),
+    "FM": ("sinruta", "Sin precio: Kiwi no encuentra vuelos. Se llega vía Guam u Honolulu; no se ha leído."),
+}
 for _cod, _nombre in PAISES_CON_DIRECTO.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 2, "noches": (15, 21), "cuadricula": _cod, "sustituye": True, "margen": 0.20, "madrid_directo": False}
 for _cod, _nombre in PAISES_MEDIOS.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": 1, "noches": (4, 8), "cuadricula": _cod, "margen": 0.20}
+
+
+# Vuelta desde un país vecino (el usuario, 17-10-2026): la ida es al país de la casilla, pero la vuelta puede salir de cualquiera de su grupo (se llega a Kigali y se
+# vuelve desde Entebbe). Solo grupos que se pueden unir por tierra o con un salto corto; el traslado NO se suma al precio (igual que el open-jaw del sudeste).
+# Los países ya visitados (GE, AM) valen como salida. Cambiar un grupo = las lecturas de sus zonas se repiten solas (ver `vj` en main).
+GRUPOS_VECINOS = [
+    "KE UG RW BI TZ", "SN GM GW GN", "SL LR GN", "CI GH TG BJ", "UZ KG KZ TJ TM", "AZ GE AM", "GT BZ SV HN NI CR PA", "EC PE CO BO", "PY AR UY BR",
+    "ZA BW NA ZM ZW MZ MW LS SZ", "NP BD IN", "OM BH AE QA", "GY SR", "HK MO",
+]
+for _g in GRUPOS_VECINOS:
+    _g = _g.split()
+    for _c in _g:
+        if _c.lower() in ZONAS:
+            ZONAS[_c.lower()]["vuelta_desde"] = [o for o in _g if o != _c]
 
 
 # Madrid como segundo origen (16-10-2026): tren Barcelona-Madrid + vuelo desde/hasta Madrid. Desde 17-10-2026 el tren es REAL (trenes.py: horarios GTFS de Renfe y Ouigo + precio de Ouigo; sin precio de Renfe/Iryo).
@@ -147,7 +204,8 @@ def _tramo(it, sentido):
     t = it["tramos"]
     return {"desde": t[0]["desde"], "hasta": t[-1]["hasta"], "ciudad": it["ciudad"],
             "fecha": it["salida"], "sale": t[0]["sale_local"][11:16], "llega": t[-1]["llega_local"][5:16].replace("T", " "),
-            "precio": round(it["precio_kiwi"]), "horas": it["horas_total"], "aerolineas": it["aerolineas"],
+            "precio": round(escalas.precio(it)), "horas": it["horas_total"], "aerolineas": it["aerolineas"],
+            **({"precio_estimado": True} if "precio_web" in it else {}),
             "sueltos": len(it["aerolineas"]) > 1,
             "escalas": [{"ap": e["aeropuerto"], "ciudad": escalas.HUBS.get(e["aeropuerto"], e["ciudad"]), "pais": e["pais"], "horas": e["horas"],
                          "tipo": e["tipo"], "nuevo": e["pais_nuevo"]} for e in it["escalas"]],
@@ -206,10 +264,10 @@ def _priorizar(out, margen, madrid_directo=True):
 
 def leer(zona_id, mes, avisar=print):
     z = ZONAS[zona_id]
-    out = _leer(z["paises"], z, mes, avisar)
+    out = _leer(z["paises"], z, mes, avisar, vuelta=z.get("vuelta_desde"))
     if MADRID and z.get("madrid", True):
         try:
-            out += [_con_tren(c) for c in _leer(z["paises"], z, mes, avisar, origen="MAD")]
+            out += [_con_tren(c) for c in _leer(z["paises"], z, mes, avisar, origen="MAD", vuelta=z.get("vuelta_desde"))]
         except kiwi.KiwiBloqueado:
             avisar(f"  {mes} Madrid: Kiwi bloqueado, se salta")
         for c in out:
@@ -223,8 +281,8 @@ def leer(zona_id, mes, avisar=print):
     return out
 
 
-def _leer(paises, z, mes, avisar, solo=None, origen="BCN"):
-    combos, idas, vueltas = escalas.openjaw(paises, mes, z["noches"], z["paradas"], origen)
+def _leer(paises, z, mes, avisar, solo=None, origen="BCN", vuelta=None):
+    combos, idas, vueltas = escalas.openjaw(paises, mes, z["noches"], z["paradas"], origen, paises_vuelta=(list(paises) + vuelta) if vuelta else None)
     if solo:
         combos = [c for c in combos if solo(c)]
     ciudad_de = {}
@@ -246,19 +304,93 @@ def _leer(paises, z, mes, avisar, solo=None, origen="BCN"):
                     "interno": ({"desde": a, "hasta": b, "precio": round(it["precio"]), "aerolinea": it["aerolinea"], "fecha": it["fecha"]}
                                 if it and not it.get("mismo") else None)})
     out.sort(key=lambda x: x["total"])
+    if vuelta:
+        out = _solo_si_compensa(out)
     return out
+
+
+TRASLADO_TIERRA = 50   # € ESTIMADOS de ir por tierra de un país al vecino cuando no hay vuelo directo entre los dos aeropuertos (autobús, taxi compartido)
+
+
+def _solo_si_compensa(out):
+    """Vuelta desde otro país (vecinos): solo cuenta si el ahorro supera el traslado (vuelo interno si lo hay, si no 50 € estimados);
+    si no, la casilla enseñaría un precio más bajo que el real. Los combos del mismo país se quedan siempre."""
+    pais = lambda ap: (aeropuertos.ficha(ap) or {}).get("pais")
+    mismo_pais = [c["total"] for c in out if pais(c["aps"][0]) == pais(c["aps"][1])]
+    if not mismo_pais:
+        return out
+    tope = min(mismo_pais)
+    return [c for c in out if pais(c["aps"][0]) == pais(c["aps"][1])
+            or c["total"] + (c["interno"]["precio"] if c.get("interno") else TRASLADO_TIERRA) < tope]
+
+
+def _refrescar_cuadricula():
+    try:
+        import radar_datos   # import tardío: radar_datos importa este módulo
+        radar_datos.construir(radar_datos.cargar())
+    except Exception as e:   # un fallo al reconstruir nunca debe parar la lectura
+        print(f"  (cuadrícula no refrescada: {type(e).__name__}: {str(e)[:80]})")
+
+
+SIGLAS_CORREGIDAS = {"Level": "LL", "Iberojet Airlines": "E9"}   # nombre en Kiwi -> sigla de kiwi.COMISION
+
+
+def _corregir_level(almacen):
+    """Lecturas hechas antes de corregir el precio de Level e Iberojet (el usuario, 17-10-2026): en cada tramo directo de Level o Iberojet cambia el precio de Kiwi por el estimado de la web
+    (kiwi.COMISION) y ajusta el total. Idempotente: el tramo corregido lleva `precio_estimado`."""
+    for z in almacen.values():
+        for m in z.values():
+            for c in (m.get("combos") or []):
+                for lado in ("ida", "vuelta"):
+                    t = c.get(lado) or {}
+                    sigla = SIGLAS_CORREGIDAS.get((t.get("aerolineas") or [""])[0]) if len(t.get("aerolineas") or []) == 1 else None
+                    if sigla and not t.get("escalas") and not t.get("precio_estimado"):
+                        nuevo = kiwi.precio_aerolinea(t["precio"], sigla, t["desde"], t["hasta"])
+                        if nuevo is not None:
+                            c["total"] = round(c["total"] + nuevo - t["precio"])
+                            t["precio"], t["precio_estimado"] = round(nuevo), True
+    return almacen
 
 
 def cargar():
     try:
-        return json.loads(ALMACEN.read_text(encoding="utf-8"))
+        return _corregir_level(json.loads(ALMACEN.read_text(encoding="utf-8")))
     except (OSError, ValueError):
         return {}
 
 
 def guardar(almacen):
     ALMACEN.parent.mkdir(exist_ok=True)
-    ALMACEN.write_text(json.dumps(almacen, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    tmp = ALMACEN.with_suffix(f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(almacen, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    os.replace(tmp, ALMACEN)   # el archivo nunca queda a medias
+
+
+def guardar_lectura(zid, mm, entrada):
+    """Guarda UNA lectura sin pisar a otros procesos (17-10-2026: dos lectores a la vez se borraban las zonas): con un candado, relee el archivo,
+    pone solo esta zona y mes, y lo escribe. Devuelve el almacén actualizado."""
+    candado = ALMACEN.with_suffix(".lock")
+    for _ in range(300):
+        try:
+            os.close(os.open(candado, os.O_CREAT | os.O_EXCL))
+            break
+        except FileExistsError:
+            try:
+                if time.time() - candado.stat().st_mtime > 60:   # candado de un proceso muerto
+                    candado.unlink()
+            except OSError:
+                pass
+            time.sleep(0.2)
+    try:
+        almacen = cargar()
+        almacen.setdefault(zid, {})[mm] = entrada
+        guardar(almacen)
+        return almacen
+    finally:
+        try:
+            candado.unlink()
+        except OSError:
+            pass
 
 
 def construir(almacen):
@@ -290,13 +422,16 @@ def main(argv):
             if m == 13:
                 y, m = y + 1, 1
         def ultima(zid, mm):
-            return (almacen.get(zid) or {}).get(mm, {}).get("f")
+            r = (almacen.get(zid) or {}).get(mm, {})
+            return r.get("f") if r.get("vj") or not ZONAS[zid].get("vuelta_desde") else None   # lectura sin «vj» de una zona con vecinos = vieja
         solo = [argv[i + 1] for i, a in enumerate(argv) if a == "--zona"]
-        tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else MAX_MESES_POR_PASADA
-        due = sorted(((ultima(zid, mm) or "", zid, mm) for zid in ZONAS if not solo or zid in solo
-                      for mm in todos if frescura.toca(mm, ultima(zid, mm))))
+        tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (40 if EN_ACTIONS else MAX_MESES_POR_PASADA)
+        due = sorted(((ultima(zid, mm) or "", mm, zid) for zid in ZONAS if not solo or zid in solo
+                      for mm in todos if frescura.toca(mm, ultima(zid, mm))))   # primero lo nunca leído, y por mes: todos los países con un mes antes de pasar al siguiente
+        if EN_ACTIONS or "--desde-el-final" in argv:   # primero lo nunca leído, y dentro de eso el mes más lejano
+            due.sort(key=lambda t: (t[0], -(int(t[1][:4]) * 12 + int(t[1][5:])), t[2]))
         print(f"Zona-meses que tocan: {len(due)}; esta pasada: {min(len(due), tope)}.")
-        pares = [(zid, mm) for _, zid, mm in due[:tope]]
+        pares = [(zid, mm) for _, mm, zid in due[:tope]]
     else:
         pares = [(zid, mm) for zid in ZONAS for mm in meses]
     fallos = 0
@@ -304,8 +439,9 @@ def main(argv):
         print(f"{zid} {mm}: leyendo Kiwi…")
         marcha.avisar("larga", i, len(pares), f"{zid} {mm}")
         try:
-            almacen.setdefault(zid, {})[mm] = {"f": date.today().isoformat(), "combos": leer(zid, mm)}
-            guardar(almacen)
+            almacen = guardar_lectura(zid, mm, {"f": date.today().isoformat(), "combos": leer(zid, mm), **({"vj": 1} if ZONAS[zid].get("vuelta_desde") else {})})
+            if (i + 1) % REFRESCO_CADA == 0:
+                _refrescar_cuadricula()
             print(f"{zid} {mm}: {len(almacen[zid][mm]['combos'])} combinaciones; la más barata {almacen[zid][mm]['combos'][0]['total']} €"
                   if almacen[zid][mm]["combos"] else f"{zid} {mm}: sin combinaciones.")
         except Exception as e:
@@ -314,7 +450,7 @@ def main(argv):
     if pares:
         marcha.avisar("larga", len(pares), len(pares), "", fin=True)
     if pares or "--construir" in argv:
-        construir(almacen)
+        construir(cargar())   # lo que haya en el archivo ahora (incluye lo de otros lectores)
     else:
         print(__doc__)
     return 1 if pares and fallos == len(pares) else 0
