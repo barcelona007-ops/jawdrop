@@ -11,13 +11,14 @@ Uso:  .venv\\Scripts\\python.exe iberojet_mapa.py [--origenes MAD,BCN] [--meses 
 import argparse
 import asyncio
 import json
+import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from playwright.async_api import async_playwright
 
-VERSION = "0.2"
+VERSION = "0.3"
 ALMACEN = Path(__file__).resolve().parent / "datos" / "iberojet_precios.json"
 BASE = "https://www.iberojet.com/es"
 SEGUIDAS_VACIAS = 4   # búsquedas seguidas SIN respuesta de precios = paro (posible bloqueo)
@@ -77,7 +78,7 @@ async def main(origenes, meses, pausa):
     ahora = datetime.now().isoformat(timespec="minutes")
     vacias = 0
     async with async_playwright() as p:
-        b = await p.chromium.launch(channel="chrome", headless=False)
+        b = await p.chromium.launch(channel="chrome" if sys.platform == "win32" else None, headless=False)  # en la Raspberry (Linux) usa el Chromium de Playwright
         pg = await b.new_page(viewport={"width": 1280, "height": 1000})
         rutas = []
         pg.on("response", lambda r: None)

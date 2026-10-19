@@ -1,0 +1,15 @@
+# Mide qué ritmo de consultas aguanta Kiwi desde GitHub (escalera de pausas e hilos; para al primer freno). Solo a mano. No toca datos.
+name: Prueba ritmo Kiwi
+on: workflow_dispatch
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: python prueba_kiwi_ritmo.py
+        env:
+          PYTHONIOENCODING: utf-8

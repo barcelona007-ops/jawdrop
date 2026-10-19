@@ -15,7 +15,7 @@ from playwright.async_api import async_playwright
 
 import booking
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 
 def _propiedades(o):
@@ -72,7 +72,7 @@ async def buscar(ciudad, entrada, salida, filtros=booking.FILTROS, n=5, pg=None)
     if pg:
         return await _hacer(pg)
     async with async_playwright() as p:
-        b = await p.chromium.launch(channel="chrome", headless=False)
+        b = await p.chromium.launch(channel="chrome" if sys.platform == "win32" else None, headless=False)  # en la Raspberry (Linux) usa el Chromium de Playwright
         try:
             return await _hacer(await (await b.new_context(locale="es-ES", viewport={"width": 1280, "height": 900})).new_page())
         finally:
