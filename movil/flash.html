@@ -692,7 +692,7 @@ a.kv:active { background: var(--bd); }
   }
   function lgTramo(rot, t, sale, llega) {
     return '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' +
-      '<i>' + rot + ' · ' + esc(t.aerolineas.join(" + ")) + '</i><b>≈ ' + eur(t.precio) + '</b>' +
+      '<i>' + rot + ' · ' + esc(t.aerolineas.join(" + ")) + '</i><b>' + (t.precio == null ? 'incluido en la ida' : '≈ ' + eur(t.precio) + (t.conjunto ? ' · ida y vuelta' : '')) + '</b>' +
       '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
       '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>' + lgHilo(t);
   }

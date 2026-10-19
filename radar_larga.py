@@ -18,11 +18,12 @@ from pathlib import Path
 import aeropuertos
 import escalas
 import frescura
+import gotogate
 import kiwi
 import marcha
 import trenes
 
-VERSION = "0.26"
+VERSION = "0.27"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -79,6 +80,8 @@ PAISES_PENDIENTES = {
 }
 for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
+# Cuba: Kiwi no la vende (0 itinerarios, probado 19-10-2026); GoToGate sí (Air Europa directo MAD-HAV 1.761 €). Noches 10-18 (aprobado por el usuario, 19-10): 3 salidas por mes.
+ZONAS["cu"].update({"noches": (10, 18), "gotogate": ("HAV", "La Habana")})
 # Más países por regiones (17-10-2026, sondeo de Kiwi `sondeo_paises.py`: ven BCN/MAD con ≤2 escalas 69 de 75). Duración (el usuario, 17-10): Oriente Medio y Asia central
 # 5-9, África occidental 4-8, África central/oriental 10-15, África austral 12-20, Asia sur/sudeste 15-30 (el usuario, 17-10: mínimo 15), Caribe y Guayanas 15-28, Oceanía mínimo 25 (25-35).
 PAISES_REGIONES = {
@@ -272,6 +275,11 @@ def leer(zona_id, mes, avisar=print):
             out += [_con_tren(c) for c in _leer(z["paises"], z, mes, avisar, origen="MAD", vuelta=z.get("vuelta_desde"))]
         except kiwi.KiwiBloqueado:
             avisar(f"  {mes} Madrid: Kiwi bloqueado, se salta")
+    if z.get("gotogate"):
+        out += _leer_gotogate(z, mes, avisar, "BCN")
+        if MADRID:
+            out += [_con_tren(c) for c in _leer_gotogate(z, mes, avisar, "MAD")]
+    if (MADRID and z.get("madrid", True)) or z.get("gotogate"):
         for c in out:
             c["total"] = round(c["total"])
         out.sort(key=lambda x: x["total"])
@@ -308,6 +316,48 @@ def _leer(paises, z, mes, avisar, solo=None, origen="BCN", vuelta=None):
     out.sort(key=lambda x: x["total"])
     if vuelta:
         out = _solo_si_compensa(out)
+    return out
+
+
+GOTOGATE_DIAS = (4, 14, 24)   # días del mes de salida que se leen en GoToGate (cada uno con una duración distinta: mínimo, media y máximo de las noches de la zona)
+
+
+def _tramo_gotogate(segs, horas, esperas, precio, enlace, ciudad, desde_ciudad=None):
+    sig = []
+    for s in segs:
+        if s["aerolinea"] not in sig:
+            sig.append(s["aerolinea"])
+    t = {"desde": segs[0]["desde"], "hasta": segs[-1]["hasta"], "ciudad": ciudad, "fecha": segs[0]["sale"][:10], "sale": segs[0]["sale"][11:16],
+         "llega": segs[-1]["llega"][5:16].replace("T", " "), "precio": precio, "horas": horas, "aerolineas": sig, "sueltos": len(sig) > 1, "conjunto": True,
+         "escalas": [{"ap": s["desde"], "ciudad": escalas.HUBS.get(s["desde"], s["desde"]), "pais": "", "horas": esperas[i], "tipo": "", "nuevo": False}
+                     for i, s in enumerate(segs[1:])],
+         "vuelos": [[s["desde"], s["hasta"], s["sale"][:16].replace("T", " "), s["llega"][:16].replace("T", " "), s["aerolinea"]] for s in segs],
+         "enlace": enlace}
+    if desde_ciudad:
+        t["desde_ciudad"] = desde_ciudad
+    return t
+
+
+def _leer_gotogate(z, mes, avisar, origen):
+    """Zonas que Kiwi no vende (Cuba, 19-10-2026): ida y vuelta CON PRECIO CERRADO de GoToGate (`gotogate.py`), 3 salidas por mes con distintas noches; de cada una
+    la más barata. El precio es del viaje entero: va en la tarjeta de ida (`conjunto`) y la de vuelta dice «incluido»."""
+    ap, ciudad = z["gotogate"]
+    y, m = int(mes[:4]), int(mes[5:])
+    mn, mx = z["noches"]
+    out = []
+    for dia, n in zip(GOTOGATE_DIAS, (mn, (mn + mx) // 2, mx)):
+        f_ida = date(y, m, dia)
+        if f_ida < date.today() + timedelta(days=3):
+            continue
+        avisar(f"  {mes} GoToGate {origen}-{ap} {f_ida} ({n} noches)")
+        vs = gotogate.buscar(origen, ap, f_ida.isoformat(), (f_ida + timedelta(days=n)).isoformat())   # GotogateBloqueado sube: `main` conserva la lectura anterior en vez de guardar «sin vuelos»
+        if not vs:
+            continue
+        v = vs[0]
+        ida = _tramo_gotogate(v["tramos"][0], v["horas"][0], v["esperas"][0], round(v["precio"]), v["enlace"], ciudad)
+        vuelta = _tramo_gotogate(v["tramos"][1], v["horas"][1], v["esperas"][1], None, v["enlace"], "Madrid" if origen == "MAD" else "Barcelona", ciudad)
+        out.append({"total": round(v["precio"]), "origen": origen, "noches": n, "mismo": True, "aps": [ap, ap], "ida": ida, "vuelta": vuelta, "interno": None,
+                    "fuente": "GoToGate"})
     return out
 
 
