@@ -24,6 +24,7 @@ Limitaciones:
   - No trae el número de vuelo.
 Los tramos salen en el mismo formato común que ryanair.py y wizz.py.
 """
+import os
 import time
 from datetime import date, datetime, timedelta
 
@@ -33,10 +34,10 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "2.0"
+VERSION = "2.1"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
-PAUSA = 5
+PAUSA = 1.0 if os.environ.get("GITHUB_ACTIONS") == "true" else 5   # prueba 19-10-2026 desde GitHub: 1 s aguanta 8 min seguidos sin fallos (0,5 s con 4 hilos: 1 timeout en 960); en casa 5 s
 URL = "https://api.skypicker.com/umbrella/v2/graphql?featureName=SearchOneWayItinerariesQuery"
 CABECERAS = {"User-Agent": "FlightFinder/0.1.0"}
 
