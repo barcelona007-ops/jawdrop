@@ -59,6 +59,6 @@ jobs:
           if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
           git commit -m "Radar diario: lecturas del $(date -u +%F)"
           for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break || sleep 5; done
-          gh workflow run publicar.yml --ref main
+          gh workflow run publicar.yml --ref main || echo "Publicar en Cloudflare está pausado en jawdrop: las lecturas ya están subidas."
         env:
           GH_TOKEN: ${{ github.token }}

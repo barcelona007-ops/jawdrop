@@ -22,12 +22,13 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.24"
+VERSION = "0.25"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
+PRESUPUESTO_ACTIONS = 180 * 60   # segundos de lectura por pasada en jawdrop (la semana ya gasta ~30 min y el trabajo tiene tope de 340)
 MAX_MESES_POR_PASADA = 60   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
-EN_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"   # jawdrop: lee desde el mes MÁS LEJANO y con tope 150 (con pausa 1 s de kiwi.py ~1,5 min por casilla; un trabajo dura <5,6 h); el PC lee desde el más cercano, así no se pisan
+EN_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"   # jawdrop: lee desde el mes MÁS LEJANO y con tope 400 y presupuesto de 180 min (con pausa 1 s de kiwi.py una casilla tarda ~10-90 s; un trabajo no puede pasar de 5,6 h o perdería lo leído); el PC lee desde el más cercano, así no se pisan
 REFRESCO_CADA = 5   # lecturas entre reconstrucciones de movil/cuadricula.json (3 s cada una): la cuadrícula se va llenando mientras se lee
 TOP = 6   # combinaciones que se guardan por zona y mes (la más barata de cada pareja de aeropuertos)
 NOMBRES_MES = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -425,7 +426,7 @@ def main(argv):
             r = (almacen.get(zid) or {}).get(mm, {})
             return r.get("f") if r.get("vj") or not ZONAS[zid].get("vuelta_desde") else None   # lectura sin «vj» de una zona con vecinos = vieja
         solo = [argv[i + 1] for i, a in enumerate(argv) if a == "--zona"]
-        tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (150 if EN_ACTIONS else MAX_MESES_POR_PASADA)
+        tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (400 if EN_ACTIONS else MAX_MESES_POR_PASADA)
         due = sorted(((ultima(zid, mm) or "", mm, zid) for zid in ZONAS if not solo or zid in solo
                       for mm in todos if frescura.toca(mm, ultima(zid, mm))))   # primero lo nunca leído, y por mes: todos los países con un mes antes de pasar al siguiente
         if EN_ACTIONS or "--desde-el-final" in argv:   # primero lo nunca leído, y dentro de eso el mes más lejano
@@ -434,8 +435,12 @@ def main(argv):
         pares = [(zid, mm) for _, mm, zid in due[:tope]]
     else:
         pares = [(zid, mm) for zid in ZONAS for mm in meses]
-    fallos = 0
+    fallos, inicio = 0, time.time()
     for i, (zid, mm) in enumerate(pares):
+        if EN_ACTIONS and time.time() - inicio > PRESUPUESTO_ACTIONS:   # que el paso de subir los datos siempre llegue a ejecutarse
+            print(f"Presupuesto de {PRESUPUESTO_ACTIONS // 60} min agotado: quedan {len(pares) - i} casillas para la próxima pasada.")
+            pares = pares[:i]
+            break
         print(f"{zid} {mm}: leyendo Kiwi…")
         marcha.avisar("larga", i, len(pares), f"{zid} {mm}")
         try:
