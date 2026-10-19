@@ -5,7 +5,7 @@ Escalera de ritmos, cada escalón con consultas distintas (país × mes, así no
   1) una a una con pausa 5 → 3 → 2 → 1 → 0,5 s;  2) en paralelo 2, 3, 4 y 6 hilos.
 Para en el primer escalón con señal de freno (error de Kiwi, 429/403, >10 % de fallos o latencia mediana >2,5× la de partida)
 y NO sigue subiendo. Resultado: tabla en pantalla y en el resumen de GitHub Actions.
-Uso:  python prueba_kiwi_ritmo.py [--n 20]
+Uso:  python prueba_kiwi_ritmo.py [--n 20]   |   --larga [MIN=8]: 3 tramos sostenidos de MIN minutos (pausa 1 s; 0,5 s; 0,5 s con 4 hilos), con latencia y fallos por minuto
 """
 import os
 import statistics
@@ -17,7 +17,7 @@ from datetime import date
 
 import kiwi
 
-VERSION = "0.1"
+VERSION = "0.2"
 PAISES = ["IT", "FR", "DE", "PT", "GR", "TR", "MA", "EG", "TH", "JP", "MX", "PE", "BR", "AR", "PL", "HU", "CZ", "NO", "SE", "IE",
           "HR", "RO", "BG", "JO", "TN", "SN", "KE", "VN", "ID", "IN"]
 N = int(sys.argv[sys.argv.index("--n") + 1]) if "--n" in sys.argv else 20
@@ -72,7 +72,58 @@ def escalon(modo, intervalo, hilos):
             "vacias": sum(1 for r in res if not r[1] and r[2] == 0)}
 
 
+def larga(minutos):
+    """Ritmo SOSTENIDO: cada tramo dura `minutos`; imprime cada minuto cuántas consultas, fallos y latencia mediana. Para al primer freno."""
+    kiwi.PAUSA = 0
+    base = None
+    resumen = ["| tramo | consultas | por min | latencia med (s) | latencia máx (s) | fallos |", "|---|---|---|---|---|---|"]
+    for intervalo, hilos in [(1.0, 1), (0.5, 1), (0.5, 4)]:
+        fin, ultimo, todos, minuto = time.time() + minutos * 60, [0.0], [], []
+
+        def lanzar():
+            while time.time() < fin:
+                with _cerrojo:
+                    espera = intervalo - (time.time() - ultimo[0])
+                    if espera > 0:
+                        time.sleep(espera)
+                    ultimo[0] = time.time()
+                r = una()
+                with _cerrojo:
+                    todos.append(r); minuto.append(r)
+
+        hilos_t = [threading.Thread(target=lanzar) for _ in range(hilos)]
+        [h.start() for h in hilos_t]
+        freno = None
+        while any(h.is_alive() for h in hilos_t):
+            time.sleep(60)
+            with _cerrojo:
+                lote, minuto[:] = list(minuto), []
+            lat = [r[0] for r in lote if not r[1]]
+            f = [r[1] for r in lote if r[1]]
+            med = statistics.median(lat) if lat else 0
+            base = base or med
+            print(f"  pausa {intervalo} s, {hilos} hilo(s): {len(lote)} consultas/min, latencia med {med:.1f} s, fallos {len(f)}" + (f" ← {f[0]}" if f else ""), flush=True)
+            if f and len(f) > len(lote) * 0.1 or (base and med > base * 2.5):
+                freno = f[0] if f else "latencia ×2,5"
+                fin = 0   # los hilos terminan solos
+        [h.join() for h in hilos_t]
+        lat = [r[0] for r in todos if not r[1]]
+        nf = sum(1 for r in todos if r[1])
+        resumen.append(f"| pausa {intervalo} s, {hilos} hilo(s) | {len(todos)} | {len(todos) / minutos:.0f} | {statistics.median(lat) if lat else 0:.1f} | {max(lat) if lat else 0:.1f} | {nf}{' FRENO: ' + freno if freno else ''} |")
+        print(resumen[-1], flush=True)
+        if freno:
+            print("Kiwi da señal de freno: no se sube más.")
+            break
+    print("\n".join(resumen))
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+            fh.write("\n".join(resumen) + "\n")
+
+
 def main():
+    if "--larga" in sys.argv:
+        i = sys.argv.index("--larga") + 1
+        return larga(int(sys.argv[i]) if i < len(sys.argv) and sys.argv[i].isdigit() else 8)
     filas, base = [], None
     for modo, intervalo, hilos in ESCALERA:
         f = escalon(modo, intervalo, hilos)

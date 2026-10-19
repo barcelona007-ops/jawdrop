@@ -1,15 +1,21 @@
 # Mide qué ritmo de consultas aguanta Kiwi desde GitHub (escalera de pausas e hilos; para al primer freno). Solo a mano. No toca datos.
 name: Prueba ritmo Kiwi
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      larga:
+        description: "Minutos por tramo de la prueba sostenida (0 = escalera corta)"
+        default: "0"
 jobs:
   prueba:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
-      - run: python prueba_kiwi_ritmo.py
+      - run: if [ "$LARGA" != "0" ]; then python prueba_kiwi_ritmo.py --larga "$LARGA"; else python prueba_kiwi_ritmo.py; fi
         env:
           PYTHONIOENCODING: utf-8
+          LARGA: ${{ github.event.inputs.larga || '0' }}
