@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.27"
+VERSION = "0.28"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -475,6 +475,8 @@ def main(argv):
                 y, m = y + 1, 1
         def ultima(zid, mm):
             r = (almacen.get(zid) or {}).get(mm, {})
+            if ZONAS[zid].get("gotogate") and not r.get("gt"):
+                return None   # lectura de Cuba hecha solo con Kiwi (vacía) = vieja: toca con GoToGate
             return r.get("f") if r.get("vj") or not ZONAS[zid].get("vuelta_desde") else None   # lectura sin «vj» de una zona con vecinos = vieja
         solo = [argv[i + 1] for i, a in enumerate(argv) if a == "--zona"]
         tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (400 if EN_ACTIONS else MAX_MESES_POR_PASADA)
@@ -495,7 +497,7 @@ def main(argv):
         print(f"{zid} {mm}: leyendo Kiwi…")
         marcha.avisar("larga", i, len(pares), f"{zid} {mm}")
         try:
-            almacen = guardar_lectura(zid, mm, {"f": date.today().isoformat(), "combos": leer(zid, mm), **({"vj": 1} if ZONAS[zid].get("vuelta_desde") else {})})
+            almacen = guardar_lectura(zid, mm, {"f": date.today().isoformat(), "combos": leer(zid, mm), **({"vj": 1} if ZONAS[zid].get("vuelta_desde") else {}), **({"gt": 1} if ZONAS[zid].get("gotogate") else {})})
             if (i + 1) % REFRESCO_CADA == 0:
                 _refrescar_cuadricula()
             print(f"{zid} {mm}: {len(almacen[zid][mm]['combos'])} combinaciones; la más barata {almacen[zid][mm]['combos'][0]['total']} €"
