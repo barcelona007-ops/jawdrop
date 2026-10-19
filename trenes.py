@@ -17,7 +17,7 @@ import trenes_iryo
 import trenes_ouigo
 import trenes_renfe
 
-VERSION = "0.5"
+VERSION = "0.6"
 ESTADO = os.path.join("datos", "trenes_estado.json")
 CACHE_HORAS = 4            # precio del tren: 2-6 h según la nota del 16-10
 PAUSA_S = (10, 40)         # pausa aleatoria entre peticiones reales (se afina con pruebas_trenes.json)
@@ -85,6 +85,9 @@ def _apuntar(op, fallo=None):
     _guardar(e)
 
 
+# Iryo en pausa (20-10-2026, el usuario): su API da 403 (antibot) y no publica horarios; sin horas ni precio no aporta. Ni se consulta ni avisa.
+# Para reactivarlo: True (y mirar antes que su API responde).
+IRYO_ACTIVO = False
 _ouigo = _iryo = None
 _ultima = [0.0]
 _ultima_op = {}
@@ -170,7 +173,7 @@ def opciones(fecha, sentido):
     for sale, (llega, precio) in sorted(precios.items()):
         out.append({"op": "Ouigo", "tren": "", "sale": sale, "llega": llega, "precio": precio, "nota": "agotado o no a la venta" if precio is None else ""})
     iryo, motivo_iryo = [], _freno("Iryo")
-    if not motivo_iryo:
+    if IRYO_ACTIVO and not motivo_iryo:
         try:
             iryo = _precios_iryo(fecha, sentido)
             if not iryo:
@@ -179,7 +182,7 @@ def opciones(fecha, sentido):
             motivo_iryo = e.motivo
         except Exception as e:
             motivo_iryo = f"sin respuesta o cambio en su web ({type(e).__name__})"
-    if motivo_iryo:
+    if IRYO_ACTIVO and motivo_iryo:
         avisos.append({"operador": "Iryo", "motivo": motivo_iryo})
     for t in iryo:
         out.append({"op": "Iryo", "tren": "", "sale": t["sale"], "llega": t["llega"], "precio": t["precio"], "nota": "agotado o no a la venta" if t["precio"] is None else ""})
