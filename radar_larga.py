@@ -22,7 +22,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.25"
+VERSION = "0.26"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -91,7 +91,7 @@ PAISES_REGIONES = {
     **{c: (n, 2, (12, 20)) for c, n in {"AO": "Angola", "BW": "Botsuana", "ZM": "Zambia", "ZW": "Zimbabue", "MZ": "Mozambique", "NA": "Namibia", "MG": "Madagascar",
                                         "MW": "Malaui", "LS": "Lesoto", "SZ": "Esuatini"}.items()},
     **{c: (n, 2, (15, 30)) for c, n in {"BD": "Bangladés", "BT": "Bután", "BN": "Brunéi", "MV": "Maldivas", "MN": "Mongolia", "MM": "Birmania", "NP": "Nepal",
-                                        "TL": "Timor Oriental", "KP": "Corea del Norte", "TW": "Taiwán", "MO": "Macao"}.items()},
+                                        "TL": "Timor Oriental", "KP": "Corea del Norte", "TW": "Taiwán", "MO": "Macao", "LA": "Laos"}.items()},
     **{c: (n, 2, (15, 28)) for c, n in {"BZ": "Belice", "NI": "Nicaragua", "HT": "Haití", "DM": "Dominica", "GD": "Granada", "VC": "San Vicente y las Granadinas",
                                         "GY": "Guyana", "SR": "Surinam"}.items()},
     **{c: (n, 2, (25, 35)) for c, n in {"AU": "Australia", "NZ": "Nueva Zelanda", "FJ": "Fiyi", "KI": "Kiribati", "MH": "Islas Marshall", "NR": "Nauru",
@@ -102,6 +102,7 @@ PAISES_REGIONES = {
 PAISES_REGIONES.update({
     "GL": ("Groenlandia", 2, (5, 9)), "PF": ("Polinesia Francesa", 2, (25, 35)), "NC": ("Nueva Caledonia", 2, (25, 35)),
     "GG": ("Guernsey", 1, (4, 8)), "JE": ("Jersey", 1, (4, 8)), "IM": ("Isla de Man", 1, (4, 8)),
+    "XK": ("Kosovo", 1, (4, 8)), "BA": ("Bosnia y Herzegovina", 1, (4, 8)),   # sin directo desde BCN (Kiwi, 15-10): se leen con escala (19-10)
 })
 for _cod, (_nombre, _paradas, _noches) in PAISES_REGIONES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
