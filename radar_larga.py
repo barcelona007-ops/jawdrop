@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.29"
+VERSION = "0.30"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -462,6 +462,16 @@ def construir(almacen):
     print(f"{sum(len(z['meses']) for z in zonas)} zona-meses → {SALIDA}")
 
 
+RELEER = CARPETA / "datos" / "releer_antes_de.txt"   # líneas «zona AAAA-MM-DD»: las lecturas de esa zona anteriores a esa fecha cuentan como caducadas (la Raspberry las relee enseguida, sin esperar su frescura)
+
+
+def _releer():
+    try:
+        return {l.split()[0]: l.split()[1] for l in RELEER.read_text(encoding="utf-8").splitlines() if len(l.split()) == 2 and not l.startswith("#")}
+    except OSError:
+        return {}
+
+
 def main(argv):
     almacen = cargar()
     meses = [argv[i + 1] for i, a in enumerate(argv) if a == "--mes"]
@@ -474,8 +484,11 @@ def main(argv):
             m += 1
             if m == 13:
                 y, m = y + 1, 1
+        releer = _releer()
         def ultima(zid, mm):
             r = (almacen.get(zid) or {}).get(mm, {})
+            if zid in releer and (r.get("f") or "") < releer[zid]:
+                return None   # marcada para releer ya (datos/releer_antes_de.txt)
             if ZONAS[zid].get("gotogate") and not r.get("gt"):
                 return None   # lectura de Cuba hecha solo con Kiwi (vacía) = vieja: toca con GoToGate
             return r.get("f") if r.get("vj") or not ZONAS[zid].get("vuelta_desde") else None   # lectura sin «vj» de una zona con vecinos = vieja
@@ -498,7 +511,12 @@ def main(argv):
         print(f"{zid} {mm}: leyendo Kiwi…")
         marcha.avisar("larga", i, len(pares), f"{zid} {mm}")
         try:
-            almacen = guardar_lectura(zid, mm, {"f": date.today().isoformat(), "combos": leer(zid, mm), **({"vj": 1} if ZONAS[zid].get("vuelta_desde") else {}), **({"gt": 1} if ZONAS[zid].get("gotogate") else {})})
+            combos = leer(zid, mm)
+            previa = (almacen.get(zid) or {}).get(mm, {})
+            if not combos and previa.get("combos") and zid in releer:   # releer por orden: un vacío no pisa una lectura con precio (Kiwi a veces contesta 0 por error)
+                print(f"{zid} {mm}: sin combinaciones esta vez; se conserva la lectura anterior ({previa['combos'][0]['total']} €).")
+                combos = previa["combos"]   # con la fecha de hoy, para no releerla en bucle
+            almacen = guardar_lectura(zid, mm, {"f": date.today().isoformat(), "combos": combos, **({"vj": 1} if ZONAS[zid].get("vuelta_desde") else {}), **({"gt": 1} if ZONAS[zid].get("gotogate") else {})})
             if (i + 1) % REFRESCO_CADA == 0:
                 _refrescar_cuadricula()
             print(f"{zid} {mm}: {len(almacen[zid][mm]['combos'])} combinaciones; la más barata {almacen[zid][mm]['combos'][0]['total']} €"
