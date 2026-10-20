@@ -34,7 +34,7 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "2.3"
+VERSION = "2.4"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
 PAUSA = 1.0 if os.environ.get("GITHUB_ACTIONS") == "true" else 5   # prueba 19-10-2026 desde GitHub: 1 s aguanta 8 min seguidos sin fallos (0,5 s con 4 hilos: 1 timeout en 960); en casa 5 s
@@ -336,8 +336,9 @@ def escalas(origenes, destinos, desde, hasta, paradas=1, limite=50, usar_cache=T
     Cada uno: precio_kiwi, aerolineas, tramos (aeropuerto, ciudad, país, hora local y UTC), escalas (aeropuerto, país, horas, llegada y
     salida locales, cambia_equipaje), horas totales y proveedor. Precio = el de Kiwi (`precio_kiwi`); en directos de Level e Iberojet (`CORREGIR_ESCALAS`) además `precio_web` = estimado de la aerolínea (el que se enseña).
     Todo pasa por la caché y la pausa de siempre; una consulta."""
-    its = cache.con_cache(["kiwi", "escalas1", origenes, destinos, desde, hasta, paradas, limite], HORAS_CACHE,
-                          lambda: _consulta(origenes, destinos, desde, "00:00", "23:59", limite, hasta, paradas, CONSULTA_ESC), usar_cache)
+    def pedir():   # Kiwi a veces contesta «0 vuelos» a una ruta que sí existe (visto con Kiribati, 21-10-2026): se repite una vez y un vacío no se guarda en caché
+        return _consulta(origenes, destinos, desde, "00:00", "23:59", limite, hasta, paradas, CONSULTA_ESC) or             _consulta(origenes, destinos, desde, "00:00", "23:59", limite, hasta, paradas, CONSULTA_ESC)
+    its = cache.con_cache(["kiwi", "escalas1", origenes, destinos, desde, hasta, paradas, limite], HORAS_CACHE, pedir, usar_cache, guardar_vacio=False)
     res = []
     for it in its:
         segs = [s["segment"] for s in it["sector"]["sectorSegments"]]

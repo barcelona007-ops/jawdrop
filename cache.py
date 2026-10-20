@@ -36,7 +36,7 @@ def leer(partes, horas):
     return None
 
 
-def con_cache(partes, horas, pedir, usar_cache=True):
+def con_cache(partes, horas, pedir, usar_cache=True, guardar_vacio=True):
     """Devuelve la respuesta guardada para `partes` si tiene menos de `horas`; si no, llama a pedir()."""
     k = clave(*partes)
     con = _con()
@@ -46,6 +46,8 @@ def con_cache(partes, horas, pedir, usar_cache=True):
             if fila and time.time() - fila[0] < horas * 3600:
                 return json.loads(fila[1])
         datos = pedir()
+        if not datos and not guardar_vacio:   # Kiwi a veces contesta «0 vuelos» por error: una respuesta vacía no se guarda (21-10-2026)
+            return datos
         con.execute("INSERT OR REPLACE INTO respuestas VALUES (?,?,?)", (k, time.time(), json.dumps(datos)))
         con.commit()
         return datos

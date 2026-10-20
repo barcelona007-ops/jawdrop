@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.28"
+VERSION = "0.29"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -105,6 +105,7 @@ PAISES_REGIONES = {
 PAISES_REGIONES.update({
     "GL": ("Groenlandia", 2, (5, 9)), "PF": ("Polinesia Francesa", 2, (25, 35)), "NC": ("Nueva Caledonia", 2, (25, 35)),
     "GG": ("Guernsey", 1, (4, 8)), "JE": ("Jersey", 1, (4, 8)), "IM": ("Isla de Man", 1, (4, 8)),
+    "FO": ("Islas Feroe", 1, (4, 8)),   # Kiwi la vende en invierno con una escala (190-234 € solo ida, 21-10); el directo de verano de Ryanair/Wizz sigue ganando si es más barato
     "XK": ("Kosovo", 1, (4, 8)), "BA": ("Bosnia y Herzegovina", 1, (4, 8)),   # sin directo desde BCN (Kiwi, 15-10): se leen con escala (19-10)
 })
 for _cod, (_nombre, _paradas, _noches) in PAISES_REGIONES.items():
