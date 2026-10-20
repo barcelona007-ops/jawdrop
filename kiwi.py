@@ -34,7 +34,7 @@ import aeropuertos as aeropuertos_tabla
 import cache
 import vueling
 
-VERSION = "2.2"
+VERSION = "2.3"
 HORAS_CACHE = 24
 LOTE = 20   # aeropuertos de origen por consulta de vueltas (con más, Kiwi llega al tope de 50 y se pierden)
 PAUSA = 1.0 if os.environ.get("GITHUB_ACTIONS") == "true" else 5   # prueba 19-10-2026 desde GitHub: 1 s aguanta 8 min seguidos sin fallos (0,5 s con 4 hilos: 1 timeout en 960); en casa 5 s
@@ -251,13 +251,14 @@ def _pedir(origenes, destinos, dia, h_desde, h_hasta, limite, usar_cache):
         lambda: _consulta(origenes, destinos, dia, h_desde, h_hasta, limite), usar_cache)
 
 
-def rango(origenes, destinos, desde, hasta, excluir=YA_LEIDAS, limite=50, usar_cache=True):
+def rango(origenes, destinos, desde, hasta, excluir=YA_LEIDAS, limite=50, usar_cache=True, sentido=None):
     """Radar: vuelos directos de `origenes` a `destinos` (ids de Kiwi: 'Airport:BCN', 'Country:TR') con
     salida entre `desde` y `hasta` (AAAA-MM-DD), sin filtro de horas. Los más baratos del rango (hasta
     `limite`), uno por aeropuerto, aerolínea y día. El sentido se deduce: si el origen es un solo
-    aeropuerto, el «otro extremo» es el destino (ida); si no, el origen (vuelta)."""
+    aeropuerto, el «otro extremo» es el destino (ida); si no, el origen (vuelta). Con aeropuerto en los dos lados no se puede
+    deducir: pasar `sentido` ("ida" o "vuelta")."""
     origenes, destinos = list(origenes), list(destinos)
-    sentido = "ida" if len(origenes) == 1 and origenes[0].startswith("Airport:") else "vuelta"
+    sentido = sentido or ("ida" if len(origenes) == 1 and origenes[0].startswith("Airport:") else "vuelta")
     its = cache.con_cache(["kiwi", "rango1", origenes, destinos, desde, hasta, limite], HORAS_CACHE,
                           lambda: _consulta(origenes, destinos, desde, "00:00", "23:59", limite, hasta),
                           usar_cache)
@@ -295,19 +296,21 @@ def tiene_directo(origen, pais, dias=360, usar_cache=True):
     return bool(its)
 
 
-def semana_pais(origen, pais, mes, n_min=5, n_max=8, usar_cache=True):
+def semana_pais(origen, pais, mes, n_min=5, n_max=8, usar_cache=True, destinos=None):
     """Mejor ida+vuelta de `n_min`-`n_max` noches a un país con aerolíneas que NO son Ryanair ni Wizz (esas se leen directo),
     con la ida dentro del mes (AAAA-MM), mismo aeropuerto de ida y de vuelta (pueden ser aerolíneas distintas: dos billetes).
     Dos consultas (~10 s). Devuelve None o {aerolinea, ida, vuelta, total, noches, destino, ciudad, orientativo}.
-    `orientativo` = algún tramo es precio de Kiwi sin comisión conocida (en la aerolínea será igual o algo menor)."""
+    `orientativo` = algún tramo es precio de Kiwi sin comisión conocida (en la aerolínea será igual o algo menor).
+    `destinos` (lista de códigos de aeropuerto): en vez de todo el país, solo esos aeropuertos (microestados sin aeropuerto)."""
     primero = date.fromisoformat(mes + "-01")
     ultimo = date(primero.year + primero.month // 12, primero.month % 12 + 1, 1) - timedelta(days=1)
     desde = max(primero, date.today())
-    idas = rango([f"Airport:{origen}"], [f"Country:{pais}"], desde.isoformat(), ultimo.isoformat(), usar_cache=usar_cache)
+    ids = [f"Airport:{a}" for a in destinos] if destinos else [f"Country:{pais}"]
+    idas = rango([f"Airport:{origen}"], ids, desde.isoformat(), ultimo.isoformat(), usar_cache=usar_cache, sentido="ida")
     if not idas:
         return None
-    vueltas = rango([f"Country:{pais}"], [f"Airport:{origen}"], (desde + timedelta(days=n_min)).isoformat(),
-                    (ultimo + timedelta(days=n_max)).isoformat(), usar_cache=usar_cache)
+    vueltas = rango(ids, [f"Airport:{origen}"], (desde + timedelta(days=n_min)).isoformat(),
+                    (ultimo + timedelta(days=n_max)).isoformat(), usar_cache=usar_cache, sentido="vuelta")
     por_dia = {}
     for v in vueltas:
         k = (v["destino"], v["salida"][:10])

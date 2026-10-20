@@ -27,7 +27,7 @@ import radar_larga
 import semana
 import semaforo
 
-VERSION = "0.14"
+VERSION = "0.15"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_semana.json"          # última lectura de cada país y mes; SÍ va a git (la lectura diaria corre en GitHub Actions)
 HISTORIAL = CARPETA / "datos" / "radar_historial.json"   # SÍ va a git: es la memoria de precios para detectar gangas
@@ -41,8 +41,9 @@ NOCHES = (5, 8)
 # (ya se cuadrará). código: (país vecino, aeropuertos que valen, cómo se llega desde el aeropuerto).
 VIA_VECINO = {
     "LI": ("CH", {"ZRH"}, "tren y bus a Liechtenstein"), "MC": ("FR", {"NCE"}, "tren a Mónaco"), "SM": ("IT", {"RMI", "BLQ", "FRL"}, "bus a San Marino"),
-    "VA": ("IT", {"FCO", "CIA"}, "metro o tren al Vaticano"), "AD": ("FR", {"TLS", "PGF"}, "bus a Andorra"),
+    "VA": ("IT", {"FCO", "CIA"}, "metro o tren al Vaticano"),
 }
+# Andorra fuera (el usuario, 20-10-2026): no se contempla volar para ir allí; se estudiará aparte.
 
 
 def cargar():
@@ -112,7 +113,14 @@ def leer_mes(mes, almacen, avisar=print):
         if p:
             filas.setdefault(pais, []).append(p)
     for cod, (vecino, aps, como) in VIA_VECINO.items():   # la mejor pareja que aterriza en un aeropuerto válido del vecino
-        buenas = [x for x in filas.get(vecino, []) if x.get("destino") in aps]
+        buenas = [x for x in filas.get(vecino, []) if x.get("destino") in aps]   # Ryanair/Wizz (ya leídos)
+        try:   # y las demás aerolíneas, preguntando por esos aeropuertos en concreto: el del vecino más barato casi nunca es uno de ellos
+            p = kiwi.semana_pais("BCN", cod, mes, NOCHES[0], NOCHES[1], destinos=sorted(aps))
+        except kiwi.KiwiBloqueado as e:
+            avisar(f"  Kiwi {cod}: {str(e)[:80]} (se salta)")
+            p = None
+        if p:
+            buenas.append(p)
         if buenas:
             m = min(buenas, key=lambda x: x["total"])
             filas[cod] = [dict(m, ciudad=f"{m['ciudad']} (luego {como})")]
