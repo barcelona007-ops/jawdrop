@@ -1,5 +1,5 @@
 """
-microestados_ahora.py 0.1 — Lee ya el precio de los microestados (Mónaco, Liechtenstein, San Marino, Vaticano) los 12 meses (20-10-2026).
+microestados_ahora.py 0.2 — Lee ya el precio de los microestados (Mónaco, Liechtenstein, San Marino, Vaticano) los 12 meses (20-10-2026).
 
 Pregunta a Kiwi por el aeropuerto concreto de cada uno (Niza, Zúrich, Rímini/Bolonia/Forlì, Roma) y lo guarda en datos/radar_semana.json
 como si el aeropuerto estuviera dentro del país (igual que radar_datos.leer_mes). Solo AÑADE o mejora: no borra nada, y una lectura
@@ -8,14 +8,16 @@ Uso: .venv/bin/python microestados_ahora.py [--seco]   (--seco: lee y enseña, s
 """
 import fcntl
 import json
+import sqlite3
 import subprocess
 import sys
+import time
 from datetime import date
 
 import kiwi
 import radar_datos as rd
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 
 def meses():
@@ -31,10 +33,18 @@ def leer():
     nuevas = {}
     for mes in meses():
         for cod, (_, aps, como) in rd.VIA_VECINO.items():
-            try:
-                p = kiwi.semana_pais("BCN", cod, mes, rd.NOCHES[0], rd.NOCHES[1], destinos=sorted(aps))
-            except kiwi.KiwiBloqueado as e:
-                print(f"{mes} {cod}: Kiwi {str(e)[:80]} (se salta)", flush=True)
+            for intento in range(8):   # la caché (SQLite) la comparte el lector principal: si está ocupada, esperar y repetir
+                try:
+                    p = kiwi.semana_pais("BCN", cod, mes, rd.NOCHES[0], rd.NOCHES[1], destinos=sorted(aps))
+                    break
+                except sqlite3.OperationalError:
+                    time.sleep(20)
+                except kiwi.KiwiBloqueado as e:
+                    print(f"{mes} {cod}: Kiwi {str(e)[:80]} (se salta)", flush=True)
+                    p = None
+                    break
+            else:
+                print(f"{mes} {cod}: caché ocupada (se salta)", flush=True)
                 continue
             if not p:
                 print(f"{mes} {cod}: sin vuelos", flush=True)
