@@ -14,13 +14,14 @@ from pathlib import Path
 
 import semaforo
 
-VERSION = "0.2"
+VERSION = "0.3"
 SALIDA = Path(__file__).resolve().parent / "movil" / "cuadricula.json"
 
 MAPA = Path(__file__).resolve().parent / "movil" / "mapa.json"
 # Territorios sin vuelos comerciales o que no son países para viajar: se dejan fuera de la cuadrícula. (AD, LI, MC, SM y VA SÍ entran desde el 17-10-2026: se llega por el país vecino, ver radar_datos.VIA_VECINO)
 FUERA = {"ES", "AQ", "TF", "GS", "HM", "BV", "UM", "PN", "TK", "NU", "CK", "NF", "CX", "CC",
-         "SJ", "AX", "BL", "MF", "SH", "FK", "PM", "WF", "AS", "GU", "MP", "VI", "VG", "AI", "MS", "TC", "KY", "BM", "AW", "CW", "SX", "BQ"}
+         "SJ", "AX", "BL", "MF", "SH", "FK", "PM", "WF", "AS", "GU", "MP", "VI", "VG", "AI", "MS", "TC", "KY", "BM", "AW", "CW", "SX", "BQ",
+         "AD", "PS", "EH", "IO"}   # fuera por decisión del usuario (21-10-2026): Andorra (se va en coche), Palestina y Sáhara Occidental (no se cuentan como país), Diego García (sin acceso)
 
 
 def centro(ruta):
