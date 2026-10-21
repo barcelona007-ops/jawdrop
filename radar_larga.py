@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.30"
+VERSION = "0.31"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -82,6 +82,8 @@ for _cod, (_nombre, _paradas, _noches) in PAISES_PENDIENTES.items():
     ZONAS[_cod.lower()] = {"nombre": _nombre, "paises": [_cod], "paradas": _paradas, "noches": _noches, "cuadricula": _cod}
 # Cuba: Kiwi no la vende (0 itinerarios, probado 19-10-2026); GoToGate sí (Air Europa directo MAD-HAV 1.761 €). Noches 10-18 (aprobado por el usuario, 19-10): 3 salidas por mes.
 ZONAS["cu"].update({"noches": (10, 18), "gotogate": ("HAV", "La Habana")})
+# Micronesia (21-10-2026): Kiwi no la vende; GoToGate sí por Pohnpei (United, Island Hopper; BCN 10-24 feb: 8.847 €). Oceanía: mínimo 25 noches (el usuario, 17-10). Sin Chuuk/Yap/Kosrae: 0 vuelos.
+ZONAS["fm"] = {"nombre": "Micronesia", "paises": ["FM"], "paradas": 3, "noches": (25, 35), "cuadricula": "FM", "gotogate": ("PNI", "Pohnpei")}
 # Más países por regiones (17-10-2026, sondeo de Kiwi `sondeo_paises.py`: ven BCN/MAD con ≤2 escalas 69 de 75). Duración (el usuario, 17-10): Oriente Medio y Asia central
 # 5-9, África occidental 4-8, África central/oriental 10-15, África austral 12-20, Asia sur/sudeste 15-30 (el usuario, 17-10: mínimo 15), Caribe y Guayanas 15-28, Oceanía mínimo 25 (25-35).
 PAISES_REGIONES = {
