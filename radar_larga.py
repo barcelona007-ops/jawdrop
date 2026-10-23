@@ -23,9 +23,10 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.34"
+VERSION = "0.35"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
+HISTORIAL = CARPETA / "datos" / "radar_larga_historial.json"   # {zona: {mes: [[fecha, mínimo BCN, mínimo MAD], ...]}}: una anotación por día; solo la escribe jawdrop (Actions), así no hay que fusionarlo
 SALIDA = CARPETA / "movil" / "larga.json"
 PRESUPUESTO_ACTIONS = 180 * 60   # segundos de lectura por pasada en jawdrop (la semana ya gasta ~30 min y el trabajo tiene tope de 340)
 MAX_MESES_POR_PASADA = 60   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
@@ -422,6 +423,24 @@ def guardar(almacen):
     os.replace(tmp, ALMACEN)   # el archivo nunca queda a medias
 
 
+def anotar_historial(zid, mm, combos, hoy):
+    """Memoria de precios para ver tendencias (el usuario, 23-10-2026): el mínimo de cada origen de esta lectura, una anotación por día (repetir el día la sustituye).
+    Una lectura vacía no se anota. Se llama dentro del candado de guardar_lectura."""
+    if not combos:
+        return
+    try:
+        h = json.loads(HISTORIAL.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        h = {}
+    minimo = lambda o: min((c["total"] for c in combos if c.get("origen", "BCN") == o), default=None)
+    lista = [a for a in h.setdefault(zid, {}).setdefault(mm, []) if a[0] != hoy]
+    lista.append([hoy, minimo("BCN"), minimo("MAD")])
+    h[zid][mm] = lista
+    tmp = HISTORIAL.with_suffix(f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(h, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    os.replace(tmp, HISTORIAL)
+
+
 def guardar_lectura(zid, mm, entrada):
     """Guarda UNA lectura sin pisar a otros procesos (17-10-2026: dos lectores a la vez se borraban las zonas): con un candado, relee el archivo,
     pone solo esta zona y mes, y lo escribe. Devuelve el almacén actualizado."""
@@ -441,6 +460,8 @@ def guardar_lectura(zid, mm, entrada):
         almacen = cargar()
         almacen.setdefault(zid, {})[mm] = entrada
         guardar(almacen)
+        if EN_ACTIONS:
+            anotar_historial(zid, mm, entrada.get("combos"), entrada["f"])
         return almacen
     finally:
         try:
