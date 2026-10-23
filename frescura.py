@@ -1,16 +1,15 @@
 """
 frescura.py — Cuánto dura una lectura de precio según la antelación del viaje (regla del usuario, 14-10-2026).
 
-Cuanto más lejos el viaje, menos hace falta refrescarlo:
-  hasta 60 días        -> vale 2 días
-  de 61 a 120 días     -> vale 3,5 días (dos lecturas por semana)
-  más de 120 días      -> vale 1 semana
+Desde el 23-10-2026 ninguna casilla del Radar pasa de 7 días (objetivo del usuario): vale 1 semana sea cual sea la antelación.
+Antes: hasta 60 días valía 2 días, hasta 120 días 3,5 días, más lejos 1 semana (unas 400 lecturas al día: más de lo que cabe sin apretar a Kiwi).
+La prioridad de los meses cercanos no va aquí sino en el orden de lectura (radar_larga.ordenar).
 Se usa para decidir si una casilla del Radar toca leerla otra vez o ya está fresca (Flash se refresca a diario aparte).
 """
 from datetime import date, datetime
 
-VERSION = "0.1"
-TRAMOS = [(60, 48), (120, 84), (10_000, 168)]   # (días de antelación hasta, horas que vale la lectura)
+VERSION = "0.2"
+TRAMOS = [(10_000, 168)]   # (días de antelación hasta, horas que vale la lectura)
 
 
 def antelacion_dias(mes, hoy=None):

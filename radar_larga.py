@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.31"
+VERSION = "0.32"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -474,6 +474,14 @@ def _releer():
         return {}
 
 
+def ordenar(due, cerca_primero):
+    """due: [(última lectura 'AAAA-MM-DD' o '', mes, zona)]. jawdrop (cerca_primero): lo nunca leído y luego el mes más cercano. Raspberry/PC: del mes más lejano al cercano,
+    para no repetir lo de jawdrop mientras leen los dos (la fusión horaria los junta)."""
+    if cerca_primero:
+        return sorted(due, key=lambda t: (t[0] != "", t[1], t[0], t[2]))
+    return sorted(due, key=lambda t: (t[0], -(int(t[1][:4]) * 12 + int(t[1][5:])), t[2]))
+
+
 def main(argv):
     almacen = cargar()
     meses = [argv[i + 1] for i, a in enumerate(argv) if a == "--mes"]
@@ -496,10 +504,9 @@ def main(argv):
             return r.get("f") if r.get("vj") or not ZONAS[zid].get("vuelta_desde") else None   # lectura sin «vj» de una zona con vecinos = vieja
         solo = [argv[i + 1] for i, a in enumerate(argv) if a == "--zona"]
         tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (400 if EN_ACTIONS else MAX_MESES_POR_PASADA)
-        due = sorted(((ultima(zid, mm) or "", mm, zid) for zid in ZONAS if not solo or zid in solo
-                      for mm in todos if frescura.toca(mm, ultima(zid, mm))))   # primero lo nunca leído, y por mes: todos los países con un mes antes de pasar al siguiente
-        if EN_ACTIONS or "--desde-el-final" in argv:   # primero lo nunca leído, y dentro de eso el mes más lejano
-            due.sort(key=lambda t: (t[0], -(int(t[1][:4]) * 12 + int(t[1][5:])), t[2]))
+        due = [(ultima(zid, mm) or "", mm, zid) for zid in ZONAS if not solo or zid in solo
+               for mm in todos if frescura.toca(mm, ultima(zid, mm))]
+        due = ordenar(due, cerca_primero=EN_ACTIONS and "--desde-el-final" not in argv)
         print(f"Zona-meses que tocan: {len(due)}; esta pasada: {min(len(due), tope)}.")
         pares = [(zid, mm) for _, mm, zid in due[:tope]]
     else:
