@@ -1,0 +1,26 @@
+# Vigilancia del Radar desde la nube (23-10-2026): cada día, tras la pasada de la mañana, ejecuta salud_radar.py (solo lee: edad de las casillas y
+# últimas pasadas de «Radar diario»). Si hay una ALERTA (casillas atrasadas, Kiwi fallando, pasada caída o sin pasadas hace más de 36 h) el trabajo FALLA
+# y GitHub envía un correo (Settings → Notifications → Actions). No escribe nada ni gasta consultas a Kiwi.
+name: Salud del Radar
+on:
+  schedule:
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  salud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Mirar la salud del Radar
+        env:
+          PYTHONIOENCODING: utf-8
+          GH_TOKEN: ${{ github.token }}
+        run: python salud_radar.py
