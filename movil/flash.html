@@ -106,6 +106,15 @@ a.kv { color: inherit; text-decoration: none; position: relative; padding-right:
 a.kv::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: var(--sun-ink); }
 a.kv:active { background: var(--bd); }
 .kv b { font-family: var(--f-data); font-weight: 500; font-size: 14px; text-align: right; }
+.fechas { margin: 4px 0 0; font-size: 18px; font-weight: 700; }
+.tot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 2px; }
+.tot span { color: var(--muted); font-size: 15px; }
+.tot strong { font-family: var(--f-data); font-weight: 500; font-size: 38px; line-height: 1; }
+.kv .rot .rt { color: var(--ink); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 13px; }
+.vt { grid-column: 1 / -1; display: grid; gap: 4px; font-size: 18px; }
+.vt strong { font-family: var(--f-data); font-weight: 700; font-size: 20px; margin-right: 6px; }
+.vt small { font-size: 12px; color: var(--muted); }
+.kv i.pie { grid-column: 1 / -1; font-size: 13px; }
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .seg button { min-height: 48px; border: 1px solid var(--bd); border-radius: var(--r-btn); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
@@ -358,6 +367,17 @@ a.kv:active { background: var(--bd); }
   }
   function head(t, extra) { return '<div class="head"><h1>' + t + '</h1>' + (extra || "") + '</div>'; }
   function llega(t) { return t.llega + (t.mas1 ? " (+1)" : ""); }
+  // Fechas y tarjeta de vuelo comunes a Flash y Radar: fecha con día de la semana, ciudades por su nombre (no el aeropuerto) y la hora en grande.
+  var DIA_L = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  function sumaDias(iso, n) { if (!iso) return null; var d = new Date(String(iso).slice(0, 10) + "T12:00:00"); if (isNaN(d)) return null; d.setDate(d.getDate() + (n || 0)); return d; }
+  function diaTxt(d, largo) { if (!d) return ""; var n = DIA_L[d.getDay()]; return (largo ? n : n.slice(0, 3)) + " " + d.getDate() + " " + LG_MES[d.getMonth() + 1]; }
+  function nochesTxt(n) { return n + (n === 1 ? " noche" : " noches"); }
+  function vtramo(rot, fecha, precio, de, sale, a, llega, nota, enlace) {
+    var ab = enlace ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' : '<div class="kv">';
+    return ab + '<i class="rot"><span class="rt">' + rot + '</span>' + (fecha ? ' · ' + fecha : '') + '</i><b>' + precio + '</b>' +
+      '<div class="vt"><div><strong>' + sale + '</strong>' + esc(de) + '</div><div><strong>' + llega + '</strong>' + esc(a) + '</div></div>' +
+      (nota ? '<i class="pie">' + nota + '</i>' : '') + (enlace ? '</a>' : '</div>');
+  }
   // Versión publicada en Cloudflare (publicar_movil.py): los datos son una copia; su antigüedad avanza desde que se copiaron.
   function ajustarEdad(d) {
     if (window.ESCAPADAS_PUBLICADA && d && d.edad_datos != null && d.generado_en != null) d.edad_datos += Date.now() / 1000 - d.generado_en;
@@ -561,11 +581,9 @@ a.kv:active { background: var(--bd); }
       (!todos && s.opciones.length > MAX ? '<button class="cta ghost" id="vermas" type="button">Ver las ' + s.opciones.length + '</button>' : '') +
       actHtml();
   }
-  function tramoKv(rotulo, t, lugarSale, lugarLlega, enlace) {
-    var marca = (t.minimo ? " ≥" : "") + (t.aprox ? " · llegada ≈" : "");
-    var abre = enlace ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(enlace) + '" aria-label="Abrir ' + rotulo.toLowerCase() + ' en ' + esc(t.aerolinea) + '">' : '<div class="kv">';
-    return abre + '<i>' + rotulo + ' · ' + esc(t.aerolinea) + '</i><b>' + (t.precio != null ? eur(t.precio) : "—") + '</b>' +
-      '<i>' + lugarSale + ' ' + t.sale + '</i><b>llega ' + llega(t) + '</b>' + (marca ? '<i class="peq">' + marca.replace(/^ · /, "") + '</i><b></b>' : '') + (enlace ? '</a>' : '</div>');
+  function tramoKv(rotulo, fecha, t, de, a, enlace) {
+    var nota = esc(t.aerolinea) + (t.num ? " · " + esc(t.num) : "") + (t.minimo ? " · no es el más barato del día" : "") + (t.aprox ? " · llegada aproximada" : "");
+    return vtramo(rotulo, fecha, (t.minimo ? "≥ " : "") + (t.precio != null ? eur(t.precio) : "—"), de, t.sale, a, t.llega + (t.aprox ? "≈" : "") + (t.mas1 ? ' <small>+1 día</small>' : ""), nota, enlace);
   }
   var APTOS = null;   // fichas de aeropuerto (aeropuertos.json); si no carga, simplemente no se enseñan
   function sinAcentos(s) { return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
@@ -599,14 +617,16 @@ a.kv:active { background: var(--bd); }
     var botones = [["0", "Ninguno"]].concat(["1", "2"].filter(function (n) { return extra[n] != null && extra[n] < o.total; }).map(function (n) {
       return [n, n + " · −" + eur(o.total - extra[n])];
     }));
-    var desde = o.desde || o.destino;
+    var desde = o.desde || o.destino, d0 = sumaDias(s.dia, 0), d1 = sumaDias(s.dia, o.noches);
+    var pie = (o.horas != null ? '<i>Tiempo allí</i><b>' + Math.round(o.horas) + ' h</b>' : '') +
+      (o.desde ? '<i>Traslado' + (o.km ? ' (' + esc(o.km) + ' km)' : '') + '</i><b>' + esc(o.traslado || "—") + '</b>' : '');
     return '<button class="back" id="back">‹ ' + s.fecha + '</button>' +
       '<h1 class="city">' + esc(o.destino) + '</h1>' +
-      tramoKv("Ida", o.ida, "Dom El Prat", "", o.linkIda) +
-      tramoKv("Vuelta", o.vuelta, dv(o.noches) + " " + esc(desde), "", o.linkVuelta) +
-      '<div class="kv"><i>Total vuelos</i><b>' + eur(total) + '</b>' +
-      (o.horas != null ? '<i>Tiempo allí</i><b>' + Math.round(o.horas) + ' h</b>' : '') +
-      (o.desde ? '<i>Traslado' + (o.km ? ' (' + esc(o.km) + ' km)' : '') + '</i><b>' + esc(o.traslado || "—") + '</b>' : '') + '</div>' +
+      (d0 ? '<p class="fechas">' + diaTxt(d0, 1) + ' → ' + diaTxt(d1, 1) + ' · ' + nochesTxt(o.noches) + '</p>' : '') +
+      '<div class="tot"><span>Total vuelos</span><strong>' + eur(total) + '</strong></div>' +
+      tramoKv("Ida", diaTxt(d0), o.ida, "Barcelona", o.destino, o.linkIda) +
+      tramoKv("Vuelta", diaTxt(d1) || dv(o.noches), o.vuelta, desde, "Barcelona", o.linkVuelta) +
+      (pie ? '<div class="kv">' + pie + '</div>' : '') +
       (botones.length > 1 ? '<span class="sub">Días libres que pedirías</span><div class="seg" role="group" aria-label="Días libres">' +
         botones.map(function (b) { return '<button type="button" data-l="' + b[0] + '" aria-pressed="' + (+b[0] === libres) + '">' + b[1] + '</button>'; }).join("") + '</div>' : '') +
       ((o.linkIda || o.linkVuelta) ? '<p class="nota">Toca la ida o la vuelta para abrirla en la aerolínea.</p>' : '') +
@@ -644,7 +664,9 @@ a.kv:active { background: var(--bd); }
   function renderRadarFicha(x, m) {
     var p = x.pareja;
     return '<button class="back" id="backR">‹ ' + esc(m.nombre) + '</button><h1 class="city">' + esc(x.destino) + '</h1>' +
-      (p ? '<div class="kv"><i>Total ida y vuelta · ' + esc(p.aerolinea) + '</i><b style="font-size:20px">' + (p.aprox ? "≈" : "") + eur(p.total) + '</b><i>Ida</i><b>' + esc(p.ida) + '</b><i>Vuelta</i><b>' + esc(p.vuelta) + '</b>' + (p.noches ? '<i>Noches</i><b>' + p.noches + '</b>' : '') + '<i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div>'
+      (p ? '<p class="fechas">' + esc(p.idaS || p.ida) + ' → ' + esc(p.vueltaS || p.vuelta) + (p.noches ? ' · ' + nochesTxt(p.noches) : '') + '</p>' +
+        '<div class="tot"><span>Total ida y vuelta · ' + esc(p.aerolinea) + '</span><strong>' + (p.aprox ? "≈ " : "") + eur(p.total) + '</strong></div>' +
+        '<div class="kv"><i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div>'
         : '<div class="kv"><i>Total ida y vuelta</i><b>sin calcular</b><i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div><p class="nota">Aún no hay vuelta para este destino, así que no hay precio de viaje completo.</p>') +
       '<span class="sub">Cada vuelo por separado</span><div class="kv"><i>Ida más barata · ' + esc(x.aerolinea) + ' · ' + esc(x.fecha) + '</i><b>' + (x.aprox ? "≈" : "") + eur(x.precio) + '</b>' +
       x.otras.map(function (o) { return '<i>' + esc(o.aerolinea) + ' · ' + esc(o.fecha) + '</i><b>' + (o.aprox ? "≈" : "") + eur(o.precio) + '</b>'; }).join("") + '</div>' +
@@ -690,11 +712,11 @@ a.kv:active { background: var(--bd); }
     return '<div class="cq-chips"><button class="cq-chip" type="button" data-cqv="semana" aria-pressed="' + (CQ.vista === "semana") + '">Semana</button>' +
       '<button class="cq-chip" type="button" data-cqv="larga" aria-pressed="' + (CQ.vista === "larga") + '">Larga · con escalas</button></div>';
   }
-  function lgTramo(rot, t, sale, llega) {
-    return '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' +
-      '<i>' + rot + ' · ' + esc(t.aerolineas.join(" + ")) + '</i><b>' + (t.precio == null ? 'incluido en la ida' : '≈ ' + eur(t.precio) + (t.conjunto ? ' · ida y vuelta' : '')) + '</b>' +
-      '<i>' + sale + ' ' + lgFecha(t.fecha) + ' ' + t.sale + '</i><b>llega ' + esc(llega) + ' ' + lgLlega(t.llega) + '</b>' +
-      '<i class="peq">' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : '') + '</i><b></b></a>' + lgHilo(t);
+  function lgTramo(rot, t, de, a) {
+    var m = /^(\d\d)-(\d\d) (\d\d:\d\d)$/.exec(t.llega || ""), otroDia = m && (m[1] !== String(t.fecha).slice(5, 7) || m[2] !== String(t.fecha).slice(8, 10));
+    return vtramo(rot, diaTxt(sumaDias(t.fecha)), t.precio == null ? 'incluido en la ida' : '≈ ' + eur(t.precio) + (t.conjunto ? ' · ida y vuelta' : ''), de, t.sale, a,
+      m ? m[3] + (otroDia ? ' <small>' + (+m[2]) + ' ' + LG_MES[+m[1]] + '</small>' : '') : esc(t.llega),
+      esc(t.aerolineas.join(" + ")) + ' · ' + lgVia(t) + (t.sueltos ? ' · posibles billetes sueltos' : ''), t.enlace) + lgHilo(t);
   }
   function lgHilo(t) {   // cada vuelo suelto de la ruta, con enlace al buscador de esa fecha: así se puede mover ±1-4 días en la aerolínea
     if (!t.vuelos || t.vuelos.length < 2) return "";
@@ -732,7 +754,7 @@ a.kv:active { background: var(--bd); }
     if (LG.abierto >= 0) {
       var c = m.combos[LG.abierto];
       return '<button class="back" id="lgback">‹ ' + esc(z.nombre) + ' · ' + esc(m.nombre) + '</button><h1 class="city">' + lgTitulo(c) + '</h1>' + lgOrigenMad(c) +
-        lgTramo("Ida", c.ida, c.madrid ? "Sales de Barajas" : "Sales de El Prat", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, "Sales de " + esc(c.vuelta.desde_ciudad), c.madrid ? "Barajas" : "El Prat") + lgMadrid(c) +
+        lgTramo("Ida", c.ida, c.madrid ? "Madrid" : "Barcelona", c.ida.ciudad) + lgTramo("Vuelta", c.vuelta, c.vuelta.desde_ciudad, c.madrid ? "Madrid" : "Barcelona") + lgMadrid(c) +
         '<div class="kv"><i>Total vuelos (ida + vuelta)</i><b>≈ ' + eur(c.total) + '</b><i>Noches fuera</i><b>' + c.noches + '</b></div>' +
         (c.mismo ? '' : '<p class="nota">Llegas a ' + esc(c.ida.ciudad) + ' y vuelves desde ' + esc(c.vuelta.desde_ciudad) + ': el trayecto entre medias es parte del viaje y no está en el precio.' +
           (c.interno ? ' <b>Referencia:</b> si solo quisieras ver ' + esc(c.vuelta.desde_ciudad) + ', un vuelo ' + c.interno.desde + ' → ' + c.interno.hasta + ' sale desde ' + eur(c.interno.precio) + ' (' + esc(c.interno.aerolinea) + '), según el día.' : '') + '</p>') +
@@ -796,10 +818,8 @@ a.kv:active { background: var(--bd); }
   function cqDia(f) { var d = new Date(String(f).slice(0, 10) + "T12:00:00"); return CQ_DIA[d.getDay()] + " " + d.getDate() + " " + LG_MES[d.getMonth() + 1]; }
   // Vuelo suelto de la ficha (lecturas con detalle «t»): mismo formato de tarjeta que en Flash; el enlace lleva al proveedor.
   function cqTramo(rot, t) {
-    var ab = t.e ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(t.e) + '" aria-label="Abrir ' + rot.toLowerCase() + ' en ' + esc(t.a) + '">' : '<div class="kv">';
-    return ab + '<i>' + rot + ' · ' + esc(t.a) + (t.n ? ' · ' + esc(t.n) : '') + '</i><b>' + (t.p != null ? eur(t.p) : "—") + '</b>' +
-      '<i>' + cqDia(t.s) + ' · ' + t.s.slice(11) + ' ' + esc(t.d) + '</i><b>llega ' + (t.l ? t.l.slice(11) + ' ' + esc(t.h) : esc(t.h)) + '</b>' +
-      (t.x ? '<i class="peq">llegada ≈</i><b></b>' : '') + (t.e ? '</a>' : '</div>');
+    return vtramo(rot, diaTxt(sumaDias(t.s)), t.p != null ? eur(t.p) : "—", t.d, t.s.slice(11), t.h, t.l ? t.l.slice(11) + (t.x ? "≈" : "") + (t.l.slice(0, 10) !== t.s.slice(0, 10) ? ' <small>+1 día</small>' : "") : "—",
+      esc(t.a) + (t.n ? ' · ' + esc(t.n) : '') + (t.x ? ' · llegada aproximada' : ''), t.e);
   }
   function cqFicha(f, j, D) {
     var c = f.celdas[j], m = D.meses[j], mb = cqMejor(f);
@@ -817,7 +837,7 @@ a.kv:active { background: var(--bd); }
       '</div>';
     if (c.esc) {
       var e = c.esc;
-      h += lgOrigenMad(e) + lgTramo("Ida", e.ida, e.madrid ? "Sales de Barajas" : "Sales de El Prat", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, "Sales de " + esc(e.vuelta.desde_ciudad), e.madrid ? "Barajas" : "El Prat") + lgMadrid(e) +
+      h += lgOrigenMad(e) + lgTramo("Ida", e.ida, e.madrid ? "Madrid" : "Barcelona", e.ida.ciudad) + lgTramo("Vuelta", e.vuelta, e.vuelta.desde_ciudad, e.madrid ? "Madrid" : "Barcelona") + lgMadrid(e) +
         (e.hub ? '<p><b>Hub + vuelo suelto, sumado al total:</b> ' + esc(e.hub.ap) + ' → Bangkok el ' + lgFecha(e.hub.ida.fecha) + ' (' + esc(e.hub.ida.aerolinea) + ', ' + eur(e.hub.ida.precio) + ') y Bangkok → ' + esc(e.hub.ap) + ' el ' + lgFecha(e.hub.vuelta.fecha) + ' (' + esc(e.hub.vuelta.aerolinea) + ', ' + eur(e.hub.vuelta.precio) + '). Billetes aparte: si el primero se retrasa, el segundo se pierde.</p>' : '') +
         '<p>' + e.noches + ' noches · precios de Kiwi (≈)</p>';
     } else if (c.t) {

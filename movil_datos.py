@@ -16,10 +16,11 @@ import json
 import semaforo
 import ver_resultados as vr
 
-VERSION = "0.6"
+VERSION = "0.7"
 
 AEROLINEAS = {"FR": "Ryanair", "W6": "Wizz Air", "W4": "Wizz Air", "VY": "Vueling"}
 MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 DIAS_VUELTA = {1: "Lun", 2: "Mar", 3: "Mié", 4: "Jue"}
 
 
@@ -42,8 +43,9 @@ def _tramo(texto):
     p = re.search(r"([≥≈]?)\s*([\d]+(?:[.,]\d+)?)\s*€", texto[m.end():])
     sigla = re.match(r"\s*([A-Z0-9]{2})\b", texto)
     sig = sigla.group(1) if sigla else ""
+    num = re.match(r"\s*[A-Z0-9]{2}\s+(\d{2,4})(?![\d:])", texto)   # «FR 3167»; sin número si el texto sigue con la hora
     return {
-        "aerolinea": AEROLINEAS.get(sig, sig),
+        "aerolinea": AEROLINEAS.get(sig, sig), "num": f"{sig} {num.group(1)}" if num else "",
         "sale": m.group(1), "llega": m.group(3), "mas1": bool(m.group(4)),
         "aprox": bool(m.group(2)),                      # hora de llegada calculada (Wizz)
         "precio": float(p.group(2).replace(",", ".")) if p else None,
@@ -119,6 +121,11 @@ def _dia(f):
     return f"{d.day} {MESES[d.month - 1]}"
 
 
+def _dia_sem(f):
+    d = date.fromisoformat(f)
+    return f"{SEMANA[d.weekday()]} {d.day} {MESES[d.month - 1]}"
+
+
 def _cargar_radar():
     # Se lee el archivo directamente (sin importar radar.py, que arrastra las aerolíneas): solo lectura.
     try:
@@ -148,6 +155,7 @@ def datos_radar(hoy=None):
                 "otras": [{"aerolinea": o["aerolinea"], "fecha": _dia(o["ida"][0]), "precio": o["ida"][1],
                            "aprox": bool(o["orientativo"])} for o in x.get("otras", [])],
                 "pareja": ({"aerolinea": p["aerolinea"], "ida": _dia(p["ida"]), "vuelta": _dia(p["vuelta"]),
+                            "idaS": _dia_sem(p["ida"]), "vueltaS": _dia_sem(p["vuelta"]),
                             "total": p["total"], "noches": p.get("noches"), "aprox": bool(p.get("orientativo"))}
                            if p else None)})
         a, mm = mes.split("-")
