@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.32"
+VERSION = "0.33"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -464,6 +464,7 @@ def construir(almacen):
     print(f"{sum(len(z['meses']) for z in zonas)} zona-meses → {SALIDA}")
 
 
+HORAS_GOTOGATE = 28 * 24   # Cuba y Micronesia: caras (1.000-9.000 €) y lentas de leer; con un mes basta
 RELEER = CARPETA / "datos" / "releer_antes_de.txt"   # líneas «zona AAAA-MM-DD»: las lecturas de esa zona anteriores a esa fecha cuentan como caducadas (la Raspberry las relee enseguida, sin esperar su frescura)
 
 
@@ -477,9 +478,10 @@ def _releer():
 def ordenar(due, cerca_primero):
     """due: [(última lectura 'AAAA-MM-DD' o '', mes, zona)]. jawdrop (cerca_primero): lo nunca leído y luego el mes más cercano. Raspberry/PC: del mes más lejano al cercano,
     para no repetir lo de jawdrop mientras leen los dos (la fusión horaria los junta)."""
+    lenta = lambda z: bool(ZONAS[z].get("gotogate"))   # GoToGate tarda ~9 s por consulta: al final de la cola para no encallar la pasada
     if cerca_primero:
-        return sorted(due, key=lambda t: (t[0] != "", t[1], t[0], t[2]))
-    return sorted(due, key=lambda t: (t[0], -(int(t[1][:4]) * 12 + int(t[1][5:])), t[2]))
+        return sorted(due, key=lambda t: (lenta(t[2]), t[0] != "", t[1], t[0], t[2]))
+    return sorted(due, key=lambda t: (lenta(t[2]), t[0], -(int(t[1][:4]) * 12 + int(t[1][5:])), t[2]))
 
 
 def main(argv):
@@ -505,7 +507,7 @@ def main(argv):
         solo = [argv[i + 1] for i, a in enumerate(argv) if a == "--zona"]
         tope = int(argv[argv.index("--max") + 1]) if "--max" in argv else (400 if EN_ACTIONS else MAX_MESES_POR_PASADA)
         due = [(ultima(zid, mm) or "", mm, zid) for zid in ZONAS if not solo or zid in solo
-               for mm in todos if frescura.toca(mm, ultima(zid, mm))]
+               for mm in todos if frescura.toca(mm, ultima(zid, mm), horas=HORAS_GOTOGATE if ZONAS[zid].get("gotogate") else None)]
         due = ordenar(due, cerca_primero=EN_ACTIONS and "--desde-el-final" not in argv)
         print(f"Zona-meses que tocan: {len(due)}; esta pasada: {min(len(due), tope)}.")
         pares = [(zid, mm) for _, mm, zid in due[:tope]]

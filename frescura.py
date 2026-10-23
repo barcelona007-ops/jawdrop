@@ -1,15 +1,15 @@
 """
 frescura.py — Cuánto dura una lectura de precio según la antelación del viaje (regla del usuario, 14-10-2026).
 
-Desde el 23-10-2026 ninguna casilla del Radar pasa de 7 días (objetivo del usuario): vale 1 semana sea cual sea la antelación.
-Antes: hasta 60 días valía 2 días, hasta 120 días 3,5 días, más lejos 1 semana (unas 400 lecturas al día: más de lo que cabe sin apretar a Kiwi).
-La prioridad de los meses cercanos no va aquí sino en el orden de lectura (radar_larga.ordenar).
-Se usa para decidir si una casilla del Radar toca leerla otra vez o ya está fresca (Flash se refresca a diario aparte).
+Desde el 23-10-2026 (el usuario: menos carga a Kiwi, no hace falta tanta puntualidad; no compra nada a largo plazo):
+  hasta 120 días       -> vale 7 días (nunca más de una semana)
+  más de 120 días      -> vale 21 días
+Antes: 2 / 3,5 / 7 días (unas 400 lecturas al día); con esto, ~160. La prioridad de los meses cercanos va en el orden de lectura (radar_larga.ordenar).
 """
 from datetime import date, datetime
 
-VERSION = "0.2"
-TRAMOS = [(10_000, 168)]   # (días de antelación hasta, horas que vale la lectura)
+VERSION = "0.3"
+TRAMOS = [(120, 168), (10_000, 504)]   # (días de antelación hasta, horas que vale la lectura)
 
 
 def antelacion_dias(mes, hoy=None):
@@ -24,13 +24,13 @@ def horas_validas(mes, hoy=None):
     return next(h for tope, h in TRAMOS if d <= tope)
 
 
-def toca(mes, ultima_lectura, ahora=None):
+def toca(mes, ultima_lectura, ahora=None, horas=None):
     """True si la casilla `mes` hay que leerla otra vez. `ultima_lectura`: 'AAAA-MM-DD' o None (nunca leída)."""
     if not ultima_lectura:
         return True
     ahora = ahora or datetime.now()
     edad_h = (ahora - datetime.fromisoformat(ultima_lectura)).total_seconds() / 3600
-    return edad_h >= horas_validas(mes, ahora.date())
+    return edad_h >= (horas or horas_validas(mes, ahora.date()))
 
 
 if __name__ == "__main__":
