@@ -23,7 +23,7 @@ import kiwi
 import marcha
 import trenes
 
-VERSION = "0.33"
+VERSION = "0.34"
 CARPETA = Path(__file__).resolve().parent
 ALMACEN = CARPETA / "datos" / "radar_larga.json"
 SALIDA = CARPETA / "movil" / "larga.json"
@@ -31,6 +31,7 @@ PRESUPUESTO_ACTIONS = 180 * 60   # segundos de lectura por pasada en jawdrop (la
 MAX_MESES_POR_PASADA = 60   # ~75 s cada uno: ~40 min por pasada diaria (en jawdrop los minutos no cuentan). Primera carga grande: --max 120
 EN_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"   # jawdrop: lee desde el mes MÁS LEJANO y con tope 400 y presupuesto de 180 min (con pausa 1 s de kiwi.py una casilla tarda ~10-90 s; un trabajo no puede pasar de 5,6 h o perdería lo leído); el PC lee desde el más cercano, así no se pisan
 REFRESCO_CADA = 5   # lecturas entre reconstrucciones de movil/cuadricula.json (3 s cada una): la cuadrícula se va llenando mientras se lee
+INTERNOS_POR_LECTURA = 2   # vuelos internos que se consultan por zona y mes (solo son «referencia» en la ficha; menos carga a Kiwi, 23-10-2026). Con vuelta desde vecinos se consultan todos: deciden si compensa
 TOP = 6   # combinaciones que se guardan por zona y mes (la más barata de cada pareja de aeropuertos)
 NOMBRES_MES = ["", "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
@@ -304,7 +305,7 @@ def _leer(paises, z, mes, avisar, solo=None, origen="BCN", vuelta=None):
     for it in vueltas:
         ciudad_de.setdefault(it["tramos"][0]["desde"], it["tramos"][0].get("ciudad_desde") or it["tramos"][0]["desde"])
     out = []
-    for c in escalas.con_tramo_interno(combos, max_pares=TOP, avisar=lambda t: avisar(f"  {mes} {t}")):
+    for c in escalas.con_tramo_interno(combos, max_pares=TOP, max_consultas=None if vuelta else INTERNOS_POR_LECTURA, avisar=lambda t: avisar(f"  {mes} {t}")):
         i, v = c["ida"], c["vuelta"]
         a, b = i["destino"], v["tramos"][0]["desde"]
         ida, vuelta = _tramo(i, "ida"), _tramo(v, "vuelta")

@@ -22,7 +22,7 @@ from datetime import date, timedelta
 import kiwi
 import paises
 
-VERSION = "0.8"
+VERSION = "0.9"
 HORAS_CONEXION_MAX = 6
 HORAS_STOPOVER_MIN = 8
 HORAS_DIA_MIN = 5
@@ -124,15 +124,15 @@ def openjaw(paises, mes, noches=(25, 35), paradas=2, origen="BCN", paises_vuelta
     return combos, idas, vueltas
 
 
-def con_tramo_interno(combos, max_pares=20, avisar=print):
+def con_tramo_interno(combos, max_pares=20, avisar=print, max_consultas=None):
     """Open-jaw de verdad: si la ida llega a X y la vuelta sale de Y, hay que ir de X a Y. Para las `max_pares` parejas de aeropuertos
     más baratas, busca el vuelo DIRECTO X→Y más barato entre dos días después de llegar y el día antes de la vuelta, y lo suma al total.
     Sin vuelo directo: `interno` = None y la combinación queda fuera del orden (el traslado lo buscaría él, por tierra u otra ruta).
-    Una consulta por pareja. Devuelve las combinaciones (también las de mismo aeropuerto, sin tramo) ordenadas por `total_real`."""
+    Una consulta por pareja (con `max_consultas`, solo las N más baratas se consultan; el resto queda con `interno` = None). Devuelve las combinaciones (también las de mismo aeropuerto, sin tramo) ordenadas por `total_real`."""
     mejores = {}
     for c in combos:
         mejores.setdefault((c["ida"]["destino"], c["vuelta"]["tramos"][0]["desde"]), c)
-    res = []
+    res, consultas = [], 0
     for k, (par, c) in enumerate(list(mejores.items())[:max_pares], 1):
         a, b = par
         c = dict(c, interno=None)
@@ -141,7 +141,8 @@ def con_tramo_interno(combos, max_pares=20, avisar=print):
         else:
             di = date.fromisoformat(c["ida"]["salida"]) + timedelta(days=2)
             dv = date.fromisoformat(c["vuelta"]["salida"]) - timedelta(days=1)
-            if di <= dv:
+            if di <= dv and (max_consultas is None or consultas < max_consultas):
+                consultas += 1
                 avisar(f"  tramo interno {k}/{min(len(mejores), max_pares)}: {a} → {b}")
                 try:
                     vs = kiwi.rango([f"Airport:{a}"], [f"Airport:{b}"], di.isoformat(), dv.isoformat(), excluir=(), limite=10)
