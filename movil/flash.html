@@ -111,8 +111,9 @@ a.kv:active { background: var(--bd); }
 .tot span { color: var(--muted); font-size: 15px; }
 .tot strong { font-family: var(--f-data); font-weight: 500; font-size: 38px; line-height: 1; }
 .kv .rot .rt { color: var(--ink); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 13px; }
-.vt { grid-column: 1 / -1; display: grid; gap: 4px; font-size: 18px; }
-.vt strong { font-family: var(--f-data); font-weight: 700; font-size: 20px; margin-right: 6px; }
+.vt { grid-column: 1 / -1; display: grid; gap: 2px; }
+.vt .ruta { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.vt .hh { font-family: var(--f-data); font-size: 16px; }
 .vt small { font-size: 12px; color: var(--muted); }
 .kv i.pie { grid-column: 1 / -1; font-size: 13px; }
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -375,7 +376,7 @@ a.kv:active { background: var(--bd); }
   function vtramo(rot, fecha, precio, de, sale, a, llega, nota, enlace) {
     var ab = enlace ? '<a class="kv" target="_blank" rel="noopener" href="' + esc(enlace) + '" aria-label="Abrir ' + rot.toLowerCase() + '">' : '<div class="kv">';
     return ab + '<i class="rot"><span class="rt">' + rot + '</span>' + (fecha ? ' · ' + fecha : '') + '</i><b>' + precio + '</b>' +
-      '<div class="vt"><div><strong>' + sale + '</strong>' + esc(de) + '</div><div><strong>' + llega + '</strong>' + esc(a) + '</div></div>' +
+      '<div class="vt"><span class="ruta">' + esc(de) + ' → ' + esc(a) + '</span><span class="hh">' + sale + ' – ' + llega + '</span></div>' +
       (nota ? '<i class="pie">' + nota + '</i>' : '') + (enlace ? '</a>' : '</div>');
   }
   // Versión publicada en Cloudflare (publicar_movil.py): los datos son una copia; su antigüedad avanza desde que se copiaron.
@@ -622,8 +623,7 @@ a.kv:active { background: var(--bd); }
       (o.desde ? '<i>Traslado' + (o.km ? ' (' + esc(o.km) + ' km)' : '') + '</i><b>' + esc(o.traslado || "—") + '</b>' : '');
     return '<button class="back" id="back">‹ ' + s.fecha + '</button>' +
       '<h1 class="city">' + esc(o.destino) + '</h1>' +
-      (d0 ? '<p class="fechas">' + diaTxt(d0, 1) + ' → ' + diaTxt(d1, 1) + ' · ' + nochesTxt(o.noches) + '</p>' : '') +
-      '<div class="tot"><span>Total vuelos</span><strong>' + eur(total) + '</strong></div>' +
+      '<div class="tot"><span>Total vuelos · ' + nochesTxt(o.noches) + '</span><strong>' + eur(total) + '</strong></div>' +
       tramoKv("Ida", diaTxt(d0), o.ida, "Barcelona", o.destino, o.linkIda) +
       tramoKv("Vuelta", diaTxt(d1) || dv(o.noches), o.vuelta, desde, "Barcelona", o.linkVuelta) +
       (pie ? '<div class="kv">' + pie + '</div>' : '') +
@@ -664,8 +664,7 @@ a.kv:active { background: var(--bd); }
   function renderRadarFicha(x, m) {
     var p = x.pareja;
     return '<button class="back" id="backR">‹ ' + esc(m.nombre) + '</button><h1 class="city">' + esc(x.destino) + '</h1>' +
-      (p ? '<p class="fechas">' + esc(p.idaS || p.ida) + ' → ' + esc(p.vueltaS || p.vuelta) + (p.noches ? ' · ' + nochesTxt(p.noches) : '') + '</p>' +
-        '<div class="tot"><span>Total ida y vuelta · ' + esc(p.aerolinea) + '</span><strong>' + (p.aprox ? "≈ " : "") + eur(p.total) + '</strong></div>' +
+      (p ? '<div class="tot"><span>' + esc(p.idaS || p.ida) + ' → ' + esc(p.vueltaS || p.vuelta) + (p.noches ? ' · ' + nochesTxt(p.noches) : '') + '</span><strong>' + (p.aprox ? "≈ " : "") + eur(p.total) + '</strong></div>' +
         '<div class="kv"><i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div>'
         : '<div class="kv"><i>Total ida y vuelta</i><b>sin calcular</b><i>País</i><b>' + esc(x.pais) + (x.nuevo ? " · nuevo" : "") + '</b></div><p class="nota">Aún no hay vuelta para este destino, así que no hay precio de viaje completo.</p>') +
       '<span class="sub">Cada vuelo por separado</span><div class="kv"><i>Ida más barata · ' + esc(x.aerolinea) + ' · ' + esc(x.fecha) + '</i><b>' + (x.aprox ? "≈" : "") + eur(x.precio) + '</b>' +
