@@ -2,14 +2,14 @@
 frescura.py — Cuánto dura una lectura de precio según la antelación del viaje (regla del usuario, 14-10-2026).
 
 Desde el 23-10-2026 (el usuario: menos carga a Kiwi, no hace falta tanta puntualidad; no compra nada a largo plazo):
-  hasta 120 días       -> vale 7 días (nunca más de una semana)
-  más de 120 días      -> vale 21 días
+  hasta 180 días (6 meses) -> vale 7 días (nunca más de una semana)
+  más de 180 días         -> vale 21 días
 Antes: 2 / 3,5 / 7 días (unas 400 lecturas al día); con esto, ~160. La prioridad de los meses cercanos va en el orden de lectura (radar_larga.ordenar).
 """
 from datetime import date, datetime
 
-VERSION = "0.3"
-TRAMOS = [(120, 168), (10_000, 504)]   # (días de antelación hasta, horas que vale la lectura)
+VERSION = "0.4"
+TRAMOS = [(180, 168), (10_000, 504)]   # (días de antelación hasta, horas que vale la lectura)
 
 
 def antelacion_dias(mes, hoy=None):
