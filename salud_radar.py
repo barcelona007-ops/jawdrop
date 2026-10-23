@@ -6,6 +6,7 @@ si terminaron, cuántas casillas leyeron y cuántas fallaron por Kiwi (502/503/�
 Uso:  .venv\\Scripts\\python.exe salud_radar.py [--pasadas 4]     (necesita `gh` con sesión iniciada)
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -14,7 +15,7 @@ from datetime import date, datetime, timezone
 import frescura
 import radar_larga
 
-VERSION = "0.1"
+VERSION = "0.2"
 REPO = "TU_USUARIO/jawdrop"
 MARGEN = 1.5          # una lectura se da por atrasada cuando pasa 1,5 veces lo que debería valer
 MAX_ATRASADAS = 0.05  # alerta si más del 5 % de las casillas están atrasadas
@@ -30,7 +31,10 @@ def gh(*args):
 
 
 def edades():
-    datos = json.loads(gh("api", f"repos/{REPO}/contents/datos/radar_larga.json", "-H", "Accept: application/vnd.github.raw"))
+    if os.environ.get("GITHUB_ACTIONS") == "true":   # en jawdrop el archivo ya está en la copia de trabajo (la API de contenidos dio 404 desde Actions)
+        datos = json.loads(radar_larga.ALMACEN.read_text(encoding="utf-8"))
+    else:
+        datos = json.loads(gh("api", f"repos/{REPO}/contents/datos/radar_larga.json", "-H", "Accept: application/vnd.github.raw"))
     hoy, y, m, meses = date.today(), date.today().year, date.today().month, []
     for _ in range(12):
         meses.append(f"{y}-{m:02d}")
