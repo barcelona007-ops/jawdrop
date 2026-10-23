@@ -15,8 +15,8 @@ from datetime import date, datetime, timezone
 import frescura
 import radar_larga
 
-VERSION = "0.2"
-REPO = "TU_USUARIO/jawdrop"
+VERSION = "0.3"
+REPO = os.environ.get("GITHUB_REPOSITORY") or "TU_USUARIO/jawdrop"   # en jawdrop la copia pública cambia el nombre del dueño por TU_USUARIO: por eso se lee del entorno
 MARGEN = 1.5          # una lectura se da por atrasada cuando pasa 1,5 veces lo que debería valer
 MAX_ATRASADAS = 0.05  # alerta si más del 5 % de las casillas están atrasadas
 MAX_FALLOS = 0.15     # alerta si más del 15 % de las lecturas de una pasada fallan por Kiwi
