@@ -21,12 +21,12 @@ concurrency: buscar
 jobs:
   buscar:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 240   # 23 y 24-10 se cortaron a los 150 min a punto de acabar (error 1102 de Cloudflare y «ocupada»); en el repo público los minutos no cuentan
     steps:
       - name: Empezar (si toca) y dar pasos hasta terminar
         env:
           EMPEZAR: ${{ github.event.inputs.empezar || 'sí' }}
-          TANDA: "5"
+          TANDA: "4"   # 5 → 4 (24-10): menos trabajo por llamada a Cloudflare (error 1102); 3 alargaría una búsqueda en frío a ~2 h
           PAUSA: "45"
         run: |
           U="${{ secrets.ESCAPADAS_URL }}/api/actualizar"
